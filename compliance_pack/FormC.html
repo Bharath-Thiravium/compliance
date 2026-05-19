@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>FORM C - Register of Loan / Recoveries / Damage / Loss / Fine / Advance</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            padding: 15px;
+            font-size: 11px;
+        }
+        .form-container {
+            border: 2px solid black;
+            padding: 15px;
+            width: 100%;
+        }
+        .form-header {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 12px;
+        }
+        .form-header div {
+            margin: 3px 0;
+            font-weight: bold;
+        }
+        .establishment-info {
+            margin-bottom: 15px;
+            font-size: 11px;
+        }
+        .info-row {
+            display: flex;
+            margin-bottom: 8px;
+        }
+        .info-label {
+            font-weight: bold;
+            width: 25%;
+        }
+        .info-value {
+            width: 75%;
+            border-bottom: 1px solid black;
+            padding: 2px 5px;
+        }
+        .register-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid black;
+            font-size: 11px;
+            margin-bottom: 20px;
+        }
+        .register-table th,
+        .register-table td {
+            border: 1px solid black;
+            padding: 6px 4px;
+            text-align: left;
+            vertical-align: top;
+        }
+        .register-table th {
+            font-weight: bold;
+            background-color: #fff;
+            word-wrap: break-word;
+            line-height: 1.2;
+            font-size: 10px;
+            height: 35px;
+        }
+        .register-table td {
+            height: 25px;
+            word-wrap: break-word;
+        }
+        .col-1 { width: 4%; text-align: center; }
+        .col-2 { width: 8%; }
+        .col-3 { width: 10%; }
+        .col-4 { width: 8%; }
+        .col-5 { width: 8%; }
+        .col-6 { width: 7%; }
+        .col-7 { width: 8%; }
+        .col-8 { width: 8%; }
+        .col-9 { width: 7%; }
+        .col-10 { width: 7%; }
+        .col-11 { width: 7%; }
+        .col-12 { width: 8%; }
+        .col-13 { width: 8%; }
+        .footer-note {
+            font-size: 10px;
+            margin-bottom: 20px;
+        }
+        .signature-space {
+            margin-top: 40px;
+            height: 60px;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <div class="form-header">
+            <div>FORM C</div>
+            <div>REGISTER OF LOAN / RECOVERIES / Damage / loss / fine / advance</div>
+            <div>[See rule 2(1)]</div>
+        </div>
+
+        <div class="establishment-info">
+            <div class="info-row">
+                <div class="info-label">Name of the Establishment :-</div>
+                <div class="info-value"></div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Name of Owner :-</div>
+                <div class="info-value"></div>
+            </div>
+        </div>
+
+        <table class="register-table">
+            <thead>
+                <tr>
+                    <th class="col-1">Sr. No</th>
+                    <th class="col-2">Name</th>
+                    <th class="col-3">Recovery Type (damage / loss / fine / advance / loans)</th>
+                    <th class="col-4">Particulars</th>
+                    <th class="col-5">Date of damage / loss</th>
+                    <th class="col-6">Amount</th>
+                    <th class="col-7">Whether show cause issued</th>
+                    <th class="col-8">Explanation heard in presence of</th>
+                    <th class="col-9">Number of Instalments</th>
+                    <th class="col-10">First Month / Year</th>
+                    <th class="col-11">Last Month / Year</th>
+                    <th class="col-12">Date of Complete Recovery</th>
+                    <th class="col-13">Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                                    <tr>
+                        <td colspan="13" style="text-align:center;">No records found</td>
+                    </tr>
+                            </tbody>
+        </table>
+
+        <div class="footer-note">
+            *Applicable only in case of damage/loss/fine
+        </div>
+
+        <div class="signature-space"></div>
+    </div>
+</body>
+</html>

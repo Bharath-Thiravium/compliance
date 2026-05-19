@@ -1,0 +1,23 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('compliance_batch_forms', function (Blueprint $table) {
+            // Change file_path to have a default value instead of being nullable
+            $table->string('file_path')->default('storage/forms/pending/placeholder.pdf')->change();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('compliance_batch_forms', function (Blueprint $table) {
+            $table->string('file_path')->nullable()->change();
+        });
+    }
+};

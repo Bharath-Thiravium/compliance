@@ -1,0 +1,263 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>FORM 26 - Register of Accidents</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            padding: 12px;
+            font-size: 9px;
+        }
+        .form-container {
+            border: 1px solid black;
+            padding: 10px;
+            margin: 0 auto;
+            width: 99%;
+        }
+        .form-header {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 10px;
+        }
+        .form-header div {
+            margin: 2px 0;
+        }
+        .header-title {
+            font-weight: bold;
+        }
+        .factory-details {
+            margin-bottom: 8px;
+            font-size: 9px;
+        }
+        .detail-row {
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+        }
+        .detail-label {
+            font-weight: bold;
+            width: 9%;
+            margin-right: 5px;
+        }
+        .detail-line {
+            flex: 1;
+            border-bottom: 1px solid black;
+            height: 10px;
+            padding-left: 3px;
+        }
+        .detail-row-two-col {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 4px;
+        }
+        .detail-col {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+        .detail-col .detail-label {
+            width: 19%;
+        }
+        .detail-col .detail-line {
+            flex: 1;
+        }
+        .accidents-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid black;
+            font-size: 7px;
+            margin-bottom: 8px;
+            table-layout: fixed;
+        }
+        .accidents-table th,
+        .accidents-table td {
+            border: 1px solid black;
+            padding: 2px 2px;
+            text-align: center;
+            vertical-align: middle;
+            height: 16px;
+            word-wrap: break-word;
+            word-break: break-word;
+        }
+        .accidents-table th {
+            font-weight: bold;
+            background-color: #fff;
+            line-height: 1.1;
+        }
+        .accidents-table td {
+            text-align: left;
+        }
+        .col-1 {
+            width: 5%;
+        }
+        .col-2 {
+            width: 6%;
+        }
+        .col-3 {
+            width: 7%;
+        }
+        .col-4 {
+            width: 8%;
+        }
+        .col-5 {
+            width: 10%;
+        }
+        .col-6 {
+            width: 10%;
+        }
+        .col-7 {
+            width: 6%;
+        }
+        .col-8 {
+            width: 6%;
+        }
+        .col-9 {
+            width: 6%;
+        }
+        .col-10 {
+            width: 6%;
+        }
+        .col-11 {
+            width: 6%;
+        }
+        .col-12 {
+            width: 6%;
+        }
+        .col-13 {
+            width: 8%;
+        }
+        .col-14 {
+            width: 8%;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .footer-section {
+            margin-top: 8px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+        }
+        .footer-left {
+            flex: 1;
+        }
+        .footer-right {
+            flex: 1;
+            text-align: right;
+        }
+        .signature-line {
+            margin-top: 30px;
+            border-top: 1px solid #000;
+            width: 150px;
+            margin-left: auto;
+        }
+        .signature-label {
+            margin-top: 2px;
+            font-weight: bold;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <!-- Header -->
+        <div class="form-header">
+            <div>The Tamil Nadu Factories Rules</div>
+            <div class="header-title">FORM 26</div>
+            <div>(Prescribed under Rule 104)</div>
+            <div class="header-title">Register of Accidents</div>
+        </div>
+
+        <!-- Factory Details -->
+        <div class="factory-details">
+            <div class="detail-row">
+                <div class="detail-label">Name and address of the factory</div>
+                <div class="detail-line">Hinduja Renewables – MAK47 Unit Survey No. 47, Sivagangai Industrial Estate, Sivagangai, Tamil Nadu – 630561</div>
+            </div>
+
+            <div class="detail-row-two-col">
+                <div class="detail-col">
+                    <div class="detail-label">Calendar year</div>
+                    <div class="detail-line">2026</div>
+                </div>
+                <div class="detail-col">
+                    <div class="detail-label">Registration number of the factory</div>
+                    <div class="detail-line"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Accidents Register Table -->
+        <table class="accidents-table">
+            <thead>
+                <tr>
+                    <th class="col-1">Running Sl. No. of the accident for the calendar year</th>
+                    <th class="col-2">Date and hour of accident</th>
+                    <th class="col-3">Name and designation of person injured</th>
+                    <th class="col-4">Exact place in the factory (Branch, Department, Machine, etc) where the accident occurred</th>
+                    <th class="col-5">A full clear description of how the accident occurred</th>
+                    <th class="col-6">Nature, extent, location, etc, of injury received</th>
+                    <th class="col-7">Date of despatch of report on Form 18</th>
+                    <th class="col-8">Date of return to work of persons injured</th>
+                    <th class="col-9">Date of despatch of report to the Inspector of the date of return to work of the person injured</th>
+                    <th class="col-10">Date/s of despatch of subsequent report/s in Form 18B</th>
+                    <th class="col-11">Number of days the person injured was away from work</th>
+                    <th class="col-12">Number of man-days lost</th>
+                    <th class="col-13">Details of disablement and loss of earning capacity, if any</th>
+                    <th class="col-14">Remarks and initials of Manager</th>
+                </tr>
+                <tr>
+                    <th class="col-1 text-center">(1)</th>
+                    <th class="col-2 text-center">(2)</th>
+                    <th class="col-3 text-center">(3)</th>
+                    <th class="col-4 text-center">(4)</th>
+                    <th class="col-5 text-center">(5)</th>
+                    <th class="col-6 text-center">(6)</th>
+                    <th class="col-7 text-center">(7)</th>
+                    <th class="col-8 text-center">(8)</th>
+                    <th class="col-9 text-center">(9)</th>
+                    <th class="col-10 text-center">(10)</th>
+                    <th class="col-11 text-center">(11)</th>
+                    <th class="col-12 text-center">(12)</th>
+                    <th class="col-13 text-center">(13)</th>
+                    <th class="col-14 text-center">(14)</th>
+                </tr>
+            </thead>
+            <tbody>
+                            </tbody>
+        </table>
+
+        <!-- Footer -->
+        <div class="footer-section">
+            <div class="footer-left">
+                <div>Date: _______________</div>
+            </div>
+            <div class="footer-right">
+                <div class="signature-line"></div>
+                <div class="signature-label"><strong>Signature of Manager</strong></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview: FORM 26 - Register of Accidents</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f8f9fa; }
+        .preview-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .preview-content { background: white; padding: 2rem; margin: 2rem auto; max-width: 1200px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        @media print { .preview-header, .no-print { display: none !important; } }
+    </style>
+</head>
+</html>

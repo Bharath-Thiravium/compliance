@@ -1,0 +1,461 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>FORM 17 - Health Register</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            padding: 12px;
+            font-size: 9px;
+        }
+        .form-container {
+            border: 1px solid black;
+            padding: 10px;
+            margin: 0 auto;
+            width: 99%;
+        }
+        .form-header {
+            text-align: center;
+            margin-bottom: 12px;
+            font-size: 10px;
+        }
+        .form-header div {
+            margin: 2px 0;
+        }
+        .header-title {
+            font-weight: bold;
+        }
+        .certifying-surgeon-section {
+            margin-bottom: 12px;
+            font-size: 9px;
+        }
+        .surgeon-line {
+            margin: 4px 0;
+            display: flex;
+            align-items: center;
+        }
+        .surgeon-label {
+            width: 30px;
+            font-weight: bold;
+        }
+        .surgeon-name {
+            flex: 1;
+            border-bottom: 1px solid black;
+            margin: 0 8px;
+            height: 16px;
+        }
+        .surgeon-period {
+            display: flex;
+            gap: 20px;
+            margin-left: 20px;
+        }
+        .period-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .period-label {
+            width: 40px;
+        }
+        .period-line {
+            border-bottom: 1px solid black;
+            width: 80px;
+            height: 16px;
+        }
+        .register-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid black;
+            font-size: 8px;
+            margin-bottom: 8px;
+            table-layout: fixed;
+        }
+        .register-table th,
+        .register-table td {
+            border: 1px solid black;
+            padding: 2px 2px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        .register-table th {
+            font-weight: bold;
+            background-color: #fff;
+            line-height: 1.2;
+            min-height:28px;
+            padding: 4px 3px;
+            word-wrap: break-word;
+        }
+        .register-table td {
+            height: 20px;
+        }
+        .col-name,
+        .col-reason,
+        .col-suspend{
+            text-align:left;
+            padding-left:4px;
+        }
+        .col-sl { width:4%; }
+        .col-works { width:6%; }
+        .col-name { width:12%; }
+        .col-sex { width:4%; }
+        .col-age { width:5%; }
+        .col-employ { width:9%; }
+        .col-leaving { width:9%; }
+        .col-reason { width:11%; }
+        .col-nature { width:11%; }
+        .col-material { width:10%; }
+
+        .col-medical { width:7%; }
+        .col-suspend { width:4%; }
+        .col-recert { width:4%; }
+        .col-unfitness { width:4%; }
+        .col-signature { width:4%; }
+        .notes-section {
+            margin-top: 12px;
+            font-size: 8px;
+            line-height: 1.4;
+        }
+        .notes-section div {
+            margin: 2px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <!-- Header -->
+        <div class="form-header">
+            <div>The Tamil Nadu Factories Rules</div>
+            <div class="header-title">FORM 17</div>
+            <div>(Prescribed under Rule 14)</div>
+            <div class="header-title">Health Register</div>
+            <div style="margin-top: 4px; font-size: 9px;">(In respect of persons employed in occupations declared to be dangerous operations under section 87)</div>
+        </div>
+
+        <!-- Certifying Surgeon Section -->
+        <div class="certifying-surgeon-section">
+            <div style="font-weight: bold; margin-bottom: 6px;">Name of Certifying Surgeon:</div>
+            <div class="surgeon-line">
+                <div class="surgeon-label">(a)</div>
+                <div class="surgeon-name"></div>
+                <div class="surgeon-period">
+                    <div class="period-item">
+                        <div class="period-label">From</div>
+                        <div class="period-line"></div>
+                    </div>
+                    <div class="period-item">
+                        <div class="period-label">To</div>
+                        <div class="period-line"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="surgeon-line">
+                <div class="surgeon-label">(b)</div>
+                <div class="surgeon-name"></div>
+                <div class="surgeon-period">
+                    <div class="period-item">
+                        <div class="period-label">From</div>
+                        <div class="period-line"></div>
+                    </div>
+                    <div class="period-item">
+                        <div class="period-label">To</div>
+                        <div class="period-line"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="surgeon-line">
+                <div class="surgeon-label">(c)</div>
+                <div class="surgeon-name"></div>
+                <div class="surgeon-period">
+                    <div class="period-item">
+                        <div class="period-label">From</div>
+                        <div class="period-line"></div>
+                    </div>
+                    <div class="period-item">
+                        <div class="period-label">To</div>
+                        <div class="period-line"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table 1: Columns 1-10 -->
+        <table class="register-table">
+            <thead>
+                <tr>
+                    <th class="col-sl">Sl.No</th>
+                    <th class="col-works">Works No.</th>
+                    <th class="col-name">Name of Worker</th>
+                    <th class="col-sex">Sex</th>
+                    <th class="col-age">Age (last birthday)</th>
+                    <th class="col-employ">Date of employment on present work</th>
+                    <th class="col-leaving">Date of leaving or transfer to other work</th>
+                    <th class="col-reason">Reason for leaving, transfer or discharge</th>
+                    <th class="col-nature">Nature of job, or occupation</th>
+                    <th class="col-material">Raw Material or by-product handled</th>
+                    <th class="col-medical">Result of Medical Examination</th>
+                    <th class="col-suspend">If suspended from work, state period of suspension with detailed reasons</th>
+                    <th class="col-recert">Recertified fit to resume duty on (with signature of Certifying Surgeon)</th>
+                    <th class="col-unfitness">If certificate of unfitness or suspension issued to workers</th>
+                    <th class="col-signature">Signature with date of Certifying Surgeon</th>
+                </tr>
+                <tr>
+                    <th class="col-sl">(1)</th>
+                    <th class="col-works">(2)</th>
+                    <th class="col-name">(3)</th>
+                    <th class="col-sex">(4)</th>
+                    <th class="col-age">(5)</th>
+                    <th class="col-employ">(6)</th>
+                    <th class="col-leaving">(7)</th>
+                    <th class="col-reason">(8)</th>
+                    <th class="col-nature">(9)</th>
+                    <th class="col-material">(10)</th>
+                    <th class="col-medical">(11)</th>
+                    <th class="col-suspend">(12)</th>
+                    <th class="col-recert">(13)</th>
+                    <th class="col-unfitness">(14)</th>
+                    <th class="col-signature">(15)</th>
+
+                </tr>
+            </thead>
+            <tbody>
+
+                                                            <tr>
+                            <td>1</td>
+                            <td>MAK009</td>
+                            <td class="col-name">MUTHU K</td>
+                            <td></td>
+                            <td></td>
+                            <td>18-04-2026</td>
+                            <td></td>
+                            <td class="col-reason"></td>
+                            <td>Security Guard</td>
+                            <td></td>
+                            <td></td>
+                            <td class="col-suspend"></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                                            <tr>
+                            <td>2</td>
+                            <td>MAK010</td>
+                            <td class="col-name">ANBARASAN VALLIYAPPAN</td>
+                            <td></td>
+                            <td></td>
+                            <td>18-04-2026</td>
+                            <td></td>
+                            <td class="col-reason"></td>
+                            <td>Security Guard</td>
+                            <td></td>
+                            <td></td>
+                            <td class="col-suspend"></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                                            <tr>
+                            <td>3</td>
+                            <td>MAK021</td>
+                            <td class="col-name">CHANDRABOSE PALANIYANDI</td>
+                            <td></td>
+                            <td></td>
+                            <td>18-04-2026</td>
+                            <td></td>
+                            <td class="col-reason"></td>
+                            <td>Security Guard</td>
+                            <td></td>
+                            <td></td>
+                            <td class="col-suspend"></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                                            <tr>
+                            <td>4</td>
+                            <td>MAK022</td>
+                            <td class="col-name">GANESAN SUNDARAM</td>
+                            <td></td>
+                            <td></td>
+                            <td>18-04-2026</td>
+                            <td></td>
+                            <td class="col-reason"></td>
+                            <td>Security Guard</td>
+                            <td></td>
+                            <td></td>
+                            <td class="col-suspend"></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                                            <tr>
+                            <td>5</td>
+                            <td>MAK025</td>
+                            <td class="col-name">PEYADI MUTHU</td>
+                            <td></td>
+                            <td></td>
+                            <td>18-04-2026</td>
+                            <td></td>
+                            <td class="col-reason"></td>
+                            <td>Security Guard</td>
+                            <td></td>
+                            <td></td>
+                            <td class="col-suspend"></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                                            <tr>
+                            <td>6</td>
+                            <td>MAK026</td>
+                            <td class="col-name">VELLAIKKANNU</td>
+                            <td></td>
+                            <td></td>
+                            <td>18-04-2026</td>
+                            <td></td>
+                            <td class="col-reason"></td>
+                            <td>Supervisor</td>
+                            <td></td>
+                            <td></td>
+                            <td class="col-suspend"></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                                            <tr>
+                            <td>7</td>
+                            <td>MAK027</td>
+                            <td class="col-name">GANESAN SUBBAIAH</td>
+                            <td></td>
+                            <td></td>
+                            <td>18-04-2026</td>
+                            <td></td>
+                            <td class="col-reason"></td>
+                            <td>Security Guard</td>
+                            <td></td>
+                            <td></td>
+                            <td class="col-suspend"></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                                            <tr>
+                            <td>8</td>
+                            <td>MAK029</td>
+                            <td class="col-name">VENKATACHALAM</td>
+                            <td></td>
+                            <td></td>
+                            <td>18-04-2026</td>
+                            <td></td>
+                            <td class="col-reason"></td>
+                            <td>Security Guard</td>
+                            <td></td>
+                            <td></td>
+                            <td class="col-suspend"></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                                            <tr>
+                            <td>9</td>
+                            <td>MAK030</td>
+                            <td class="col-name">VALLIYAPPAN KALIMUTHU</td>
+                            <td></td>
+                            <td></td>
+                            <td>18-04-2026</td>
+                            <td></td>
+                            <td class="col-reason"></td>
+                            <td>Security Guard</td>
+                            <td></td>
+                            <td></td>
+                            <td class="col-suspend"></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                                        
+                                        
+                                            <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                                            <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                                            <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                                    
+            </tbody>
+        </table>
+
+        <!-- Notes Section -->
+        <div class="notes-section">
+            <div><strong>Note:</strong></div>
+            <div>(i) Column (8) – Detailed Summary of reasons for transfer or discharge should be stated</div>
+            <div>(ii) Column (11) – Should be expressed as fit/unfit/suspended</div>
+        </div>
+    </div>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview: FORM 17 - Health Register</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f8f9fa; }
+        .preview-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .preview-content { background: white; padding: 2rem; margin: 2rem auto; max-width: 1200px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        @media print { .preview-header, .no-print { display: none !important; } }
+    </style>
+</head>
+</html>

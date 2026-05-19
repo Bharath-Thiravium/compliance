@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>FORM 10 - Overtime Muster Roll</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 10mm;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 10px;
+            color: #000;
+            line-height: 1.2;
+            margin: 0;
+            padding: 0;
+        }
+        .form-wrapper {
+            page-break-inside: avoid;
+        }
+        .form-container {
+            border: 1px solid #000;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        .form-header {
+            text-align: center;
+            border-bottom: 1px solid #000;
+            padding: 3px 0;
+        }
+        .form-header div {
+            font-size: 10px;
+            line-height: 1.3;
+        }
+        .form-header .title {
+            font-weight: bold;
+        }
+        .info-grid {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        .info-grid td {
+            border-right: 1px solid #000;
+            border-bottom: 1px solid #000;
+            padding: 3px 4px;
+            font-size: 10px;
+            vertical-align: top;
+            width: 50%;
+        }
+        .info-grid td:last-child {
+            border-right: none;
+        }
+        .info-grid .lbl {
+            font-weight: bold;
+            width: 30%;
+        }
+        .info-grid .val {
+            width: 70%;
+        }
+        .month-row {
+            text-align: center;
+            border-bottom: 1px solid #000;
+            padding: 3px 0;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 10px;
+            page-break-inside: auto;
+        }
+        .data-table th {
+            border: 1px solid #000;
+            padding: 2px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 9px;
+            vertical-align: middle;
+            white-space: normal;
+            word-break: keep-all;
+            line-height: 1.1;
+        }
+        .data-table tbody tr {
+            page-break-inside: avoid;
+        }
+        .data-table td {
+            border: 1px solid #000;
+            padding: 3px;
+            font-size: 10px;
+            vertical-align: top;
+            word-break: keep-all;
+        }
+        .tc { text-align: center; }
+        .tr { text-align: right; }
+        .nil-row {
+            text-align: center;
+            font-weight: bold;
+            padding: 8px 3px;
+        }
+        .footer-section {
+            border-top: 1px solid #000;
+            padding: 6px 10px 8px;
+            font-size: 10px;
+            display: table;
+            width: 100%;
+        }
+        .footer-company {
+            display: table-cell;
+            vertical-align: bottom;
+            font-size: 10px;
+        }
+        .footer-sig {
+            display: table-cell;
+            text-align: right;
+            vertical-align: bottom;
+            white-space: nowrap;
+        }
+        .sig-block {
+            display: inline-block;
+            text-align: center;
+            width: 180px;
+        }
+        .sig-space {
+            height: 28px;
+        }
+        .sig-line {
+            border-top: 1px solid #000;
+            width: 100%;
+        }
+        .sig-label {
+            font-size: 10px;
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-wrapper">
+    <div class="form-container">
+
+        <div class="form-header">
+            <div class="title">The Tamil Nadu Factories Rules</div>
+            <div class="title">FORM 10</div>
+            <div>(Prescribed under Rule 78)</div>
+            <div>Overtime muster roll for exempted workers</div>
+        </div>
+
+        <table class="info-grid">
+            <tr>
+                <td class="lbl">Name of the Company:</td>
+                <td class="val">M/S MAK47</td>
+            </tr>
+            <tr>
+                <td class="lbl">Name of the Contractor:</td>
+                <td class="val">N/A</td>
+            </tr>
+            <tr>
+                <td class="lbl">Total number of workers employed:</td>
+                <td class="val">0</td>
+            </tr>
+            <tr>
+                <td class="lbl">Work location:</td>
+                <td class="val">Survey No. 47, Sivagangai Industrial Estate, Sivagangai, Tamil Nadu – 630561</td>
+            </tr>
+            <tr>
+                <td class="lbl">Name of the Principal Employer:</td>
+                <td class="val">M/S MAK47</td>
+            </tr>
+            <tr>
+                <td class="lbl">Month:</td>
+                <td class="val">April 2026</td>
+            </tr>
+        </table>
+
+        
+                    <table class="data-table">
+                <colgroup>
+                    <col style="width:45px"><col style="width:180px"><col style="width:130px"><col style="width:120px"><col style="width:90px"><col style="width:90px"><col style="width:65px"><col style="width:75px"><col style="width:75px"><col style="width:80px"><col style="width:80px"><col style="width:140px"><col style="width:80px"><col style="width:120px">                </colgroup>
+                <thead>
+                    <tr>
+                        <th>No. in register</th>
+                        <th>Name</th>
+                        <th>Department</th>
+                        <th>Dates on which overtime has been worked</th>
+                        <th>Extent of overtime on each occasion</th>
+                        <th>Total overtime worked or production in case of piece-workers</th>
+                        <th>Normal hours</th>
+                        <th>Normal rate of pay</th>
+                        <th>Overtime rate of pay</th>
+                        <th>Normal earnings</th>
+                        <th>Overtime earnings</th>
+                        <th>Cash equivalent of advantages accruing through the concessional sale of food-grains and other articles</th>
+                        <th>Total earnings</th>
+                        <th>Dates on which overtime payments made</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="14" class="nil-row">NO BODY IN THE ORGANIZATION HAS WORKED OVER TIME FOR THE MONTH OF APRIL 2026</td>
+                    </tr>
+                </tbody>
+            </table>
+        
+        <div class="footer-section">
+            <div class="footer-company">For M/S MAK47</div>
+            <div class="footer-sig">
+                <div class="sig-block">
+                    <div class="sig-space"></div>
+                    <div class="sig-line"></div>
+                    <div class="sig-label">Authorized Signatory</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    </div>
+</body>
+</html>

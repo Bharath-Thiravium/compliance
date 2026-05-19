@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>FORM B - Register of Wages</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 14mm;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 9.5px;
+            line-height: 1;
+            color: #000;
+        }
+        .form-header {
+            text-align: center;
+            margin-bottom: 6px;
+        }
+        .form-header-title {
+            font-size: 9.5px;
+            font-weight: bold;
+            margin: 0;
+            padding: 1px 0;
+        }
+        .form-header-subtitle {
+            font-size: 9.5px;
+            margin: 0;
+            padding: 1px 0;
+        }
+        .min-wage-table {
+            width: 42%;
+            margin: 0 auto 10px 0;
+            border-collapse: collapse;
+            table-layout: fixed;
+            border: 1px solid #000;
+        }
+        .min-wage-table td {
+            border: 1px solid #000;
+            padding: 2px;
+            text-align: center;
+            line-height: 1;
+            font-size: 9.5px;
+            font-weight: bold;
+        }
+        .info-grid {
+            width: 100%;
+            margin-bottom: 8px;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        .info-grid tr {
+            border-bottom: 1px solid #000;
+        }
+        .info-grid td {
+            padding: 2px;
+            text-align: left;
+            line-height: 1;
+            font-size: 9.5px;
+            vertical-align: middle;
+        }
+        .info-grid td:first-child {
+            font-weight: bold;
+            width: 35%;
+        }
+        .info-grid td:nth-child(2) {
+            width: 15%;
+        }
+        .info-grid td:nth-child(3) {
+            font-weight: bold;
+            width: 35%;
+        }
+        .info-grid td:nth-child(4) {
+            width: 15%;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            border: 1px solid #000;
+            margin-bottom: 0;
+        }
+        .data-table th {
+            border: 1px solid #000;
+            padding: 0.5px 1px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 9.5px;
+            line-height: 1;
+            vertical-align: middle;
+        }
+        .data-table td {
+            border: 1px solid #000;
+            padding: 1px 2px;
+            text-align: right;
+            font-size: 9.5px;
+            line-height: 1;
+            vertical-align: middle;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .text-left {
+            text-align: left;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .group-header {
+            font-weight: bold;
+            background-color: #fff;
+        }
+        .grand-total-row {
+            font-weight: bold;
+        }
+        .grand-total-row td {
+            background-color: #fff;
+        }
+        .certification {
+            text-align: center;
+            padding: 2px;
+            font-size: 9.5px;
+            margin-top: 15px;
+        }
+        .footer-section {
+            text-align: right;
+            padding-right: 80px;
+            margin-top: 15px;
+        }
+        tr {
+            height: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-header">
+        <div class="form-header-title">FORM B</div>
+        <div class="form-header-title">REGISTER OF WAGES</div>
+        <div class="form-header-subtitle">(See rule 2(1))</div>
+    </div>
+
+    <table class="min-wage-table">
+        <colgroup>
+            <col style="width: 35%;">   <!-- Label -->
+            <col style="width: 21.66%;">
+            <col style="width: 21.66%;">
+            <col style="width: 21.66%;">
+        </colgroup>
+        <tr>
+            <td colspan="4" class="text-center">Rates of Minimum Wages</td>
+        </tr>
+        <tr>
+            <td></td>
+            <td class="text-center">Skilled</td>
+            <td class="text-center">Semi-Skilled</td>
+            <td class="text-center">Unskilled</td>
+        </tr>
+        <tr>
+            <td class="text-left">Minimum Basic</td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="text-left">DA</td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="text-center">Overtime</td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+    </table>
+
+    <table class="info-grid">
+        <colgroup>
+            <col style="width: 35%;">
+            <col style="width: 15%;">
+            <col style="width: 35%;">
+            <col style="width: 15%;">
+        </colgroup>
+        <tr>
+            <td>Name of the Establishment</td>
+            <td class="text-left">M/S MAK47</td>
+        </tr>
+        <tr>
+            <td>Name of Owner</td>
+            <td class="text-left">N/A</td>
+        </tr>
+        <tr>
+            <td>Wage period (Monthly/Fortnightly/Weekly/Daily/Piece Rated)</td>
+            <td class="text-left" colspan="3">Monthly</td>
+        </tr>
+    </table>
+
+    <table class="data-table">
+        <colgroup>
+            <col style="width: 40px;">
+            <col style="width: 90px;">
+            <col style="width: 160px;">
+            <col style="width: 80px;">
+            <col style="width: 60px;">
+            <col style="width: 60px;">
+            <col style="width: 80px;">
+            <col style="width: 80px;">
+            <col style="width: 80px;">
+            <col style="width: 80px;">
+            <col style="width: 80px;">
+            <col style="width: 70px;">
+            <col style="width: 90px;">
+            <col style="width: 70px;">
+            <col style="width: 70px;">
+            <col style="width: 80px;">
+            <col style="width: 60px;">
+            <col style="width: 70px;">
+            <col style="width: 90px;">
+            <col style="width: 100px;">
+            <col style="width: 100px;">
+            <col style="width: 120px;">
+            <col style="width: 80px;">
+            <col style="width: 70px;">
+        </colgroup>
+        <thead>
+            <tr>
+                <th>Sl. No.</th>
+                <th>UAN</th>
+                <th>Name</th>
+                <th>Rate of Wage</th>
+                <th>No. of Days Worked</th>
+                <th>OT Hours Worked</th>
+                <th colspan="7" class="group-header">EARNINGS</th>
+                <th colspan="6" class="group-header">Deductions</th>
+                <th>Net Payment</th>
+                <th>Employee Signature</th>
+                <th>Receipt by Worker (Thumb Impression)</th>
+                <th>Date of Payment</th>
+                <th>Remarks</th>
+            </tr>
+            <tr>
+                <th>1</th>
+                <th>2</th>
+                <th>3</th>
+                <th>4</th>
+                <th>5</th>
+                <th>6</th>
+                <th>Basic</th>
+                <th>Special Allowance</th>
+                <th>DA</th>
+                <th>Payment for Overtime</th>
+                <th>HRA</th>
+                <th>Other</th>
+                <th>Total</th>
+                <th>PF</th>
+                <th>ESIC</th>
+                <th>Other</th>
+                <th>PT</th>
+                <th>Recovery</th>
+                <th>Total</th>
+                <th>20</th>
+                <th>21</th>
+                <th>22</th>
+                <th>23</th>
+                <th>24</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                                </tbody>
+                <tfoot>
+            <tr class="grand-total-row">
+                <td colspan="6" class="text-right">Grand Total</td>
+                <td class="text-right">0.00</td>
+                <td class="text-right">0.00</td>
+                <td class="text-right">0.00</td>
+                <td class="text-right">0.00</td>
+                <td class="text-right">0.00</td>
+                <td class="text-right">0.00</td>
+                <td class="text-right">0.00</td>
+                <td class="text-right">0.00</td>
+                <td class="text-right">0.00</td>
+                <td class="text-right">0.00</td>
+                <td class="text-right">0.00</td>
+                <td class="text-right">0.00</td>
+                <td class="text-right">0.00</td>
+                <td class="text-right">0.00</td>
+                <td colspan="4"></td>
+            </tr>
+        </tfoot>
+            </table>
+
+    <div class="certification">
+        Certified that wages have been paid to all workers employed for the above wage period.
+    </div>
+
+    <div class="footer-section">
+        <div>Seal Signature of the Contractor</div>
+    </div>
+</body>
+</html>
