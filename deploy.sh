@@ -1,9 +1,10 @@
 #!/bin/bash
 set -e
 
-cd ~/public_html
+cd "$(dirname "$0")"
 
 echo "⏳ Pulling latest code..."
+git config pull.rebase false
 git pull origin main
 
 echo "⏳ Installing dependencies..."
