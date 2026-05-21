@@ -1,5 +1,16 @@
 <IfModule mod_rewrite.c>
+    Options +FollowSymLinks
     RewriteEngine On
-    RewriteRule ^$ public/ [L]
-    RewriteRule ^((?!public/).*)$ public/$1 [L]
+    RewriteBase /compliance/ce/
+
+    # Already pointing into public/ — let it through to avoid loops
+    RewriteRule ^public/ - [L]
+
+    # Real files and directories in the project root serve directly
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Everything else forwards transparently to public/
+    RewriteRule ^(.*)$ public/$1 [L,QSA]
 </IfModule>
