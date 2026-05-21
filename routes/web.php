@@ -12,5 +12,5 @@ require __DIR__.'/batch-processing.php';
 require __DIR__.'/data-input.php';
 
 Route::get('/', function () {
-    return redirect('/compliance/dashboard');
+    return redirect()->route('compliance.dashboard');
 });
