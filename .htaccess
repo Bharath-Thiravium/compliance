@@ -2,14 +2,9 @@
     RewriteEngine On
     RewriteBase /compliance/ce/
 
-    # Already forwarded into public/ — stop to prevent loops
+    # Requests already inside public/ pass through — prevents rewrite loops
     RewriteRule ^public/ - [L]
 
-    # Serve real files and directories directly
-    RewriteCond %{REQUEST_FILENAME} -f [OR]
-    RewriteCond %{REQUEST_FILENAME} -d
-    RewriteRule ^ - [L]
-
-    # Forward everything else transparently to public/
+    # Forward everything else (including bare directory requests) into public/
     RewriteRule ^(.*)$ public/$1 [L,QSA]
 </IfModule>
