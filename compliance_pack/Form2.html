@@ -1,0 +1,654 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>FORM 11 - Notice of Periods of Work</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            padding: 12px;
+            font-size: 9px;
+        }
+        .form-container {
+            border: 1px solid black;
+            padding: 10px;
+            margin: 0 auto;
+            width: 99%;
+        }
+        .form-header {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 10px;
+        }
+        .form-header div {
+            margin: 2px 0;
+        }
+        .relay-col{
+            font-size:7px;
+        }
+        .header-title {
+            font-weight: bold;
+        }
+        .factory-details {
+            margin-bottom: 8px;
+            font-size: 9px;
+        }
+        .line-value{
+            font-size:8px;
+            padding-left:3px;
+        }
+        .detail-row {
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+        }
+        .detail-label {
+            font-weight: bold;
+            width: 20%;
+            margin-right: 5px;
+        }
+        .detail-line {
+            flex: 1;
+            border-bottom: 1px solid black;
+            height: 10px;
+        }
+        .detail-row-two-col {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 4px;
+        }
+        .detail-col {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+        .time-line{
+            display:inline-block;
+            border-bottom:1px solid black;
+            width:30px;
+            margin-left:3px;
+        }
+        .work-periods-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid black;
+            font-size: 8px;
+            margin-bottom: 8px;
+        }
+        .work-periods-table th,
+        .work-periods-table td {
+            border: 1px solid black;
+            padding: 2px 2px;
+            text-align: center;
+            vertical-align: middle;
+            height: 16px;
+        }
+        .work-periods-table th {
+            font-weight: bold;
+            background-color: #fff;
+            line-height: 1.1;
+        }
+        .label-col {
+            text-align: left;
+            font-weight: bold;
+            width: 12%;
+        }
+        .group-col {
+            width: 5%;
+        }
+        .time-col {
+            width: 4%;
+        }
+        .line-field {
+            border-bottom: 1px solid black;
+            padding: 1px 2px;
+            text-align: center;
+            font-size: 8px;
+        }
+        .description-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid black;
+            font-size: 9px;
+            margin-bottom: 8px;
+        }
+        .description-table th,
+        .description-table td {
+            border: 1px solid black;
+            padding: 3px 4px;
+            text-align: left;
+            vertical-align: middle;
+        }
+        .description-table th {
+            font-weight: bold;
+            background-color: #fff;
+        }
+        .footer-section {
+            margin-top: 8px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+        }
+        .footer-left {
+            flex: 1;
+        }
+        .footer-right {
+            flex: 1;
+            text-align: right;
+        }
+        .signature-line {
+            margin-top: 30px;
+            border-top: 1px solid #000;
+            width: 150px;
+            margin-left: auto;
+        }
+        .signature-label {
+            margin-top: 2px;
+            font-weight: bold;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <!-- Header -->
+        <div class="form-header">
+            <div>The Tamil Nadu Factories Rules</div>
+            <div class="header-title">FORM 11</div>
+            <div>(Prescribed under Rule 79)</div>
+            <div class="header-title">Notice of Periods of work for adult workers and children</div>
+        </div>
+
+        <!-- Factory Details -->
+        <div class="factory-details">
+            <div class="detail-row">
+                <div class="detail-label">Name of factory</div>
+                <div class="detail-line"><span class="line-value">Hinduja Renewables – MAK47 Unit</span></div>
+            </div>
+
+            <div class="detail-row-two-col">
+                <div class="detail-col">
+                    <div class="detail-label" style="width: 30%;">Place</div>
+                    <div class="detail-line"><span class="line-value">Survey No. 47, Sivagangai Industrial Estate, Sivagangai, Tamil Nadu – 630561</span></div>
+                </div>
+                <div class="detail-col">
+                    <div class="detail-label" style="width: 30%;">District</div>
+                    <div class="detail-line"><span class="line-value">N/A</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Work Periods Table -->
+        <table class="work-periods-table">
+            <thead>
+                <tr>
+                    <th rowspan="2" class="label-col">Periods of work</th>
+
+                    <th colspan="9">Men</th>
+                    <th colspan="9">Women</th>
+                    <th colspan="9">Children</th>
+
+                    <th colspan="2">Description of groups</th>
+                </tr>
+
+                <tr>
+                    <th colspan="9">Total number of men employed</th>
+                    <th colspan="9">Total number of women employed</th>
+                    <th colspan="9">Total number of children employed</th>
+
+                    <th>Group letter</th>
+                    <th>Nature of work</th>
+                </tr>
+                <tr>
+                    <th class="label-col">Groups</th>
+                    <th colspan="3">A</th>
+                    <th colspan="3">B</th>
+                    <th colspan="3">C</th>
+
+                    <th colspan="3">D</th>
+                    <th colspan="3">E</th>
+                    <th colspan="3">F</th>
+
+                    <th colspan="3">G</th>
+                    <th colspan="3">H</th>
+                    <th colspan="3">I</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                <tr>
+                    <th class="label-col">Relays</th>
+
+                    <td>1</td><td>2</td><td>3</td>
+                    <td>1</td><td>2</td><td>3</td>
+                    <td>1</td><td>2</td><td>3</td>
+
+                    <td>1</td><td>2</td><td>3</td>
+                    <td>1</td><td>2</td><td>3</td>
+                    <td>1</td><td>2</td><td>3</td>
+
+                    <td>1</td><td>2</td><td>3</td>
+                    <td>1</td><td>2</td><td>3</td>
+                    <td>1</td><td>2</td><td>3</td>
+
+                    <td></td>
+                    <td></td>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- On working days -->
+                <tr>
+                    <td class="label-col" rowspan="6"><strong>On working days</strong></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        <td class="group-col">A</td>
+                    <td></td>
+                </tr>
+                <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        <td class="group-col">B</td>
+                    <td></td>
+                </tr>
+                <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        <td class="group-col">C</td>
+                    <td></td>
+                </tr>
+                <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        <td class="group-col">D</td>
+                    <td></td>
+                </tr>
+                <tr>
+                                           <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        <td class="group-col">E</td>
+                    <td></td>
+                </tr>
+                <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        <td class="group-col">F</td>
+                    <td></td>
+                </tr>
+                <!-- On partial working days -->
+                <tr>
+                    <td class="label-col" rowspan="6"><strong>On partial working days</strong></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        <td class="group-col">G</td>
+                    <td></td>
+                </tr>
+                <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        <td class="group-col">H</td>
+                    <td></td>
+                </tr>
+                <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        <td class="group-col">I</td>
+                    <td></td>
+                </tr>
+                <tr>
+
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        <td></td>
+                    <td></td>
+                </tr>
+                   <tr>
+
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        <td></td>
+                    <td></td>
+                </tr>
+                   <tr>
+
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        <td></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+
+
+
+        <!-- Footer -->
+        <div class="footer-section">
+            <div class="footer-left">
+                <div>Date on which this notice was first exhibited weekly holidays: ___________</div>
+            </div>
+            <div class="footer-right">
+                <div class="signature-line"></div>
+                <div class="signature-label">(Signed) Manager</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview: FORM 2 - Notice of Periods of Work</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f8f9fa; }
+        .preview-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .preview-content { background: white; padding: 2rem; margin: 2rem auto; max-width: 1200px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        @media print { .preview-header, .no-print { display: none !important; } }
+    </style>
+</head>
+</html>

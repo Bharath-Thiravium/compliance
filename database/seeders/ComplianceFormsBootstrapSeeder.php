@@ -1,0 +1,65 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+
+class ComplianceFormsBootstrapSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $forms = [
+            // CLRA Forms
+            ['form_code' => 'FormXII', 'form_name' => 'Register of Contractors', 'act_type' => 'CLRA', 'frequency' => 'Monthly', 'priority' => 'High', 'is_active' => true],
+            ['form_code' => 'FormXIII', 'form_name' => 'Register of Workmen Employed by Contractor', 'act_type' => 'CLRA', 'frequency' => 'Monthly', 'priority' => 'High', 'is_active' => true],
+            ['form_code' => 'FormXIV', 'form_name' => 'Employment Card', 'act_type' => 'CLRA', 'frequency' => 'Monthly', 'priority' => 'High', 'is_active' => true],
+            ['form_code' => 'FormXVI', 'form_name' => 'Muster Roll', 'act_type' => 'CLRA', 'frequency' => 'Monthly', 'priority' => 'High', 'is_active' => true],
+            ['form_code' => 'FormXVII', 'form_name' => 'Register of Wages', 'act_type' => 'CLRA', 'frequency' => 'Monthly', 'priority' => 'High', 'is_active' => true],
+            ['form_code' => 'FormXIX', 'form_name' => 'Wage Slip', 'act_type' => 'CLRA', 'frequency' => 'Monthly', 'priority' => 'Medium', 'is_active' => true],
+            ['form_code' => 'FormXX', 'form_name' => 'Register of Deductions', 'act_type' => 'CLRA', 'frequency' => 'Monthly', 'priority' => 'High', 'is_active' => true],
+            ['form_code' => 'FormXXI', 'form_name' => 'Register of Fines', 'act_type' => 'CLRA', 'frequency' => 'Monthly', 'priority' => 'Medium', 'is_active' => true],
+            ['form_code' => 'FormXXII', 'form_name' => 'Register of Advances', 'act_type' => 'CLRA', 'frequency' => 'Monthly', 'priority' => 'Medium', 'is_active' => true],
+            ['form_code' => 'FormXXIII', 'form_name' => 'Register of Overtime', 'act_type' => 'CLRA', 'frequency' => 'Monthly', 'priority' => 'Medium', 'is_active' => true],
+
+            // Labour Welfare Forms (ESI/EPF)
+            ['form_code' => 'FormA', 'form_name' => 'Bonus Register', 'act_type' => 'ESI', 'frequency' => 'Annual', 'priority' => 'High', 'is_active' => true],
+            ['form_code' => 'FormC', 'form_name' => 'Bonus Register', 'act_type' => 'ESI', 'frequency' => 'Annual', 'priority' => 'High', 'is_active' => true],
+            ['form_code' => 'FormD', 'form_name' => 'Equal Remuneration Register', 'act_type' => 'ESI', 'frequency' => 'Monthly', 'priority' => 'Medium', 'is_active' => true],
+            ['form_code' => 'FormDER', 'form_name' => 'Equal Remuneration Details', 'act_type' => 'ESI', 'frequency' => 'Monthly', 'priority' => 'Medium', 'is_active' => true],
+
+            // Social Security Forms
+            ['form_code' => 'Form11', 'form_name' => 'Accident Register', 'act_type' => 'ESI', 'frequency' => 'Monthly', 'priority' => 'High', 'is_active' => true],
+            ['form_code' => 'ESIForm12', 'form_name' => 'Adult Worker Register', 'act_type' => 'ESI', 'frequency' => 'Monthly', 'priority' => 'High', 'is_active' => true],
+            ['form_code' => 'EPFInspection', 'form_name' => 'EPF Inspection Register', 'act_type' => 'EPF', 'frequency' => 'HalfYearly', 'priority' => 'High', 'is_active' => true],
+
+            // Factories Act Forms
+            ['form_code' => 'FormB', 'form_name' => 'Muster Roll', 'act_type' => 'Factories', 'frequency' => 'Monthly', 'priority' => 'High', 'is_active' => true],
+            ['form_code' => 'Form2', 'form_name' => 'Notice of Periods of Work', 'act_type' => 'Factories', 'frequency' => 'Monthly', 'priority' => 'High', 'is_active' => true],
+            ['form_code' => 'Form8', 'form_name' => 'Register of Workmen', 'act_type' => 'Factories', 'frequency' => 'Monthly', 'priority' => 'High', 'is_active' => true],
+            ['form_code' => 'Form10', 'form_name' => 'Register of Fines', 'act_type' => 'Factories', 'frequency' => 'Monthly', 'priority' => 'Medium', 'is_active' => true],
+            ['form_code' => 'Form12', 'form_name' => 'Register of Advances', 'act_type' => 'Factories', 'frequency' => 'Monthly', 'priority' => 'Medium', 'is_active' => true],
+            ['form_code' => 'Form17', 'form_name' => 'Health Register', 'act_type' => 'Factories', 'frequency' => 'Monthly', 'priority' => 'Medium', 'is_active' => true],
+            ['form_code' => 'Form18', 'form_name' => 'Report of Accident', 'act_type' => 'Factories', 'frequency' => 'Monthly', 'priority' => 'High', 'is_active' => true],
+            ['form_code' => 'Form25', 'form_name' => 'Muster Roll', 'act_type' => 'Factories', 'frequency' => 'Monthly', 'priority' => 'High', 'is_active' => true],
+            ['form_code' => 'Form26', 'form_name' => 'Register of Accident', 'act_type' => 'Factories', 'frequency' => 'Monthly', 'priority' => 'High', 'is_active' => true],
+            ['form_code' => 'Form26A', 'form_name' => 'Register of Dangerous Occurrences', 'act_type' => 'Factories', 'frequency' => 'Monthly', 'priority' => 'High', 'is_active' => true],
+            ['form_code' => 'HazardReg', 'form_name' => 'Hazard Register', 'act_type' => 'Factories', 'frequency' => 'Monthly', 'priority' => 'High', 'is_active' => true],
+
+            // Shops & Establishment Forms
+            ['form_code' => 'ShopsForm12', 'form_name' => 'Shops Register', 'act_type' => 'Shops', 'frequency' => 'Monthly', 'priority' => 'High', 'is_active' => true],
+            ['form_code' => 'ShopsForm13', 'form_name' => 'Shops Register', 'act_type' => 'Shops', 'frequency' => 'Monthly', 'priority' => 'High', 'is_active' => true],
+            ['form_code' => 'ShopsFormC', 'form_name' => 'Shops Register', 'act_type' => 'Shops', 'frequency' => 'Monthly', 'priority' => 'High', 'is_active' => true],
+            ['form_code' => 'ShopsFormVI', 'form_name' => 'Holidays Register', 'act_type' => 'Shops', 'frequency' => 'Monthly', 'priority' => 'Medium', 'is_active' => true],
+            ['form_code' => 'ShopsUnpaid', 'form_name' => 'Unpaid Wages Register', 'act_type' => 'Shops', 'frequency' => 'Monthly', 'priority' => 'High', 'is_active' => true],
+            ['form_code' => 'ShopsFines', 'form_name' => 'Fines Register', 'act_type' => 'Shops', 'frequency' => 'Monthly', 'priority' => 'Medium', 'is_active' => true],
+        ];
+
+        foreach ($forms as $form) {
+            DB::table('compliance_forms_master')->updateOrInsert(
+                ['form_code' => $form['form_code']],
+                $form
+            );
+        }
+    }
+}

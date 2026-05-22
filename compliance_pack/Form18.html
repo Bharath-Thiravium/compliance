@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>FORM 18 - Report of Accident</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            padding: 12px;
+            font-size: 9px;
+        }
+        .form-container {
+            border: 1px solid black;
+            padding: 10px;
+            margin: 0 auto;
+            width: 99%;
+        }
+        .form-header {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 10px;
+        }
+        .form-header div {
+            margin: 2px 0;
+        }
+        .header-title {
+            font-weight: bold;
+        }
+        .explanatory-note {
+            text-align: center;
+            font-size: 8px;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+        .section-title {
+            font-weight: bold;
+            margin-top: 8px;
+            margin-bottom: 4px;
+            font-size: 9px;
+        }
+        .reporting-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid black;
+            font-size: 8px;
+            margin-bottom: 10px;
+        }
+        .reporting-table th,
+        .reporting-table td {
+            border: 1px solid black;
+            padding: 4px;
+            vertical-align: top;
+            text-align: left;
+        }
+        .reporting-table th {
+            font-weight: bold;
+            background-color: #fff;
+            text-align: center;
+        }
+        .field-section {
+            margin-bottom: 8px;
+            font-size: 9px;
+        }
+        .field-row {
+            margin-bottom: 3px;
+            display: flex;
+            align-items: center;
+        }
+        .field-label {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        .field-line {
+            flex: 1;
+            border-bottom: 1px solid black;
+            height: 10px;
+            padding-left: 3px;
+        }
+        .sub-field {
+            margin-left: 20px;
+            margin-bottom: 2px;
+        }
+        .two-col-fields {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 3px;
+        }
+        .col-field {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+        .col-field .field-label {
+            width: 12%;
+        }
+        .col-field .field-line {
+            flex: 1;
+        }
+        .certification-section {
+            margin-top: 10px;
+            margin-bottom: 10px;
+            font-size: 9px;
+        }
+        .certification-text {
+            margin-bottom: 5px;
+        }
+        .inspector-section {
+            margin-top: 10px;
+            font-size: 9px;
+        }
+        .inspector-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-style: italic;
+        }
+        .inspector-fields {
+            display: flex;
+            gap: 20px;
+        }
+        .inspector-col {
+            flex: 1;
+        }
+        .inspector-field {
+            margin-bottom: 3px;
+            display: flex;
+            align-items: center;
+        }
+        .inspector-label {
+            font-weight: bold;
+            width: 50%;
+            margin-right: 5px;
+        }
+        .inspector-line {
+            flex: 1;
+            border-bottom: 1px solid black;
+            height: 10px;
+            padding-left: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <!-- Header -->
+        <div class="form-header">
+            <div>The Tamil Nadu Factories Rules</div>
+            <div class="header-title">FORM 18</div>
+            <div>(Prescribed under Rule 96)</div>
+            <div class="header-title">Report of Accident</div>
+        </div>
+
+        <div class="explanatory-note">
+            (A separate report is to be filled up in respect of each person killed or injured and each report will constitute a separate accident.)
+        </div>
+
+        <!-- Section 1: Reporting Authority Table -->
+        <div class="section-title">SECTION 1 – REPORTING AUTHORITY</div>
+        <table class="reporting-table">
+            <thead>
+                <tr>
+                    <th>Type of accident</th>
+                    <th>Authority to whom report is to be sent in this Form</th>
+                    <th>Within what period</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Fatal or serious accident likely to prove fatal</strong></td>
+                    <td>1. Inspector of Factories<br>2. Chief Inspector of Factories<br>3. District Magistrate or Sub-division Officer<br>4. Officer-in-charge of the nearest police station</td>
+                    <td>Within 12 hours of the accident</td>
+                </tr>
+                <tr>
+                    <td><strong>Which causes such bodily injury as prevents the person injured from working for a period of 48 hours immediately following the accident</strong></td>
+                    <td>Inspector of Factories</td>
+                    <td>Within 24 hours of the expiry of 48 hours after the occurrence of the accident</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Section 2: Accident Information Fields -->
+        <div class="section-title">SECTION 2 – ACCIDENT INFORMATION</div>
+        <div class="field-section">
+            <div class="field-row">
+                <div class="field-label">1. Registration number of the factory</div>
+                <div class="field-line"></div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-label">2. Running serial number of the accident in the factory for the calendar year and calendar year, 19____</div>
+                <div class="field-line"></div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-label">3. Name and address of the factory</div>
+                <div class="field-line"></div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-label">4. Nature of industry</div>
+                <div class="field-line"></div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-label">5. Name and address of the Occupier</div>
+                <div class="field-line"></div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-label">6. Name and address of the Manager</div>
+                <div class="field-line"></div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-label">7. Exact place in the factory (branch, department, machine, etc.) where the accident occurred</div>
+                <div class="field-line"></div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-label">8. Particulars of person injured</div>
+            </div>
+            <div class="sub-field">
+                <div class="field-row">
+                    <div class="field-label">(a) Name</div>
+                    <div class="field-line"></div>
+                </div>
+                <div class="field-row">
+                    <div class="field-label">(b) Address</div>
+                    <div class="field-line"></div>
+                </div>
+                <div class="two-col-fields">
+                    <div class="col-field">
+                        <div class="field-label">(c) Sex</div>
+                        <div class="field-line"></div>
+                    </div>
+                    <div class="col-field">
+                        <div class="field-label">(d) Age last birthday</div>
+                        <div class="field-line"></div>
+                    </div>
+                </div>
+                <div class="two-col-fields">
+                    <div class="col-field">
+                        <div class="field-label">(e) Occupation</div>
+                        <div class="field-line"></div>
+                    </div>
+                    <div class="col-field">
+                        <div class="field-label">(f) Monthly wages</div>
+                        <div class="field-line"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-label">9. Date and hour of accident</div>
+                <div class="field-line"></div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-label">10. Hours at which the person injured started work on the day of accident</div>
+                <div class="field-line"></div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-label">11. Describe clearly how the accident occurred</div>
+                <div class="field-line"></div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-label">12. State exactly what the person injured was doing at the time of the accident</div>
+                <div class="field-line"></div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-label">13. If the accident was caused by machinery</div>
+            </div>
+            <div class="sub-field">
+                <div class="field-row">
+                    <div class="field-label">(a) Give the name and part of the machine causing the accident</div>
+                    <div class="field-line"></div>
+                </div>
+                <div class="field-row">
+                    <div class="field-label">(b) State whether it was moved by mechanical power at the time</div>
+                    <div class="field-line"></div>
+                </div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-label">14. Give names and addresses of witnesses to the accident</div>
+                <div class="field-line"></div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-label">15. Detail the nature, extent, location, etc., of injury received</div>
+                <div class="field-line"></div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-label">16. Name and address of the Doctor or Hospital from whom or in which the person injured received or is receiving treatment</div>
+                <div class="field-line"></div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-label">17. If the person injured has died, give</div>
+            </div>
+            <div class="sub-field">
+                <div class="field-row">
+                    <div class="field-label">(a) Date and hour of death</div>
+                    <div class="field-line"></div>
+                </div>
+                <div class="field-row">
+                    <div class="field-label">(b) Date and hour of post-mortem examination</div>
+                    <div class="field-line"></div>
+                </div>
+                <div class="field-row">
+                    <div class="field-label">(c) Name and address of Doctor who conducted the post-mortem</div>
+                    <div class="field-line"></div>
+                </div>
+                <div class="field-row">
+                    <div class="field-label">(d) Reasons therefore</div>
+                    <div class="field-line"></div>
+                </div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-label">18. Any other relevant information</div>
+                <div class="field-line"></div>
+            </div>
+        </div>
+
+        <!-- Section 3: Certification -->
+        <div class="certification-section">
+            <div class="certification-text">
+                I certify that to the best of my knowledge and belief the above particulars are correct in every respect.
+            </div>
+            <div class="field-row">
+                <div class="field-label">Date of despatch of report</div>
+                <div class="field-line"></div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Signature of Manager (Name in BLOCK letters)</div>
+                <div class="field-line"></div>
+            </div>
+        </div>
+
+        <!-- Section 4: Inspector Section -->
+        <div class="inspector-section">
+            <div class="inspector-title">(This part is to be filled up by the Inspector of Factories)</div>
+            <div class="inspector-fields">
+                <div class="inspector-col">
+                    <div class="inspector-field">
+                        <div class="inspector-label">R. No./Accident No</div>
+                        <div class="inspector-line"></div>
+                    </div>
+                    <div class="inspector-field">
+                        <div class="inspector-label">Date of receipt</div>
+                        <div class="inspector-line"></div>
+                    </div>
+                    <div class="inspector-field">
+                        <div class="inspector-label">Date of investigation</div>
+                        <div class="inspector-line"></div>
+                    </div>
+                    <div class="inspector-field">
+                        <div class="inspector-label">Result of investigation</div>
+                        <div class="inspector-line"></div>
+                    </div>
+                </div>
+                <div class="inspector-col">
+                    <div class="inspector-field">
+                        <div class="inspector-label">Industry No</div>
+                        <div class="inspector-line"></div>
+                    </div>
+                    <div class="inspector-field">
+                        <div class="inspector-label">Causation No</div>
+                        <div class="inspector-line"></div>
+                    </div>
+                    <div class="inspector-field">
+                        <div class="inspector-label">Sex (M/W/F/A)</div>
+                        <div class="inspector-line"></div>
+                    </div>
+                    <div class="inspector-field">
+                        <div class="inspector-label">Fatal/site of injury</div>
+                        <div class="inspector-line"></div>
+                    </div>
+                    <div class="inspector-field">
+                        <div class="inspector-label">Date of return to work</div>
+                        <div class="inspector-line"></div>
+                    </div>
+                    <div class="inspector-field">
+                        <div class="inspector-label">Minor/serious</div>
+                        <div class="inspector-line"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview: FORM 18 - Register of Child Workers</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f8f9fa; }
+        .preview-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .preview-content { background: white; padding: 2rem; margin: 2rem auto; max-width: 1200px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        @media print { .preview-header, .no-print { display: none !important; } }
+    </style>
+</head>
+</html>
