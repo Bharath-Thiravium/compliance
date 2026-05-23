@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>FORM C - Register of Fines and Unpaid Accumulations</title>
+    <title>Register of Fines and Unpaid Accumulations (Tamil Nadu LWF Form C)</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -88,6 +88,12 @@
         <div>(See Rule 29 of the Tamil Nadu Labour Welfare Fund Rules, 1973)</div>
         <div class="bold">Register of Fines and Unpaid Accumulations for the Year {{ $header['period'] ?? '______' }}</div>
     </div>
+
+    @if(!empty($is_nil))
+    <div style="text-align:center;padding:12px;font-weight:bold;font-size:11px;border-bottom:1px solid #000;">
+        NIL — No fines realised or unpaid accumulations for this period.
+    </div>
+    @endif
 
     <table class="info-table">
         <tr>

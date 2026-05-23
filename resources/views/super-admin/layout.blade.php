@@ -172,9 +172,6 @@
         <a href="{{ route('super-admin.form-updates') }}" class="{{ request()->routeIs('super-admin.form-updates') ? 'active' : '' }}">
             <span class="icon">📝</span> Form Updates
         </a>
-        <a href="{{ route('super-admin.compliance-users') }}" class="{{ request()->routeIs('super-admin.compliance-users*') ? 'active' : '' }}">
-            <span class="icon">👤</span> User Access
-        </a>
         <a href="{{ route('super-admin.change-password') }}" class="{{ request()->routeIs('super-admin.change-password') ? 'active' : '' }}">
             <span class="icon">🔒</span> Change Password
         </a>

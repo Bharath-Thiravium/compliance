@@ -10,48 +10,48 @@
         }
         body {
             font-family: 'Times New Roman', Times, serif;
-            padding: 15px;
+            padding: 2px;
         }
         .form-container {
             border: 2px solid black;
-            padding: 12px;
+            padding: 2px;
             margin: 0 auto;
             width: 98%;
         }
         .form-header {
             text-align: center;
-            margin-bottom: 12px;
-            font-size: 11px;
+            margin-bottom: 2px;
+            font-size: 6px;
         }
         .form-header div {
-            margin: 2px 0;
+            margin: 0;
         }
         .header-title {
             font-weight: bold;
-            font-size: 12px;
+            font-size: 7px;
         }
         .header-subtitle {
-            font-size: 10px;
+            font-size: 5.5px;
         }
         .header-section {
             display: flex;
-            margin-bottom: 10px;
-            font-size: 10px;
+            margin-bottom: 2px;
+            font-size: 5.5px;
         }
         .header-left {
             flex: 1;
             border: 1px solid black;
-            padding: 4px;
+            padding: 1px;
         }
         .header-right {
             flex: 1;
             border: 1px solid black;
-            padding: 4px;
-            margin-left: 2px;
+            padding: 1px;
+            margin-left: 1px;
         }
         .header-row {
-            margin-bottom: 3px;
-            line-height: 1.3;
+            margin-bottom: 0;
+            line-height: 1.1;
         }
         .header-label {
             font-weight: bold;
@@ -78,35 +78,35 @@
             width: 100%;
             border-collapse: collapse;
             border: 1px solid black;
-            font-size: 9px;
-            table-layout: fixed;
+            font-size: 5.5px;
+            table-layout: auto;
         }
         .muster-table th,
         .muster-table td {
             border: 1px solid black;
-            padding: 2px 1px;
+            padding: 0;
             text-align: center;
             vertical-align: middle;
-            font-size: 8px;
+            font-size: 5.5px;
         }
         .muster-table th {
             font-weight: bold;
             background-color: #fff;
             word-wrap: break-word;
-            line-height: 1.1;
-            height: 24px;
+            line-height: 1.0;
+            height: 11px;
         }
         .muster-table td {
-            height: 18px;
+            height: 9px;
         }
-        .col-sl { width: 3%; }
-        .col-name { width: 8%; text-align: left; }
-        .col-father { width: 8%; text-align: left; }
-        .col-sex { width: 3%; }
-        .col-date { width: 2.5%; }
-        .col-remarks { width: 5%; text-align: left; }
+        .col-sl { width: 2%; }
+        .col-name { width: auto; text-align: left; font-size: 5.5px; white-space: nowrap; }
+        .col-father { width: auto; text-align: left; white-space: nowrap; }
+        .col-sex { width: 1.5%; }
+        .col-date { width: 1.5%; }
+        .col-remarks { width: 2%; text-align: left; }
         .signature-space {
-            margin-top: 20px;
+            margin-top: 4px;
         }
     </style>
 </head>

@@ -67,7 +67,7 @@ abstract class BaseFormApiService
         return [
             'name' => $tenant->name ?? 'N/A',
             'owner_name' => $tenant->owner_name ?? $tenant->contact_person ?? 'N/A',
-            'establishment_name' => $tenant->establishment_name ?? 'N/A',
+            'establishment_name' => !empty($tenant->establishment_name) ? $tenant->establishment_name : null,
             'factory_license_no' => $tenant->factory_license_no ?? '',
             'pf_code' => $tenant->pf_code ?? '',
             'esi_code' => $tenant->esi_code ?? '',

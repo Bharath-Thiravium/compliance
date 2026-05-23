@@ -9,7 +9,6 @@ use App\Http\Controllers\SuperAdmin\PendingFilingsController;
 use App\Http\Controllers\SuperAdmin\FormUpdatesController;
 use App\Http\Controllers\SuperAdmin\NotificationController;
 use App\Http\Controllers\SuperAdmin\PasswordController;
-use App\Http\Controllers\SuperAdmin\ComplianceUserAccessController;
 
 Route::prefix('super-admin')
     ->middleware(['web', 'auth', 'super.admin'])
@@ -60,8 +59,4 @@ Route::prefix('super-admin')
         Route::get('/change-password',       [PasswordController::class, 'showChangeForm'])->name('change-password');
         Route::post('/change-password',      [PasswordController::class, 'updatePassword'])->name('change-password.update');
 
-        // Compliance User Access / Impersonation
-        Route::get('/compliance-users',                      [ComplianceUserAccessController::class, 'index'])->name('compliance-users');
-        Route::get('/compliance-users/{id}/open',            [ComplianceUserAccessController::class, 'open'])->name('open-compliance-user');
-        Route::post('/compliance-users/stop-impersonation',  [ComplianceUserAccessController::class, 'stopImpersonation'])->name('stop-impersonation');
     });

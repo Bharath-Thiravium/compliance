@@ -225,10 +225,6 @@ class ComplianceExecutionController extends Controller
     public function createBatchMinimal(Request $request)
     {
         try {
-            if ($this->subscription() !== 'MINIMAL') {
-                return response()->json(['status' => 'error', 'message' => 'This endpoint is for MINIMAL subscriptions only.'], 403);
-            }
-
             $tenantId = Auth::user()->tenant_id;
 
             if (!$tenantId) {

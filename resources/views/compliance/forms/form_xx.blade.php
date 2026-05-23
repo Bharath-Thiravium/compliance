@@ -115,24 +115,26 @@
             <tr>
                 <td>{{ $i + 1 }}</td>
                 <td class="name-cell">{{ $row['employee_name'] ?? '' }}</td>
-                <td>Nil</td>
-                <td>Nil</td>
-                <td>Nil</td>
-                <td>Nil</td>
-                <td>Nil</td>
-                <td>Nil</td>
-                <td>Nil</td>
-                <td>Nil</td>
-                <td>Nil</td>
-                <td>Nil</td>
-                <td>-</td>
+                <td>{{ $row['father_name'] ?? '-' }}</td>
+                <td>{{ $row['designation'] ?? '-' }}</td>
+                <td>{{ $row['damage_particulars'] ?? '-' }}</td>
+                <td>{{ $row['damage_date'] ?? '-' }}</td>
+                <td>{{ $row['showed_cause'] ?? '-' }}</td>
+                <td>{{ $row['witness_name'] ?? '-' }}</td>
+                <td class="right">{{ $row['deduction_amount'] ?? '-' }}</td>
+                <td>{{ $row['instalments'] ?? '-' }}</td>
+                <td>{{ $row['first_month'] ?? '-' }}</td>
+                <td>{{ $row['last_month'] ?? '-' }}</td>
+                <td>{{ $row['remarks'] ?? '-' }}</td>
             </tr>
             @empty
-            <tr class="nil-row"><td colspan="13">No records found.</td></tr>
+            <tr class="nil-row"><td colspan="13">NIL - No deductions for damage or loss for the month of {{ strtoupper($header['period'] ?? '') }}</td></tr>
             @endforelse
+            @if(!empty($is_nil))
             <tr class="nil-row">
                 <td colspan="13">Nil for the month of {{ strtoupper($header['period'] ?? '') }}</td>
             </tr>
+            @endif
             <tr class="footnote">
                 <td colspan="13">* Applicable only in case of damage / loss / fine</td>
             </tr>

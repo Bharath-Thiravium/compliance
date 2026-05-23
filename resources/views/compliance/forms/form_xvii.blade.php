@@ -192,7 +192,7 @@
                 @forelse($rows ?? [] as $index => $row)
                 <tr>
                     <td class="col-sl">{{ $index + 1 }}</td>
-                    <td class="col-name">{{ $row['employee_name'] ?? '' }}</td>
+                    <td class="col-name">{{ $row['name'] ?? '' }}</td>
                     <td class="col-father">{{ $row['father_name'] ?? '' }}</td>
                     <td class="col-designation">{{ $row['designation'] ?? '' }}</td>
                     <td class="col-days">{{ $row['days_worked'] ?? '' }}</td>

@@ -95,15 +95,6 @@ return [
         'fields' => []
     ],
 
-    'FORM_8' => [
-        'table' => 'incident_documents',
-        'date_field' => 'incident_date',
-        'branch_filter' => false,
-        'filing_frequency' => 'event_based',
-        'due_rule' => 'same_day',
-        'fields' => ['incident_type' => 'incident_type', 'description' => 'description']
-    ],
-
     'FORM_11' => [
         'table' => 'incident_documents',
         'date_field' => 'incident_date',
@@ -184,15 +175,6 @@ return [
             'incident_type' => 'incident_documents.incident_type',
             'description' => 'incident_documents.description'
         ]
-    ],
-
-    'HAZARD_REG' => [
-        'table' => 'inspection_documents',
-        'date_field' => 'inspection_date',
-        'branch_filter' => false,
-        'filing_frequency' => 'quarterly',
-        'due_rule' => 'next_quarter_15',
-        'fields' => []
     ],
 
     // CLRA FORMS (13)
@@ -395,15 +377,6 @@ return [
             'net_salary' => 'workforce_payroll_entry.net_salary',
             'advances' => 'workforce_payroll_entry.advances'
         ]
-    ],
-
-    'SHOPS_FORM_13' => [
-        'table' => 'workforce_attendance',
-        'date_field' => 'attendance_date',
-        'branch_filter' => false,
-        'filing_frequency' => 'monthly',
-        'due_rule' => 'next_month_10',
-        'fields' => []
     ],
 
     'SHOPS_FORM_1' => [

@@ -26,7 +26,6 @@ class FormApiServiceFactory
         // Social Security
         'Form11' => Form11ApiService::class,
         'ESIForm12' => ESIForm12ApiService::class,
-        'EPFInspection' => EPFInspectionApiService::class,
 
         // Factories Act
         'FormB' => FormBApiService::class,
@@ -68,7 +67,6 @@ class FormApiServiceFactory
         'FORM_D_ER'      => 'FormDER',
         'FORM_11'        => 'Form11',
         'ESI_FORM_12'    => 'ESIForm12',
-        'EPF_INSPECTION' => 'EPFInspection',
         'FORM_2'         => 'Form2',
         'FORM_8'         => 'Form8',
         'FORM_10'        => 'Form10',
