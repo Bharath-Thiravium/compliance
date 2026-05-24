@@ -21,7 +21,13 @@ $provided = isset($_GET['token']) ? (string) $_GET['token'] : '';
 
 if ($expected === '' || $provided === '' || ! hash_equals($expected, $provided)) {
     http_response_code(403);
-    echo json_encode(['ok' => false, 'error' => 'Forbidden'], JSON_UNESCAPED_SLASHES);
+    echo json_encode([
+        'ok' => false,
+        'error' => 'Forbidden',
+        'token_file_exists' => is_file($tokenFile),
+        'expected_length' => strlen($expected),
+        'provided_length' => strlen($provided),
+    ], JSON_UNESCAPED_SLASHES);
     exit;
 }
 
@@ -38,4 +44,3 @@ echo json_encode([
     'exit_code' => $exitCode,
     'output' => $kernel->output(),
 ], JSON_UNESCAPED_SLASHES);
-
