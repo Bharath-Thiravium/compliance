@@ -12,24 +12,16 @@
     RewriteCond %{HTTP:x-xsrf-token} .
     RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
 
-    # Pass real files and directories through directly
+    # If the request is already a real file or directory, serve it directly
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    # LOCAL: serve static assets from public/ (localhost)
-    RewriteCond %{HTTP_HOST} ^localhost$ [OR]
-    RewriteCond %{HTTP_HOST} ^127\.0\.0\.1$
-    RewriteCond %{DOCUMENT_ROOT}/compliance/public/%{REQUEST_URI} -f
-    RewriteRule ^(.*)$ public/$1 [L,QSA]
-
-    # PRODUCTION: serve static assets from public/ (athenas.co.in)
-    RewriteCond %{HTTP_HOST} !^localhost$
-    RewriteCond %{HTTP_HOST} !^127\.0\.0\.1$
-    RewriteCond %{DOCUMENT_ROOT}/compliance/ce/public/%{REQUEST_URI} -f
-    RewriteRule ^(.*)$ public/$1 [L,QSA]
-
-    # Everything else goes to Laravel entry point
+    # If the file exists inside public/, serve it from there
     RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond public/%{REQUEST_URI} -f
+    RewriteRule ^(.+)$ public/$1 [L,QSA]
+
+    # Everything else goes to Laravel
     RewriteRule ^ index.php [L,QSA]
 </IfModule>

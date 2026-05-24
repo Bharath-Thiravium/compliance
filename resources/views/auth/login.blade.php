@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign in · Compliance Engine</title>
     <meta name="robots" content="noindex,nofollow">
-    <link rel="icon" href="{{ url('favicon.ico') }}">
+    <link rel="icon" href="{{ asset('favicon.ico') }}">
     <style>
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         :root{
@@ -21,10 +21,7 @@
             background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 50%,#0f172a 100%);
             color:var(--text);
         }
-        .page{
-            display:flex;width:100%;min-height:100vh;
-            align-items:center;justify-content:center;padding:24px 16px;
-        }
+        .page{display:flex;width:100%;min-height:100vh;align-items:center;justify-content:center;padding:24px 16px}
         .card{
             display:flex;width:100%;max-width:920px;min-height:560px;
             border-radius:20px;overflow:hidden;
@@ -33,10 +30,8 @@
 
         /* ── Left ── */
         .left{
-            flex:1.1;
-            background:linear-gradient(160deg,#1e3a5f 0%,#0f172a 100%);
-            padding:52px 44px;
-            display:flex;flex-direction:column;justify-content:space-between;
+            flex:1.1;background:linear-gradient(160deg,#1e3a5f 0%,#0f172a 100%);
+            padding:52px 44px;display:flex;flex-direction:column;justify-content:space-between;
             position:relative;overflow:hidden;
         }
         .left::before{
@@ -46,16 +41,15 @@
             background-size:40px 40px;
         }
         .left::after{
-            content:'';position:absolute;
-            width:360px;height:360px;border-radius:50%;
+            content:'';position:absolute;width:360px;height:360px;border-radius:50%;
             background:radial-gradient(circle,rgba(59,130,246,0.14) 0%,transparent 70%);
             bottom:-80px;right:-80px;
         }
         .lc{position:relative;z-index:1}
-        .logo-row{display:flex;align-items:center;gap:12px;margin-bottom:36px}
+        .logo-row{display:flex;align-items:center;gap:14px;margin-bottom:36px}
         .logo-box{
-            width:48px;height:48px;border-radius:10px;overflow:hidden;flex-shrink:0;
-            border:1px solid rgba(255,255,255,0.15);
+            width:52px;height:62px;border-radius:10px;overflow:hidden;flex-shrink:0;
+            background:#fff;border:1px solid rgba(255,255,255,0.2);
         }
         .logo-box img{width:100%;height:100%;object-fit:cover;display:block}
         .logo-txt{font-size:14px;font-weight:700;color:#fff;line-height:1.3}
@@ -69,11 +63,7 @@
             background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);
             border-radius:10px;padding:10px 14px;
         }
-        .fi{
-            width:30px;height:30px;border-radius:7px;flex-shrink:0;
-            background:rgba(59,130,246,0.18);
-            display:flex;align-items:center;justify-content:center;
-        }
+        .fi{width:30px;height:30px;border-radius:7px;flex-shrink:0;background:rgba(59,130,246,0.18);display:flex;align-items:center;justify-content:center}
         .fi svg{width:14px;height:14px;stroke:#93c5fd;fill:none;stroke-width:2}
         .fb strong{display:block;font-size:12px;font-weight:600;color:#fff}
         .fb span{font-size:11px;color:rgba(255,255,255,0.4)}
@@ -81,10 +71,7 @@
         .lf p{font-size:11px;color:rgba(255,255,255,0.2);margin-top:28px}
 
         /* ── Right ── */
-        .right{
-            flex:1;background:#fff;padding:52px 48px;
-            display:flex;flex-direction:column;justify-content:center;
-        }
+        .right{flex:1;background:#fff;padding:52px 48px;display:flex;flex-direction:column;justify-content:center}
         .fh{margin-bottom:32px}
         .badge{
             display:inline-flex;align-items:center;gap:5px;
@@ -95,22 +82,16 @@
         .badge svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:2.5}
         .fh h1{font-size:26px;font-weight:800;color:var(--text);letter-spacing:-.5px;margin-bottom:6px}
         .fh p{font-size:13px;color:var(--muted)}
-
         .alert{
-            display:flex;align-items:flex-start;gap:9px;
-            padding:11px 14px;border-radius:9px;margin-bottom:20px;
-            font-size:13px;line-height:1.5;
+            display:flex;align-items:flex-start;gap:9px;padding:11px 14px;border-radius:9px;
+            margin-bottom:20px;font-size:13px;line-height:1.5;
             background:var(--red-bg);border:1px solid var(--red-bd);color:var(--red);
         }
         .alert svg{width:14px;height:14px;flex-shrink:0;margin-top:1px;fill:none;stroke:currentColor;stroke-width:2}
-
         .field{margin-bottom:18px}
         .field label{display:block;font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px}
         .ib{position:relative}
-        .ib svg.ic{
-            position:absolute;left:12px;top:50%;transform:translateY(-50%);
-            width:15px;height:15px;stroke:#94a3b8;fill:none;stroke-width:2;pointer-events:none;
-        }
+        .ib svg.ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:#94a3b8;fill:none;stroke-width:2;pointer-events:none}
         .ib input{
             width:100%;height:44px;padding:0 40px 0 38px;
             border:1.5px solid var(--border);border-radius:9px;
@@ -120,20 +101,13 @@
         .ib input::placeholder{color:#cbd5e1}
         .ib input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.12);background:#fff}
         .ib input.err{border-color:var(--red);box-shadow:0 0 0 3px rgba(220,38,38,.1)}
-        .eye{
-            position:absolute;right:11px;top:50%;transform:translateY(-50%);
-            background:none;border:none;cursor:pointer;padding:3px;color:#94a3b8;
-            display:flex;align-items:center;transition:color .15s;
-        }
+        .eye{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:3px;color:#94a3b8;display:flex;align-items:center;transition:color .15s}
         .eye:hover{color:var(--text)}
         .eye svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2}
-
         .rem{display:flex;align-items:center;gap:7px;margin-bottom:22px;font-size:13px;color:var(--muted);cursor:pointer;user-select:none}
         .rem input{width:15px;height:15px;accent-color:var(--accent);cursor:pointer}
-
         .btn{
-            width:100%;height:46px;
-            background:var(--accent);color:#fff;
+            width:100%;height:46px;background:var(--accent);color:#fff;
             font-size:14px;font-weight:700;font-family:inherit;
             border:none;border-radius:10px;cursor:pointer;
             display:flex;align-items:center;justify-content:center;gap:7px;
@@ -143,7 +117,6 @@
         .btn:hover{background:var(--accent-h);box-shadow:0 6px 20px rgba(37,99,235,.4)}
         .btn:active{transform:scale(.99)}
         .btn svg{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:2.2}
-
         .foot{margin-top:24px;text-align:center;font-size:12px;color:#94a3b8}
 
         @media(max-width:680px){
@@ -160,7 +133,9 @@
     <div class="left">
       <div class="lc">
         <div class="logo-row">
-          <div class="logo-box"><img src="{{ url('images/esi_logo.jpg') }}" alt="Logo"></div>
+          <div class="logo-box">
+            <img src="{{ asset('images/india-map.jpg') }}" alt="India Compliance">
+          </div>
           <div class="logo-txt">Compliance Engine<small>Labour Automation Platform</small></div>
         </div>
         <h2 class="l-h">Statutory Compliance,<br><em>Fully Automated.</em></h2>
