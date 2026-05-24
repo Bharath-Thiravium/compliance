@@ -1,30 +1,35 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /compliance/ce/
 
-    # Block direct access to sensitive files and directories
+    # Block sensitive files
     RewriteRule ^\.env - [F,L]
     RewriteRule ^(app|bootstrap|config|database|resources|routes|storage|vendor|tests)/ - [F,L]
     RewriteRule ^(composer\.(json|lock)|artisan|deploy\.sh)$ - [F,L]
 
-    # Handle Authorization Header
+    # Auth headers
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
-
-    # Handle X-XSRF-Token Header
     RewriteCond %{HTTP:x-xsrf-token} .
     RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
 
-    # Redirect trailing slashes
-    RewriteCond %{REQUEST_URI} ^/compliance/ce/(.+)/$
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^ /compliance/ce/%1 [L,R=301]
+    # Pass real files and directories through directly
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
 
-    # Serve static assets (css, js, images, fonts) from public/ if they exist
-    RewriteCond %{REQUEST_URI} ^/compliance/ce/(.+)$
-    RewriteCond %{DOCUMENT_ROOT}/compliance/ce/public/%1 -f
-    RewriteRule ^(.+)$ public/$1 [L,QSA]
+    # LOCAL: serve static assets from public/ (localhost)
+    RewriteCond %{HTTP_HOST} ^localhost$ [OR]
+    RewriteCond %{HTTP_HOST} ^127\.0\.0\.1$
+    RewriteCond %{DOCUMENT_ROOT}/compliance/public/%{REQUEST_URI} -f
+    RewriteRule ^(.*)$ public/$1 [L,QSA]
 
-    # Everything else goes to the root index.php (Laravel entry point)
+    # PRODUCTION: serve static assets from public/ (athenas.co.in)
+    RewriteCond %{HTTP_HOST} !^localhost$
+    RewriteCond %{HTTP_HOST} !^127\.0\.0\.1$
+    RewriteCond %{DOCUMENT_ROOT}/compliance/ce/public/%{REQUEST_URI} -f
+    RewriteRule ^(.*)$ public/$1 [L,QSA]
+
+    # Everything else goes to Laravel entry point
+    RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L,QSA]
 </IfModule>
