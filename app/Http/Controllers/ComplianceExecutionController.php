@@ -29,7 +29,12 @@ class ComplianceExecutionController extends Controller
 
     private function subscription(): string
     {
-        return Auth::user()->tenant->subscription_type ?? 'MINIMAL';
+        $user = Auth::user();
+        // Super admins have no tenant — treat as FULL
+        if ($user && $user->is_super_admin) {
+            return 'FULL';
+        }
+        return $user->tenant->subscription_type ?? 'MINIMAL';
     }
 
     private function requireFullSubscription(): ?\Illuminate\Http\JsonResponse
@@ -159,6 +164,13 @@ class ComplianceExecutionController extends Controller
         try {
             $tenantId = Auth::user()->tenant_id;
 
+            if (!$tenantId) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Super Admin accounts are not linked to a tenant. Please use a tenant user account to create compliance batches.',
+                ], 422);
+            }
+
             $validated = $request->validate([
                 'period_month' => 'required|integer|min:1|max:12',
                 'period_year'  => 'required|integer|min:2020|max:2030',
@@ -213,11 +225,14 @@ class ComplianceExecutionController extends Controller
     public function createBatchMinimal(Request $request)
     {
         try {
-            if ($this->subscription() !== 'MINIMAL') {
-                return response()->json(['status' => 'error', 'message' => 'This endpoint is for MINIMAL subscriptions only.'], 403);
-            }
-
             $tenantId = Auth::user()->tenant_id;
+
+            if (!$tenantId) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Super Admin accounts are not linked to a tenant. Please use a tenant user account.',
+                ], 422);
+            }
 
             $validated = $request->validate([
                 'period_month' => 'required|integer|min:1|max:12',

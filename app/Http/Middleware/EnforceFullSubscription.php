@@ -13,6 +13,10 @@ class EnforceFullSubscription
         $user = Auth::user();
         
         if (!$user || !$user->tenant_id) {
+            // Super admins have no tenant — let them pass through freely
+            if ($user && $user->is_super_admin) {
+                return $next($request);
+            }
             abort(403, 'No tenant associated with user');
         }
 

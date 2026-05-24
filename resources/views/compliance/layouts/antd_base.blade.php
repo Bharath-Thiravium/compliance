@@ -46,6 +46,7 @@
         .ant-tag-success { background: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
         .ant-tag-warning { background: #fffbe6; color: #faad14; border: 1px solid #ffe58f; }
         .ant-tag-error { background: #fff2f0; color: #ff4d4f; border: 1px solid #ffccc7; }
+        .ant-tag-processing { background: #e6f7ff; color: #1890ff; border: 1px solid #91d5ff; }
         .ant-tag-default { background: #fafafa; color: #595959; border: 1px solid #d9d9d9; }
         .ant-alert { padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 14px; }
         .ant-alert-success { background: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; }
@@ -93,6 +94,9 @@
                     </span>
                 @endif
                 <span class="header-user">{{ Auth::user()->name }}</span>
+                @if(Auth::user()->is_super_admin)
+                    <a href="{{ route('super-admin.dashboard') }}" class="ant-btn ant-btn-sm" style="background:#e94560;color:#fff;border-color:#e94560;">⚙️ Super Admin</a>
+                @endif
                 <form method="POST" action="{{ route('logout') }}" style="margin: 0;">
                     @csrf
                     <button type="submit" class="ant-btn ant-btn-sm ant-btn-outline">Logout</button>

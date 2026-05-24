@@ -28,10 +28,29 @@ class BatchProcessingController extends Controller
                 ->first();
 
             if (!$nextForm) {
-                // All done
+                // All done — fetch final form state for UI sync
+                $auditResult = app(\App\Services\Compliance\Audit\ComplianceAuditService::class)->auditBatch($batch);
+
+                $forms     = ComplianceBatchForm::where('batch_id', $batch)->get();
+                $generated = $forms->where('status', 'generated')->count();
+                $failed    = $forms->where('status', 'failed')->count();
+                $total     = $forms->count();
+
                 return response()->json([
-                    'status' => 'complete',
-                    'batch_id' => $batch
+                    'status'       => 'complete',
+                    'batch_id'     => $batch,
+                    'generated'    => $generated,
+                    'failed'       => $failed,
+                    'total'        => $total,
+                    'progress'     => $total > 0 ? 100 : 0,
+                    'forms'        => $forms->map(fn($f) => [
+                        'form_code' => $f->form_code,
+                        'status'    => $f->status,
+                        'file_path' => $f->file_path,
+                    ])->toArray(),
+                    'audit'        => $auditResult,
+                    'batch_score'  => $auditResult['batch_score']  ?? null,
+                    'audit_status' => $auditResult['batch_status'] ?? null,
                 ]);
             }
 

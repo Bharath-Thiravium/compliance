@@ -17,7 +17,7 @@ class PayrollValidationGuard
                 continue;
             }
 
-            $employeeName = $row['employee_name'] ?? "Row {$index}";
+            $employeeName = $row['name'] ?? $row['employee_name'] ?? "Row {$index}";
             $daysWorked   = $row['total_days_worked'] ?? 0;
             $basicWages   = $row['basic_earned'] ?? 0;
             $da           = $row['da_earned'] ?? 0;

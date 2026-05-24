@@ -22,17 +22,17 @@
 <body>
 @php
     $d = array_merge([
-        'employer_name'=>'NIL','code_no'=>'NIL','branch_office'=>'NIL',
-        'industry_nature'=>'NIL','insured_name'=>'NIL','insurance_no'=>'NIL',
-        'sex'=>'NIL','age'=>'NIL','occupation'=>'NIL','accident_address'=>'NIL',
-        'department'=>'NIL','shift_hour'=>'NIL','exact_place'=>'NIL',
-        'injury_nature'=>'NIL','injury_location'=>'NIL','hospital_info'=>'NIL',
-        'accident_description'=>'NIL','death'=>'no','death_date'=>'NIL',
-        'wages_payable'=>'no','contravention'=>'no','witness_1'=>'NIL',
-        'witness_2'=>'NIL','machine_involved'=>'NIL','machinery_fenced'=>'no',
-        'person_doing'=>'NIL','employer_vehicle'=>'no','employer_permission'=>'no',
-        'transport_operated'=>'no','despatch_date'=>'NIL','designation'=>'NIL',
-        'diary_no'=>'NIL','branch_manager'=>'NIL',
+        'employer_name'=>'','code_no'=>'','branch_office'=>'',
+        'industry_nature'=>'','insured_name'=>'','insurance_no'=>'',
+        'sex'=>'','age'=>'','occupation'=>'','accident_address'=>'',
+        'department'=>'','shift_hour'=>'','exact_place'=>'',
+        'injury_nature'=>'','injury_location'=>'','hospital_info'=>'',
+        'accident_description'=>'','death'=>'no','death_date'=>'',
+        'wages_payable'=>'no','contravention'=>'no','witness_1'=>'',
+        'witness_2'=>'','machine_involved'=>'','machinery_fenced'=>'no',
+        'person_doing'=>'','employer_vehicle'=>'no','employer_permission'=>'no',
+        'transport_operated'=>'no','despatch_date'=>'','designation'=>'',
+        'diary_no'=>'','branch_manager'=>'',
     ], ($rows ?? [])[0] ?? []);
     function ynCb2($v,$o){$c=($v==$o)?'&#10003;':'';return '<span class="cg"><span class="cb">'.$c.'</span> '.ucfirst($o).'</span>';}
 @endphp

@@ -127,7 +127,30 @@ class RealtimeComplianceExecutionService
             'failed' => $results['failed'],
             'total' => $results['total_forms']
         ]);
-        
+
+        $auditResult = $this->runBatchAudit($batchId);
+        $results['audit'] = $auditResult;
+        $results['batch_score'] = $auditResult['batch_score'] ?? null;
+        $results['batch_status'] = $auditResult['batch_status'] ?? null;
+
         return $results;
+    }
+
+    private function runBatchAudit(int $batchId): array
+    {
+        try {
+            $auditService = app(\App\Services\Compliance\Audit\ComplianceAuditService::class);
+            return $auditService->auditBatch($batchId);
+        } catch (\Throwable $e) {
+            Log::error('Batch audit failed', [
+                'batch_id' => $batchId,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'status' => 'error',
+                'message' => 'Batch audit failed: ' . $e->getMessage(),
+            ];
+        }
     }
 }

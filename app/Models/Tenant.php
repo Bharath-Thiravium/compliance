@@ -11,6 +11,11 @@ class Tenant extends Model
     protected $fillable = [
         'name',
         'subscription_type',
+        'establishment_name',
+        'factory_license_no',
+        'pf_code',
+        'esi_code',
+        'labour_office_address',
     ];
 
     public function users(): HasMany

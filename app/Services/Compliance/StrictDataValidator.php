@@ -30,15 +30,19 @@ class StrictDataValidator
         $requiredFields = $this->getRequiredFieldsForForm($formCode);
 
         foreach ($requiredFields as $field) {
-            if (!isset($row[$field])) {
+            // Accept either 'name' or 'employee_name' as the employee name field
+            $aliases = ['name' => ['name', 'employee_name'], 'employee_name' => ['employee_name', 'name']];
+            $candidates = $aliases[$field] ?? [$field];
+            $found = false;
+            foreach ($candidates as $candidate) {
+                if (isset($row[$candidate]) && $row[$candidate] !== 'N/A') {
+                    $found = true;
+                    break;
+                }
+            }
+            if (!$found) {
                 throw new \RuntimeException(
                     "Missing required field '{$field}' in {$formCode} row " . ($index + 1)
-                );
-            }
-
-            if ($row[$field] === 'N/A') {
-                throw new \RuntimeException(
-                    "N/A placeholder found in '{$field}' for {$formCode} row " . ($index + 1)
                 );
             }
         }
@@ -75,15 +79,12 @@ class StrictDataValidator
             'FORM_10', 'Form10',
             'FORM_B',  'FormB',
             'FORM_25', 'Form25',
-            'FORM_XVI', 'FormXVI',
-            'FORM_XVII', 'FormXVII',
-            'FORM_XIX', 'FormXIX',
             'FORM_XXIII', 'FormXXIII',
             'SHOPS_FORM_12', 'ShopsForm12',
         ];
 
         if (in_array($formCode, $employeeBasedForms)) {
-            return ['employee_code', 'employee_name'];
+            return ['employee_code', 'name'];
         }
 
         return [];

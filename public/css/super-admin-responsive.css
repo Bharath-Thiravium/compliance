@@ -1,0 +1,695 @@
+/* ============================================================================
+   RESPONSIVE CSS - Super Admin Layout
+   Covers: 320px, 375px, 425px, 576px, 768px, 992px, 1024px, 1280px, 1920px+
+   ============================================================================ */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; overflow-x: hidden; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #f5f5f5; }
+img, video { max-width: 100%; height: auto; }
+
+/* ============================================================================
+   LAYOUT
+   ============================================================================ */
+
+.ant-layout { min-height: 100vh; display: flex; flex-direction: column; }
+.ant-layout-header { background: linear-gradient(135deg, #722ed1 0%, #eb2f96 100%); padding: 8px 12px; display: flex; align-items: center; justify-content: flex-start; height: auto; min-height: auto; flex-wrap: wrap; gap: 8px; width: 100%; }
+.ant-layout-content { padding: 12px; max-width: 100%; margin: 0 auto; width: 100%; flex: 1; margin-top: 12px; }
+
+/* ============================================================================
+   CARDS
+   ============================================================================ */
+
+.ant-card { background: white; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 1px 6px -1px rgba(0,0,0,0.02), 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 16px; width: 100%; }
+.ant-card-head { background: #722ed1; color: white; border-radius: 8px 8px 0 0; padding: 14px 18px; font-weight: 600; font-size: 15px; word-break: break-word; }
+.ant-card-head.success { background: #52c41a; }
+.ant-card-head.warning { background: #faad14; }
+.ant-card-head.danger { background: #ff4d4f; }
+.ant-card-head.info { background: #13c2c2; }
+.ant-card-head.secondary { background: #8c8c8c; }
+.ant-card-body { padding: 18px; }
+
+/* ============================================================================
+   GRID SYSTEM
+   ============================================================================ */
+
+.ant-row { display: flex; flex-wrap: wrap; margin: -6px; width: 100%; }
+.ant-col { padding: 6px; flex-basis: 100%; }
+.ant-col-12 { flex: 0 0 100%; max-width: 100%; }
+.ant-col-8 { flex: 0 0 100%; max-width: 100%; }
+.ant-col-6 { flex: 0 0 100%; max-width: 100%; }
+.ant-col-4 { flex: 0 0 100%; max-width: 100%; }
+.ant-col-3 { flex: 0 0 100%; max-width: 100%; }
+
+/* ============================================================================
+   BUTTONS
+   ============================================================================ */
+
+.ant-btn { height: 32px; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; border: 1px solid #d9d9d9; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; white-space: nowrap; flex-shrink: 0; }
+.ant-btn-primary { background: #722ed1; color: white; border-color: #722ed1; }
+.ant-btn-primary:hover { background: #9254de; border-color: #9254de; color: white; }
+.ant-btn-success { background: #52c41a; color: white; border-color: #52c41a; }
+.ant-btn-info { background: #13c2c2; color: white; border-color: #13c2c2; }
+.ant-btn-sm { height: 28px; padding: 0 8px; font-size: 11px; }
+.ant-btn-outline { background: transparent; color: white; border-color: rgba(255,255,255,0.5); }
+.ant-btn-outline:hover { background: rgba(255,255,255,0.1); border-color: white; }
+
+/* ============================================================================
+   TAGS
+   ============================================================================ */
+
+.ant-tag { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+.ant-tag-success { background: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
+.ant-tag-warning { background: #fffbe6; color: #faad14; border: 1px solid #ffe58f; }
+.ant-tag-error { background: #fff2f0; color: #ff4d4f; border: 1px solid #ffccc7; }
+.ant-tag-default { background: #fafafa; color: #595959; border: 1px solid #d9d9d9; }
+.ant-tag-info { background: #e6f7ff; color: #1890ff; border: 1px solid #91d5ff; }
+
+/* ============================================================================
+   TABLES
+   ============================================================================ */
+
+.ant-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.ant-table thead th { background: #fafafa; padding: 10px 12px; text-align: left; font-weight: 600; border-bottom: 1px solid #f0f0f0; white-space: nowrap; }
+.ant-table tbody td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; word-break: break-word; }
+.ant-table tbody tr:hover { background: #fafafa; }
+
+/* ============================================================================
+   STAT CARDS
+   ============================================================================ */
+
+.stat-card { background: white; border-radius: 8px; padding: 18px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.03); word-break: break-word; margin-bottom: 12px; }
+.stat-card h3 { font-size: 28px; margin: 0; color: #722ed1; }
+.stat-card p { margin: 8px 0 0 0; color: #8c8c8c; font-size: 13px; }
+
+/* ============================================================================
+   HEADER
+   ============================================================================ */
+
+.header-brand { color: white; font-size: 16px; font-weight: 600; white-space: nowrap; flex-shrink: 0; flex-basis: 100%; padding: 4px 0; }
+.header-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; width: 100%; justify-content: flex-start; flex-basis: 100%; }
+.header-user { color: white; font-size: 12px; white-space: nowrap; display: none; }
+
+/* ============================================================================
+   NOTIFICATIONS
+   ============================================================================ */
+
+.notification-btn { position: relative; background: transparent; color: white; border: 1px solid rgba(255,255,255,0.3); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: all 0.3s; white-space: nowrap; flex-shrink: 0; min-width: fit-content; }
+.notification-btn:hover { background: rgba(255,255,255,0.1); }
+.notification-badge { position: absolute; top: -8px; right: -8px; background: #ff4d4f; color: white; border-radius: 10px; padding: 2px 5px; font-size: 10px; font-weight: 600; min-width: 18px; text-align: center; z-index: 10; }
+.notification-badge.success { background: #52c41a; }
+.notification-dropdown { position: absolute; top: 40px; right: 0; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 90vw; max-width: 350px; max-height: 400px; overflow-y: auto; z-index: 1000; display: none; }
+.notification-dropdown.show { display: block; }
+.notification-header { padding: 12px 14px; border-bottom: 1px solid #f0f0f0; font-weight: 600; color: #262626; font-size: 13px; }
+.notification-item { padding: 10px 14px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background 0.2s; }
+.notification-item:hover { background: #fafafa; }
+.notification-item-title { font-weight: 600; color: #262626; margin-bottom: 3px; font-size: 12px; }
+.notification-item-desc { font-size: 11px; color: #8c8c8c; margin-bottom: 3px; }
+.notification-item-time { font-size: 10px; color: #bfbfbf; }
+.notification-footer { padding: 10px 14px; text-align: center; border-top: 1px solid #f0f0f0; }
+.notification-footer a { color: #722ed1; text-decoration: none; font-weight: 500; font-size: 12px; }
+.notification-footer a:hover { color: #9254de; }
+.new-badge { background: #52c41a; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 8px; }
+
+/* ============================================================================
+   UTILITIES
+   ============================================================================ */
+
+.text-center { text-align: center; }
+.text-muted { color: #8c8c8c; }
+.mb-2 { margin-bottom: 8px; }
+.mb-4 { margin-bottom: 16px; }
+.mt-4 { margin-top: 16px; }
+.d-flex { display: flex; }
+.gap-2 { gap: 8px; }
+
+/* ============================================================================
+   FOOTER
+   ============================================================================ */
+
+footer { text-align: center; color: #8c8c8c; padding: 16px 12px; margin-top: 20px; font-size: 11px; border-top: 1px solid #f0f0f0; }
+
+/* ============================================================================
+   TABLET (576px+)
+   ============================================================================ */
+
+@media (min-width: 576px) {
+    .ant-layout-header { padding: 8px 16px; flex-wrap: nowrap; justify-content: space-between; }
+    .header-brand { flex-basis: auto; padding: 8px 0; }
+    .header-actions { width: auto; justify-content: flex-end; flex-basis: auto; gap: 8px; }
+    .ant-layout-content { padding: 16px; margin-top: 8px; }
+    .ant-card { margin-bottom: 16px; }
+    .ant-card-head { padding: 14px 20px; font-size: 15px; }
+    .ant-card-body { padding: 20px; }
+    .ant-row { margin: -8px; }
+    .ant-col { padding: 8px; }
+    .ant-btn { height: 36px; padding: 4px 14px; font-size: 13px; }
+    .ant-btn-sm { height: 32px; padding: 0 10px; font-size: 12px; }
+    .ant-tag { padding: 4px 12px; font-size: 12px; }
+    .ant-table thead th { padding: 12px 16px; font-size: 13px; }
+    .ant-table tbody td { padding: 12px 16px; font-size: 13px; }
+    .header-brand { font-size: 18px; }
+    .header-user { display: inline; font-size: 13px; }
+    .stat-card { padding: 20px; }
+    .stat-card h3 { font-size: 32px; }
+    .stat-card p { font-size: 13px; }
+    .notification-btn { padding: 8px 14px; font-size: 13px; }
+    .notification-dropdown { width: 400px; max-height: 500px; top: 50px; }
+    .notification-header { padding: 14px 16px; font-size: 14px; }
+    .notification-item { padding: 12px 16px; }
+    .notification-item-title { font-size: 13px; }
+    .notification-item-desc { font-size: 12px; }
+    .notification-item-time { font-size: 11px; }
+    .notification-footer { padding: 12px 16px; }
+    .notification-footer a { font-size: 13px; }
+    .mt-4 { margin-top: 24px; }
+    .mb-4 { margin-bottom: 24px; }
+    footer { padding: 20px 24px; font-size: 12px; }
+}
+
+/* ============================================================================
+   TABLET (768px+)
+   ============================================================================ */
+
+@media (min-width: 768px) {
+    .ant-layout-header { padding: 8px 24px; }
+    .ant-layout-content { padding: 24px; max-width: 1200px; margin-top: 0; }
+    .ant-card-head { padding: 16px 24px; font-size: 16px; }
+    .ant-card-body { padding: 24px; }
+    .ant-col-6 { flex: 0 0 50%; max-width: 50%; }
+    .ant-col-4 { flex: 0 0 33.333%; max-width: 33.333%; }
+    .ant-col-3 { flex: 0 0 25%; max-width: 25%; }
+    .ant-col-8 { flex: 0 0 66.666%; max-width: 66.666%; }
+}
+
+/* ============================================================================
+   LAPTOP (1024px+)
+   ============================================================================ */
+
+@media (min-width: 1024px) {
+    .ant-layout-content { max-width: 1200px; }
+}
+
+/* ============================================================================
+   DESKTOP (1280px+)
+   ============================================================================ */
+
+@media (min-width: 1280px) {
+    .ant-layout-content { max-width: 1400px; }
+}
+
+/* ============================================================================
+   MOBILE OVERRIDE (max-width: 768px) - Enhanced mobile layout
+   ============================================================================ */
+
+@media (max-width: 700px) {
+    .ant-layout-header {
+        padding: 10px 14px !important;
+        height: auto !important;
+        flex-wrap: wrap !important;
+        justify-content: flex-start !important;
+    }
+    .ant-layout-content {
+        padding: 14px !important;
+        margin-top: 14px !important;
+    }
+    .ant-card {
+        margin-bottom: 18px !important;
+        width: 100% !important;
+        min-height: 120px !important;
+    }
+    .ant-card-head {
+        padding: 16px 20px !important;
+        font-size: 16px !important;
+        text-align: left !important;
+    }
+    .ant-card-body {
+        padding: 22px !important;
+    }
+    .ant-col-6,
+    .ant-col-4,
+    .ant-col-3,
+    .ant-col-8,
+    .ant-col-12 {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+    .ant-row {
+        flex-direction: column !important;
+        margin: 0 !important;
+    }
+    .ant-col {
+        padding: 0 !important;
+        margin-bottom: 12px !important;
+    }
+    .stat-card {
+        padding: 24px !important;
+        margin-bottom: 0 !important;
+        text-align: center !important;
+        min-height: 110px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+    }
+    .stat-card h3 {
+        font-size: 32px !important;
+        margin: 0 !important;
+        color: #722ed1 !important;
+    }
+    .stat-card p {
+        font-size: 15px !important;
+        margin: 10px 0 0 0 !important;
+        color: #8c8c8c !important;
+        word-break: break-word !important;
+    }
+    .ant-table {
+        font-size: 13px !important;
+        min-width: 600px !important;
+    }
+    .ant-table thead th {
+        padding: 14px 16px !important;
+        font-size: 13px !important;
+    }
+    .ant-table tbody td {
+        padding: 14px 16px !important;
+        font-size: 13px !important;
+        word-break: break-word !important;
+    }
+    .ant-btn {
+        height: 36px !important;
+        padding: 6px 14px !important;
+        font-size: 13px !important;
+    }
+    .ant-btn-sm {
+        height: 32px !important;
+        padding: 4px 12px !important;
+        font-size: 12px !important;
+    }
+    .ant-tag {
+        padding: 5px 12px !important;
+        font-size: 12px !important;
+    }
+    .header-brand {
+        flex-basis: 100% !important;
+        font-size: 18px !important;
+        padding: 6px 0 !important;
+    }
+    .header-actions {
+        flex-basis: 100% !important;
+        width: 100% !important;
+        justify-content: flex-start !important;
+        gap: 8px !important;
+        flex-wrap: wrap !important;
+    }
+    .header-user {
+        display: none !important;
+    }
+    .notification-btn {
+        padding: 8px 14px !important;
+        font-size: 13px !important;
+        flex: 1 1 auto !important;
+        min-width: 120px !important;
+    }
+    .notification-dropdown {
+        width: 90vw !important;
+        max-width: 350px !important;
+        position: fixed !important;
+        top: 120px !important;
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%) !important;
+        z-index: 9999 !important;
+    }
+    .notification-header {
+        padding: 16px 18px !important;
+        font-size: 14px !important;
+    }
+    .notification-item {
+        padding: 14px 18px !important;
+    }
+    .notification-item-title {
+        font-size: 13px !important;
+    }
+    .notification-item-desc {
+        font-size: 12px !important;
+    }
+    .notification-item-time {
+        font-size: 11px !important;
+    }
+    .notification-footer {
+        padding: 14px 18px !important;
+    }
+    .notification-footer a {
+        font-size: 13px !important;
+    }
+    footer {
+        padding: 18px 14px !important;
+        font-size: 12px !important;
+    }
+    div[style*="overflow-x: auto"] {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+}
+
+
+/* ============================================================================
+   MOBILE ALIGNMENT FIX (max-width: 768px) - Content & Card Alignment
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .ant-layout-content {
+        padding: 14px !important;
+    }
+
+    .ant-card {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 0 18px 0 !important;
+        border-radius: 10px !important;
+    }
+
+    .ant-card-body {
+        padding: 16px !important;
+    }
+
+    .ant-card-head {
+        padding: 14px 16px !important;
+    }
+}
+
+/* ============================================================================
+   MOBILE TABLE ALIGNMENT (max-width: 768px) - Table Scrolling & Cell Alignment
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .mobile-table-wrap {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .mobile-table-wrap table {
+        min-width: 720px;
+    }
+
+    .ant-table th,
+    .ant-table td {
+        padding: 12px 10px !important;
+        font-size: 14px !important;
+        vertical-align: middle !important;
+        text-align: left !important;
+    }
+
+    .ant-table td,
+    .ant-table th,
+    .ant-tag,
+    .ant-btn {
+        word-break: normal !important;
+        overflow-wrap: normal !important;
+        white-space: nowrap !important;
+    }
+}
+
+/* ============================================================================
+   MOBILE SPACING & HEADER (max-width: 768px) - Section Spacing & Header Alignment
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .mt-4 {
+        margin-top: 16px !important;
+    }
+
+    .ant-layout-header {
+        padding: 10px 14px !important;
+    }
+}
+
+/* ============================================================================
+   SHARED LAYOUT CONSISTENCY - Unified page structure
+   ============================================================================ */
+
+.page-container {
+    width: 100%;
+    max-width: 100%;
+}
+
+.page-header {
+    margin-bottom: 16px;
+}
+
+.page-header .ant-btn {
+    margin-bottom: 8px;
+}
+
+.section-spacing {
+    margin-top: 24px;
+}
+
+.section-spacing.mt-4 {
+    margin-top: 16px;
+}
+
+/* Stat cards consistent sizing */
+.stat-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Table wrapper consistency */
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table-wrapper table {
+    width: 100%;
+}
+
+/* Button group spacing */
+.button-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.button-group .ant-btn {
+    flex: 1 1 auto;
+    min-width: 120px;
+}
+
+/* Summary card styling */
+.summary-card {
+    border-left: 4px solid #faad14;
+    background: #fffbe6;
+    padding: 16px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+}
+
+.summary-card strong {
+    color: #262626;
+}
+
+.summary-card span {
+    color: #595959;
+}
+
+/* Modal consistency */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay.show {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 700px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #262626;
+}
+
+.modal-close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #8c8c8c;
+}
+
+.modal-section {
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+}
+
+.modal-section-title {
+    font-weight: 600;
+    color: #262626;
+    display: block;
+    margin-bottom: 12px;
+}
+
+.modal-item {
+    margin-bottom: 12px;
+}
+
+.modal-item strong {
+    color: #262626;
+}
+
+.modal-item span {
+    color: #595959;
+}
+
+/* Responsive adjustments for shared layout */
+@media (max-width: 768px) {
+    .button-group {
+        flex-direction: column;
+    }
+
+    .button-group .ant-btn {
+        width: 100%;
+    }
+
+    .modal-content {
+        width: 95%;
+        padding: 16px;
+    }
+
+    .modal-header {
+        margin-bottom: 16px;
+    }
+
+    .modal-header h2 {
+        font-size: 16px;
+    }
+}
+
+/* ============================================================================
+   PAGINATION STYLING (Super Admin)
+   ============================================================================ */
+
+.sa-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.sa-pagination nav {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.sa-pagination .pagination {
+    display: flex;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.sa-pagination .pagination li {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.sa-pagination .pagination li a,
+.sa-pagination .pagination li span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: 1px solid #e3e3e3;
+    background: #ffffff;
+    color: #333;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    min-width: 36px;
+    height: 36px;
+}
+
+.sa-pagination .pagination li a:hover {
+    background: #1677ff;
+    color: #fff;
+    border-color: #1677ff;
+}
+
+.sa-pagination .pagination .active span {
+    background: #1677ff;
+    color: white;
+    border-color: #1677ff;
+}
+
+.sa-pagination .pagination li.disabled span {
+    color: #bfbfbf;
+    cursor: not-allowed;
+    background: #fafafa;
+}
+
+.sa-pagination svg {
+    width: 16px !important;
+    height: 16px !important;
+    display: inline-block;
+}
+
+@media (max-width: 768px) {
+    .sa-pagination {
+        margin-top: 15px;
+    }
+
+    .sa-pagination .pagination li a,
+    .sa-pagination .pagination li span {
+        padding: 5px 10px;
+        font-size: 13px;
+        min-width: 32px;
+        height: 32px;
+    }
+
+    .sa-pagination svg {
+        width: 14px !important;
+        height: 14px !important;
+    }
+}
+
+
+

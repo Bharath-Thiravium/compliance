@@ -56,14 +56,53 @@ class FormGeneratorFactory
         'ShopsFormVI' => ShopsFormVIGenerator::class,
     ];
 
+    // Maps DB form codes (FORM_XII) to factory keys (FormXII)
+    protected static array $codeMap = [
+        'FORM_XII'       => 'FormXII',
+        'FORM_XIII'      => 'FormXIII',
+        'FORM_XIV'       => 'FormXIV',
+        'FORM_XVI'       => 'FormXVI',
+        'FORM_XVII'      => 'FormXVII',
+        'FORM_XIX'       => 'FormXIX',
+        'FORM_XX'        => 'FormXX',
+        'FORM_XXI'       => 'FormXXI',
+        'FORM_XXII'      => 'FormXXII',
+        'FORM_XXIII'     => 'FormXXIII',
+        'FORM_A'         => 'FormA',
+        'FORM_B'         => 'FormB',
+        'FORM_C'         => 'FormC',
+        'FORM_D'         => 'FormD',
+        'FORM_D_ER'      => 'FormDER',
+        'FORM_11'        => 'Form11',
+        'ESI_FORM_12'    => 'ESIForm12',
+        'EPF_INSPECTION' => 'EPFInspection',
+        'FORM_2'         => 'Form2',
+        'FORM_8'         => 'Form8',
+        'FORM_10'        => 'Form10',
+        'FORM_12'        => 'Form12',
+        'FORM_17'        => 'Form17',
+        'FORM_18'        => 'Form18',
+        'FORM_25'        => 'Form25',
+        'FORM_26'        => 'Form26',
+        'FORM_26A'       => 'Form26A',
+        'HAZARD_REG'     => 'HazardReg',
+        'SHOPS_FORM_12'  => 'ShopsForm12',
+        'SHOPS_FORM_13'  => 'ShopsForm13',
+        'SHOPS_FORM_C'   => 'ShopsFormC',
+        'SHOPS_FORM_VI'  => 'ShopsFormVI',
+        'SHOPS_UNPAID'   => 'ShopsUnpaid',
+        'SHOPS_FINES'    => 'ShopsFines',
+    ];
+
     public static function make(string $formCode): ?BaseFormGenerator
     {
-        if (!isset(self::$generatorMap[$formCode])) {
+        $key = self::$codeMap[$formCode] ?? $formCode;
+
+        if (!isset(self::$generatorMap[$key])) {
             return null;
         }
 
-        $generatorClass = self::$generatorMap[$formCode];
-        return new $generatorClass();
+        return new self::$generatorMap[$key]();
     }
 
     public static function getSupportedForms(): array

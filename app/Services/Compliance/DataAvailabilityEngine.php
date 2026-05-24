@@ -34,24 +34,17 @@ class DataAvailabilityEngine
         if (!$result['exists']) $missing[] = 'payroll';
         $summary['payroll_entries'] = $result['count'];
 
-        // Check contract labour
+        // Optional data — shown in summary but do NOT block generation
         $result = $this->checkTable('contract_labour_deployment', $tenantId, $branchId);
-        if (!$result['exists']) $missing[] = 'contract_labour';
         $summary['contract_labour'] = $result['count'];
 
-        // Check bonus records - no period filter needed
         $result = $this->checkBonusData($tenantId, $branchId);
-        if (!$result['exists']) $missing[] = 'bonus_records';
         $summary['bonus_records'] = $result['count'];
 
-        // Check incidents - use notice_date
         $result = $this->checkTableByPeriod('incidents', $tenantId, $branchId, $month, $year, 'notice_date');
-        if (!$result['exists']) $missing[] = 'incidents';
         $summary['incidents'] = $result['count'];
 
-        // Check hazard register
         $result = $this->checkTable('hazard_register', $tenantId, $branchId);
-        if (!$result['exists']) $missing[] = 'hazard_register';
         $summary['hazard_register'] = $result['count'];
 
         return [

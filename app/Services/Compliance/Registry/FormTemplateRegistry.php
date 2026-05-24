@@ -45,13 +45,51 @@ class FormTemplateRegistry
 
     ];
 
+    private static array $aliases = [
+        'FORM_XII'       => 'FormXII',
+        'FORM_XIII'      => 'FormXIII',
+        'FORM_XIV'       => 'FormXIV',
+        'FORM_XVI'       => 'FormXVI',
+        'FORM_XVII'      => 'FormXVII',
+        'FORM_XIX'       => 'FormXIX',
+        'FORM_XX'        => 'FormXX',
+        'FORM_XXI'       => 'FormXXI',
+        'FORM_XXII'      => 'FormXXII',
+        'FORM_XXIII'     => 'FormXXIII',
+        'FORM_A'         => 'FormA',
+        'FORM_C'         => 'FormC',
+        'FORM_D'         => 'FormD',
+        'FORM_D_ER'      => 'FormDER',
+        'FORM_11'        => 'Form11',
+        'ESI_FORM_12'    => 'ESIForm12',
+        'EPF_INSPECTION' => 'EPFInspection',
+        'FORM_B'         => 'FormB',
+        'FORM_2'         => 'Form2',
+        'FORM_8'         => 'Form8',
+        'FORM_10'        => 'Form10',
+        'FORM_12'        => 'Form12',
+        'FORM_17'        => 'Form17',
+        'FORM_18'        => 'Form18',
+        'FORM_25'        => 'Form25',
+        'FORM_26'        => 'Form26',
+        'FORM_26A'       => 'Form26A',
+        'HAZARD_REG'     => 'HazardReg',
+        'SHOPS_FORM_C'   => 'ShopsFormC',
+        'SHOPS_UNPAID'   => 'ShopsUnpaid',
+        'SHOPS_FORM_12'  => 'ShopsForm12',
+        'SHOPS_FORM_13'  => 'ShopsForm13',
+        'SHOPS_FINES'    => 'ShopsFines',
+        'SHOPS_FORM_VI'  => 'ShopsFormVI',
+    ];
+
     public static function resolve(string $formCode): string
     {
-        if (isset(self::$templates[$formCode])) {
-            return self::$templates[$formCode];
+        $normalized = self::$aliases[$formCode] ?? $formCode;
+
+        if (isset(self::$templates[$normalized])) {
+            return self::$templates[$normalized];
         }
-        // Fallback: convert camelCase to snake_case
-        $snake = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $formCode));
+        $snake = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $normalized));
         return 'compliance.forms.' . $snake;
     }
 

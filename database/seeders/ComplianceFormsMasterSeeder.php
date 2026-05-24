@@ -71,7 +71,7 @@ class ComplianceFormsMasterSeeder extends Seeder
             ['code' => 'SHOPS_FINES', 'name' => 'Fines Register', 'act' => 'Shops', 'frequency' => 'Monthly'],
         ];
 
-        $noAutoGenerate = ['Form8', 'HazardReg', 'ShopsForm13'];
+        $noAutoGenerate = ['Form8', 'HazardReg', 'ShopsForm13', 'EPF_INSPECTION'];
 
         foreach ($forms as $form) {
             DB::table('compliance_forms_master')->updateOrInsert(
@@ -83,7 +83,7 @@ class ComplianceFormsMasterSeeder extends Seeder
                     'frequency' => $form['frequency'],
                     'priority' => 'Medium',
                     'auto_generate' => in_array($form['code'], $noAutoGenerate) ? 0 : 1,
-                    'upload_only' => 0,
+                    'upload_only' => $form['code'] === 'EPF_INSPECTION' ? 1 : 0,
                     'is_active' => 1,
                     'created_at' => now(),
                     'updated_at' => now(),

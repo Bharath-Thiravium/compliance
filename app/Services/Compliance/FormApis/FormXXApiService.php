@@ -34,13 +34,14 @@ class FormXXApiService extends BaseFormApiService
             ->whereMonth('period_from', $month)
             ->value('id');
 
-        // Deductions keyed by employee_id
+        // Only employees with damage/loss deductions (other_deductions > 0)
         $deductionMap = [];
         if ($cycleId && $employees->isNotEmpty()) {
             DB::table('workforce_payroll_entry')
                 ->where('payroll_cycle_id', $cycleId)
                 ->whereIn('employee_id', $employees->pluck('id'))
-                ->select(['employee_id', 'other_deductions', 'fines', 'payment_date'])
+                ->where('other_deductions', '>', 0)
+                ->select(['employee_id', 'other_deductions', 'payment_date'])
                 ->get()
                 ->each(function ($entry) use (&$deductionMap) {
                     $deductionMap[$entry->employee_id] = (array) $entry;
@@ -49,21 +50,25 @@ class FormXXApiService extends BaseFormApiService
 
         $records = [];
         foreach ($employees as $emp) {
-            $emp     = (array) $emp;
-            $payroll = $deductionMap[$emp['id']] ?? [];
+            $emp = (array) $emp;
+            if (!isset($deductionMap[$emp['id']])) {
+                continue; // skip employees with no damage/loss deductions
+            }
+            $payroll   = $deductionMap[$emp['id']];
+            $payDate   = $payroll['payment_date'] ?? '';
 
             $records[] = [
                 'employee_code'      => $emp['employee_code'],
                 'employee_name'      => $emp['employee_name'],
-                'father_name'        => $emp['father_name']    ?? '',
-                'designation'        => $emp['designation']    ?? '',
+                'father_name'        => $emp['father_name']  ?? '',
+                'designation'        => $emp['designation']  ?? '',
                 'damage_particulars' => '',
-                'damage_date'        => '',
+                'damage_date'        => $payDate ? date('d/m/Y', strtotime($payDate)) : '',
                 'showed_cause'       => '',
                 'witness_name'       => '',
-                'deduction_amount'   => (float) ($payroll['other_deductions'] ?? $payroll['fines'] ?? 0),
+                'deduction_amount'   => (float) $payroll['other_deductions'],
                 'instalments'        => '',
-                'first_month'        => '',
+                'first_month'        => $payDate ? date('M Y', strtotime($payDate)) : '',
                 'last_month'         => '',
                 'remarks'            => '',
             ];

@@ -29,66 +29,23 @@ class DataInputController extends Controller
 
             $validated = $request->validate([
                 'employees_data' => 'nullable|string',
-                'payroll_data' => 'nullable|string',
-                'attendance_data' => 'nullable|string'
+                'payroll_data'   => 'nullable|string',
+                'attendance_data'=> 'nullable|string',
             ]);
 
-            // Parse and save employees data
-            if ($validated['employees_data']) {
-                $lines = array_filter(array_map('trim', explode("\n", $validated['employees_data'])));
-                foreach ($lines as $line) {
-                    $parts = array_map('trim', explode(',', $line));
-                    if (count($parts) >= 2) {
-                        DB::table('workforce_employee')->insertOrIgnore([
-                            'tenant_id'      => $batch->tenant_id,
-                            'branch_id'      => $batch->branch_id,
-                            'employee_code'  => 'EMP-' . uniqid(),
-                            'name'           => $parts[0] ?? null,
-                            'designation'    => $parts[1] ?? null,
-                            'basic_salary'   => isset($parts[2]) ? (float) $parts[2] : 0,
-                            'date_of_joining'=> now()->toDateString(),
-                            'status'         => 'active',
-                            'created_at'     => now(),
-                            'updated_at'     => now(),
-                        ]);
-                    }
-                }
-            }
+            // Store in session only — no DB writes
+            session(["manual_batch_data_{$batchId}" => [
+                'employees'  => $validated['employees_data']  ?? '',
+                'attendance' => $validated['attendance_data'] ?? '',
+                'payroll'    => $validated['payroll_data']    ?? '',
+            ]]);
 
-            // Parse and save attendance data
-            if ($validated['attendance_data']) {
-                $lines = array_filter(array_map('trim', explode("\n", $validated['attendance_data'])));
-                foreach ($lines as $line) {
-                    $parts = array_map('trim', explode(',', $line));
-                    if (count($parts) >= 2) {
-                        DB::table('workforce_attendance')->insertOrIgnore([
-                            'tenant_id'       => $batch->tenant_id,
-                            'branch_id'       => $batch->branch_id,
-                            'employee_id'     => $parts[0] ?? null,
-                            'attendance_date' => $parts[1] ?? now()->toDateString(),
-                            'status'          => $parts[2] ?? 'present',
-                            'created_at'      => now(),
-                            'updated_at'      => now(),
-                        ]);
-                    }
-                }
-            }
+            Log::info("Manual data stored in session for batch {$batchId}");
 
-            // Payroll text-paste is intentionally not supported here;
-            // use the CSV upload endpoint with dataset_type=payroll instead.
-
-            Log::info("Manual data saved for batch {$batchId}");
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Data saved successfully'
-            ]);
+            return response()->json(['status' => 'success', 'message' => 'Data saved successfully']);
         } catch (\Exception $e) {
             Log::error('Manual data save error', ['batch_id' => $batchId, 'error' => $e->getMessage()]);
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 500);
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
 
@@ -203,6 +160,7 @@ class DataInputController extends Controller
                 'batch_id'   => $batch->id,
                 'successful' => $results['successful'],
                 'failed'     => $results['failed'],
+                'audit'      => $results['audit'] ?? null,
             ]);
 
             return [
@@ -210,6 +168,9 @@ class DataInputController extends Controller
                 'generated_forms' => $results['successful'],
                 'failed_forms'    => $results['failed'],
                 'batch_status'    => $results['failed'] === 0 ? 'completed' : 'partial',
+                'audit'           => $results['audit'] ?? null,
+                'batch_score'     => $results['batch_score'] ?? null,
+                'audit_status'    => $results['batch_status'] ?? null,
             ];
 
         } catch (\Throwable $e) {

@@ -86,7 +86,8 @@
                         const data = await response.json();
 
                         if (data.status === 'complete') {
-                            this.showComplete(batchId);
+                            this.updateProgress(data);  // render final form states first
+                            this.showComplete(batchId, data);
                             this.processing = false;
                             break;
                         }
@@ -145,18 +146,20 @@
 
                 const progressText = document.getElementById('progress-text');
                 if (progressText) {
-                    progressText.textContent = `${data.generated}/${data.total} forms`;
+                    progressText.textContent = `${data.generated ?? 0}/${data.total ?? 0} forms`;
                 }
 
                 const tbody = document.getElementById('forms-table-body');
-                if (tbody && data.forms) {
+                if (tbody && data.forms && data.forms.length > 0) {
                     tbody.innerHTML = data.forms.map(form => {
-                        let statusBadge = '';
-                        let actionBtn = '';
+                        let statusBadge, actionBtn;
 
                         if (form.status === 'generated') {
                             statusBadge = '<span class="ant-tag ant-tag-success">✅ Generated</span>';
                             actionBtn = `<button class="ant-btn ant-btn-primary ant-btn-sm preview-btn" data-batch="${data.batch_id}" data-form="${form.form_code}">👁️ Preview</button>`;
+                        } else if (form.status === 'failed') {
+                            statusBadge = '<span class="ant-tag ant-tag-error">❌ Failed</span>';
+                            actionBtn = '-';
                         } else if (form.status === 'processing') {
                             statusBadge = '<span class="ant-tag ant-tag-processing">⏳ Processing</span>';
                             actionBtn = '-';
@@ -165,18 +168,16 @@
                             actionBtn = '-';
                         }
 
-                        return `
-                            <tr>
-                                <td><strong>${form.form_code}</strong></td>
-                                <td>${statusBadge}</td>
-                                <td>${actionBtn}</td>
-                            </tr>
-                        `;
+                        return `<tr>
+                            <td><strong>${escapeHtml(form.form_code)}</strong></td>
+                            <td>${statusBadge}</td>
+                            <td>${actionBtn}</td>
+                        </tr>`;
                     }).join('');
                 }
             },
 
-            showComplete(batchId) {
+            showComplete(batchId, data) {
                 const progressBar = document.getElementById('progress-bar');
                 if (progressBar) {
                     progressBar.style.width = '100%';
@@ -185,11 +186,19 @@
                     progressBar.classList.add('bg-success');
                 }
 
+                const progressText = document.getElementById('progress-text');
+                if (progressText && data) {
+                    progressText.textContent = `${data.generated}/${data.total} forms`;
+                }
+
                 const card = document.getElementById('processing-card');
                 if (card) {
                     const completeMsg = document.createElement('div');
                     completeMsg.className = 'ant-alert ant-alert-success mt-3';
-                    completeMsg.innerHTML = '<strong>✅ All Forms Generated Successfully!</strong>';
+                    const failed = data?.failed ?? 0;
+                    completeMsg.innerHTML = failed > 0
+                        ? `<strong>⚠️ ${data.generated}/${data.total} Forms Generated (${failed} failed)</strong>`
+                        : `<strong>✅ All ${data?.total ?? ''} Forms Generated Successfully!</strong>`;
                     card.appendChild(completeMsg);
                 }
             }
@@ -346,7 +355,9 @@
                     </div>
                 </div>` : '';
 
-            const proceedDisabled = isMinimal ? 'disabled' : (!data.can_proceed ? 'disabled' : '');
+            const proceedDisabled = (isMinimal && !(_minimalDataProvided.employees && _minimalDataProvided.attendance && _minimalDataProvided.payroll))
+                ? 'disabled'
+                : (!data.can_proceed && !isMinimal ? 'disabled' : '');
             const proceedHint = isMinimal
                 ? 'Provide all three data categories above to enable generation.'
                 : (!data.can_proceed ? 'Proceed button will be enabled once all required data is provided.' : '');
@@ -805,12 +816,19 @@
                     }
                 }, 1200);
 
-                if (!IS_FULL) {
-                    _minimalDataProvided.employees  = true;
-                    _minimalDataProvided.payroll    = true;
-                    _minimalDataProvided.attendance = true;
-                    refreshMinimalProceedBtn();
+                // Enable proceed button for ALL subscription types after successful upload
+                _minimalDataProvided.employees  = true;
+                _minimalDataProvided.payroll    = true;
+                _minimalDataProvided.attendance = true;
+                const proceedBtn = document.getElementById('proceed-generate-btn');
+                if (proceedBtn) {
+                    proceedBtn.removeAttribute('disabled');
+                    proceedBtn.classList.remove('ant-btn-default');
+                    proceedBtn.classList.add('ant-btn-primary');
+                    const hint = document.getElementById('proceed-hint');
+                    if (hint) hint.textContent = '✅ All data uploaded. You can now generate forms.';
                 }
+                if (!IS_FULL) refreshMinimalProceedBtn();
 
                 if (ManualPanel.batchId) ManualPanel.loadItems();
 
@@ -873,9 +891,14 @@
 
             init(batchId) {
                 this.batchId = batchId;
-                this.uploadModal = new bootstrap.Modal(document.getElementById('manualUploadModal'));
-                document.getElementById('manual-compliance-panel').style.display = '';
-                document.getElementById('batch-section-row').classList.add('has-manual');
+                const modalEl = document.getElementById('manualUploadModal');
+                if (modalEl) {
+                    try { this.uploadModal = new bootstrap.Modal(modalEl); } catch(e) { console.warn('Modal init failed:', e); }
+                }
+                const panel = document.getElementById('manual-compliance-panel');
+                if (panel) panel.style.display = '';
+                const row = document.getElementById('batch-section-row');
+                if (row) row.classList.add('has-manual');
                 this.loadItems();
             },
 
@@ -1107,8 +1130,8 @@
 
         // Patch BatchProcessor.showComplete to set automated flag
         const _origShowComplete = BatchProcessor.showComplete.bind(BatchProcessor);
-        BatchProcessor.showComplete = function(batchId) {
-            _origShowComplete(batchId);
+        BatchProcessor.showComplete = function(batchId, data) {
+            _origShowComplete(batchId, data);
             window._automatedComplete = true;
 
             const card = document.getElementById('processing-card');
@@ -1145,13 +1168,14 @@
         BatchProcessor.updateProgress = function(data) {
             _origUpdateProgress(data);
             const lbl = document.getElementById('auto-progress-label');
-            if (lbl) lbl.textContent = `${data.generated} / ${data.total} generated`;
+            if (lbl) lbl.textContent = `${data.generated ?? 0} / ${data.total ?? 0} generated`;
         };
 
         // Activate manual panel when batch processing starts
         const _origProcessBatch = BatchProcessor.processBatch.bind(BatchProcessor);
         BatchProcessor.processBatch = async function(batchId) {
-            ManualPanel.init(batchId);
+            // Init manual panel in background — never block form generation
+            try { ManualPanel.init(batchId); } catch(e) { console.warn('ManualPanel.init failed:', e); }
             await _origProcessBatch(batchId);
         };
     </script>

@@ -18,6 +18,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'is_super_admin',
+        'role',
+        'is_active',
+        'last_login_at',
     ];
 
     protected $hidden = [
@@ -27,8 +31,20 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        'last_login_at'     => 'datetime',
+        'is_super_admin'    => 'boolean',
+        'is_active'         => 'boolean',
+        'password'          => 'hashed',
     ];
+
+    /** Virtual role: super admins get 'super_admin', others get stored role or 'user'. */
+    public function getRoleAttribute($value): string
+    {
+        if ($this->is_super_admin) {
+            return 'super_admin';
+        }
+        return $value ?? 'user';
+    }
 
     public function tenant(): BelongsTo
     {
@@ -48,5 +64,10 @@ class User extends Authenticatable
     public function complianceForms(): HasMany
     {
         return $this->hasMany(ComplianceForm::class, 'generated_by');
+    }
+
+    public function auditLogs(): HasMany
+    {
+        return $this->hasMany(\App\Models\AuditLog::class, 'user_id');
     }
 }

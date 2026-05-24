@@ -26,10 +26,18 @@ class ComplianceFormsMaster extends Model
     ];
 
     protected $casts = [
-        'auto_generate' => 'boolean',
-        'upload_only' => 'boolean',
-        'is_active' => 'boolean',
+        'auto_generate'  => 'boolean',
+        'upload_only'    => 'boolean',
+        'is_active'      => 'boolean',
+        'effective_date' => 'date',
     ];
+
+    // Safe accessors for columns that may not exist in all DB versions
+    public function getChangeSummaryAttribute($value): ?string   { return $value ?? null; }
+    public function getEffectiveDateAttribute($value)            { return $value ? \Carbon\Carbon::parse($value) : null; }
+    public function getSourceUrlAttribute($value): ?string       { return $value ?? null; }
+    public function getDepartmentNameAttribute($value): ?string  { return $value ?? null; }
+    public function getVersionNumberAttribute($value): ?string   { return $value ?? null; }
 
     public function section(): BelongsTo
     {

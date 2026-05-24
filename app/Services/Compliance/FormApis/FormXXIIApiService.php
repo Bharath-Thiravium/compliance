@@ -62,9 +62,9 @@ class FormXXIIApiService extends BaseFormApiService
                     'employee_id',
                     'amount as advance_amount',
                     'advance_date',
-                    'purpose',
-                    'installments',
-                    'installment_repaid',
+                    'num_instalments as installments',
+                    'first_month',
+                    'last_month as installment_repaid',
                     'remarks',
                 ])
                 ->get()
@@ -84,10 +84,10 @@ class FormXXIIApiService extends BaseFormApiService
                     $records[] = array_merge($emp, [
                         'advance_amount'        => (float) ($adv['advance_amount']    ?? 0),
                         'advance_date'          => $adv['advance_date']               ?? null,
-                        'purpose'               => $adv['purpose']                   ?? 'Salary Advance',
+                        'purpose'               => 'Salary Advance',
                         'installments'          => $adv['installments']               ?? 1,
                         'installment_repaid'    => $adv['installment_repaid']         ?? null,
-                        'last_installment_date' => null,
+                        'last_installment_date' => $adv['last_month']                 ?? null,
                         'remarks'               => $adv['remarks']                   ?? null,
                     ]);
                 }

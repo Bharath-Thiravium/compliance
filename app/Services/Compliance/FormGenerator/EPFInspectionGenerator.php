@@ -18,29 +18,12 @@ class EPFInspectionGenerator extends BaseFormGenerator
         foreach ($rawData['records'] ?? [] as $record) {
             $record = $this->normalizeRecord($record);
             $rows[] = [
-                'employee_code'   => $record['employee_code']  ?? '',
-                'name'            => $record['name']           ?? '',
-                'father_name'     => $record['father_name']    ?? '',
-                'designation'     => $record['designation']    ?? '',
-                'uan'             => $record['uan']            ?? $record['pf_number'] ?? '',
-                'pf_number'       => $record['pf_number']      ?? '',
-                'esi_number'      => $record['esi_number']     ?? '',
-                'date_of_joining' => $record['date_of_joining'] ?? '',
-                'basic_earned'    => (float) ($record['basic_earned']  ?? 0),
-                'da_earned'       => (float) ($record['da_earned']     ?? 0),
-                'gross_salary'    => (float) ($record['gross_salary']  ?? 0),
-                'pf_employee'     => (float) ($record['pf_employee']   ?? 0),
-                'pf_employer'     => (float) ($record['pf_employer']   ?? 0),
-                'esi_employee'    => (float) ($record['esi_employee']  ?? 0),
-                'total_days_worked' => $record['total_days_worked'] ?? 0,
-                'net_salary'      => (float) ($record['net_salary']    ?? 0),
+                'inspection_date' => $record['inspection_date'] ?? '',
+                'authority'       => $record['authority']       ?? '',
+                'reference'       => $record['reference']       ?? '',
+                'remarks'         => $record['remarks']         ?? '',
             ];
         }
-
-        $totals = $this->calculateTotals($rows, [
-            'basic_earned', 'da_earned', 'gross_salary',
-            'pf_employee', 'pf_employer', 'esi_employee', 'net_salary',
-        ]);
 
         return [
             'header' => [
@@ -55,7 +38,6 @@ class EPFInspectionGenerator extends BaseFormGenerator
                 'tenant'             => $tenant,
             ],
             'rows'   => $rows,
-            'totals' => $totals,
             'is_nil' => empty($rows),
         ];
     }

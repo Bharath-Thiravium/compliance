@@ -68,7 +68,7 @@ class FormDataAggregator
             }
         }
         
-        $query->select($selectFields)->distinct();
+        $query->select($selectFields);
 
         // Chunk large datasets to reduce memory
         $data = collect();

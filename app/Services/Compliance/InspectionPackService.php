@@ -90,7 +90,12 @@ class InspectionPackService
         $manualPaths    = $this->resolveManualPaths($batchId, $batch->tenant_id, $batch->branch_id);
 
         if (empty($automatedPaths) && empty($manualPaths)) {
-            throw new \Exception('No valid PDF files found for inspection pack.');
+            $generatedCount = \App\Models\ComplianceBatchForm::where('batch_id', $batchId)
+                ->where('status', 'generated')->count();
+            if ($generatedCount > 0) {
+                throw new \Exception('Batch forms are marked as generated but PDF files are missing from storage. Please re-process the batch.');
+            }
+            throw new \Exception('No forms have been generated yet. Please process the batch first before downloading the inspection pack.');
         }
 
         $outputDir = Storage::disk($this->outputDisk)->path($this->outputDir);

@@ -13,7 +13,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'subscription.full' => \App\Http\Middleware\EnforceFullSubscription::class,
-            'auth' => \App\Http\Middleware\Authenticate::class,
+            'auth'              => \App\Http\Middleware\Authenticate::class,
+            'super.admin'       => \App\Http\Middleware\SuperAdminMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
