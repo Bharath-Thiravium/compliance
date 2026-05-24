@@ -28,6 +28,49 @@ Route::get('/_ops/optimize-clear', function (Request $request) {
     ]);
 });
 
+// Diagnostics for 419 / CSRF issues (remove after debugging).
+Route::get('/_ops/session-check', function (Request $request) {
+    $token = (string) env('OPS_TOKEN', '');
+
+    if ($token === '' || ! hash_equals($token, (string) $request->query('token', ''))) {
+        abort(403);
+    }
+
+    $session = $request->session();
+    $key = '__ops_smoke';
+    $previous = $session->get($key);
+    $session->put($key, ($previous ?? 0) + 1);
+    $session->save();
+
+    return response()->json([
+        'ok' => true,
+        'request' => [
+            'url' => $request->fullUrl(),
+            'is_secure' => $request->isSecure(),
+            'scheme' => $request->getScheme(),
+            'host' => $request->getHost(),
+            'path' => $request->getPathInfo(),
+        ],
+        'session' => [
+            'driver' => config('session.driver'),
+            'name' => config('session.cookie'),
+            'id' => $session->getId(),
+            'lifetime' => config('session.lifetime'),
+            'path' => config('session.path'),
+            'domain' => config('session.domain'),
+            'secure' => config('session.secure'),
+            'same_site' => config('session.same_site'),
+            'smoke_counter' => $session->get($key),
+        ],
+        'app' => [
+            'env' => config('app.env'),
+            'debug' => (bool) config('app.debug'),
+            'url' => config('app.url'),
+            'key_set' => ! empty(config('app.key')),
+        ],
+    ]);
+});
+
 require __DIR__.'/compliance.php';
 require __DIR__.'/batch-processing.php';
 require __DIR__.'/data-input.php';
