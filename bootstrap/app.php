@@ -11,6 +11,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->trustProxies(at: '*');
         $middleware->alias([
             'subscription.full' => \App\Http\Middleware\EnforceFullSubscription::class,
             'auth'              => \App\Http\Middleware\Authenticate::class,
