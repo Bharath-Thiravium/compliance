@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SuperAdmin\SuperAdminController;
+use App\Http\Controllers\SuperAdmin\BatchesController;
 use App\Http\Controllers\SuperAdmin\DashboardController;
 use App\Http\Controllers\SuperAdmin\AuditDetailsController;
 use App\Http\Controllers\SuperAdmin\AuditFailuresController;
@@ -9,8 +10,6 @@ use App\Http\Controllers\SuperAdmin\PendingFilingsController;
 use App\Http\Controllers\SuperAdmin\FormUpdatesController;
 use App\Http\Controllers\SuperAdmin\NotificationController;
 use App\Http\Controllers\SuperAdmin\PasswordController;
-
-use App\Http\Controllers\SuperAdmin\BatchesController;
 
 Route::prefix('super-admin')
     ->middleware(['web', 'auth', 'super.admin'])
@@ -36,6 +35,10 @@ Route::prefix('super-admin')
         Route::get('/users/{user}/edit',     [SuperAdminController::class, 'editUser'])->name('users.edit');
         Route::put('/users/{user}',          [SuperAdminController::class, 'updateUser'])->name('users.update');
         Route::delete('/users/{user}',       [SuperAdminController::class, 'deleteUser'])->name('users.delete');
+
+        // Batches
+        Route::get('/batches',               [BatchesController::class, 'index'])->name('batches.index');
+        Route::get('/batches/{id}',          [BatchesController::class, 'show'])->name('batches.show');
 
         // ── New: Analytics & Monitoring Panel ────────────────────────────────
         Route::get('/analytics',             [DashboardController::class, 'index'])->name('analytics');
