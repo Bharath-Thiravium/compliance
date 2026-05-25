@@ -54,6 +54,9 @@
         <a href="{{ route('super-admin.form-updates') }}" class="{{ request()->routeIs('super-admin.form-updates') ? 'active' : '' }}">
             <span class="nav-icon">📝</span><span class="nav-label">Form Updates</span>
         </a>
+        <a href="{{ route('super-admin.batches.index') }}" class="{{ request()->routeIs('super-admin.batches*') ? 'active' : '' }}">
+            <span class="nav-icon">📦</span><span class="nav-label">All Batches</span>
+        </a>
         <a href="{{ route('super-admin.change-password') }}" class="{{ request()->routeIs('super-admin.change-password') ? 'active' : '' }}">
             <span class="nav-icon">🔒</span><span class="nav-label">Change Password</span>
         </a>

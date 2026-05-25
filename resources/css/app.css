@@ -148,7 +148,6 @@
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--surface-border);
     margin-bottom: 16px;
-    overflow: hidden;
   }
   .card-header {
     background: #fff;
@@ -633,6 +632,7 @@
     background: #fff;
     transition: border-color 0.2s;
     display: flex; flex-direction: column;
+    overflow: visible;
   }
   .upload-card.ready { border-color: var(--color-success); }
   .upload-card-head {
@@ -641,7 +641,8 @@
   }
   .upload-card-body {
     padding: 16px;
-    display: flex; flex-direction: column; flex: 1; min-width: 0;
+    display: flex; flex-direction: column; flex: 1;
+    overflow: visible;
   }
   .sample-box {
     margin-top: 14px; padding: 12px;
@@ -658,6 +659,53 @@
   }
   .sample-btn:hover { background: #08979c; color: #fff; text-decoration: none; }
   .file-status { min-height: 24px; margin-top: 8px; }
+
+  /* File input visibility fix */
+  input[type="file"].csv-input,
+  input[type="file"].csv-file-input {
+    display: block;
+    width: 100%;
+    padding: 6px 4px;
+    font-size: 13px;
+    color: #262626;
+    background: #fff;
+    border: 1px solid #d9d9d9;
+    border-radius: 6px;
+    cursor: pointer;
+    overflow: visible;
+    opacity: 1;
+    visibility: visible;
+    position: static;
+    z-index: auto;
+  }
+  input[type="file"].csv-input::-webkit-file-upload-button,
+  input[type="file"].csv-file-input::-webkit-file-upload-button {
+    height: 30px;
+    padding: 0 12px;
+    margin-right: 8px;
+    background: var(--color-primary);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font-sans);
+  }
+  input[type="file"].csv-input::file-selector-button,
+  input[type="file"].csv-file-input::file-selector-button {
+    height: 30px;
+    padding: 0 12px;
+    margin-right: 8px;
+    background: var(--color-primary);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font-sans);
+  }
 
 /* ── 14. Compliance User Cards ────────────────────────────────────── */
 
@@ -860,4 +908,34 @@
 
   /* Data check row */
   .data-check-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+}
+
+/* ── 19. Preview Modal — scoped, never leaks into app layout ─────── */
+
+/* Flex-based height so modal-body fills remaining space without
+   a fixed px/vh value that causes reflow on the parent document. */
+#preview-modal .modal-content {
+  height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#preview-modal .modal-body {
+  flex: 1 1 0;
+  min-height: 0;   /* critical: lets flex child shrink below content size */
+  overflow: hidden;
+  padding: 0;
+}
+#preview-modal #preview-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+/* Ensure Bootstrap's scrollbar-compensation padding-right is always
+   removed when the modal closes (JS handles this, CSS is a safety net). */
+body:not(.modal-open) {
+  padding-right: 0 !important;
+  overflow: auto !important;
 }

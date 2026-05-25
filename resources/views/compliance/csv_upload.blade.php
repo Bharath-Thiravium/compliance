@@ -55,8 +55,7 @@
                                     employees.csv <span class="form-required">*</span>
                                 </label>
                                 <input type="file" name="employees_file" accept=".csv,.txt"
-                                       class="csv-input" data-card="card-employees" required
-                                       style="width:100%;padding:4px 0;font-size:13px;">
+                                       class="csv-input" data-card="card-employees" required>
                             </div>
 
                             <div style="font-size:11px;color:#8c8c8c;line-height:1.7;margin-bottom:4px;">
@@ -88,8 +87,7 @@
                                     payroll.csv <span class="form-required">*</span>
                                 </label>
                                 <input type="file" name="payroll_file" accept=".csv,.txt"
-                                       class="csv-input" data-card="card-payroll" required
-                                       style="width:100%;padding:4px 0;font-size:13px;">
+                                       class="csv-input" data-card="card-payroll" required>
                             </div>
 
                             <div style="font-size:11px;color:#8c8c8c;line-height:1.7;margin-bottom:4px;">
@@ -121,8 +119,7 @@
                                     attendance.csv <span class="form-required">*</span>
                                 </label>
                                 <input type="file" name="attendance_file" accept=".csv,.txt"
-                                       class="csv-input" data-card="card-attendance" required
-                                       style="width:100%;padding:4px 0;font-size:13px;">
+                                       class="csv-input" data-card="card-attendance" required>
                             </div>
 
                             <div style="font-size:11px;color:#8c8c8c;line-height:1.7;margin-bottom:4px;">

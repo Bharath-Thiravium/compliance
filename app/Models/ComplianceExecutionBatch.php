@@ -19,6 +19,7 @@ class ComplianceExecutionBatch extends Model
         'branch_id',
         'status',
         'created_by',
+        'user_batch_number',
         'processed_at',
         'results',
         'generated_report_path',

@@ -195,7 +195,17 @@
                                             N/A
                                         @endif
                                     </td>
-                                    <td><span class="badge badge-success">{{ $batch->status ?? 'N/A' }}</span></td>
+                                    <td>
+                                        @php
+                                            $badgeClass = match($batch->status) {
+                                                'completed' => 'badge-success',
+                                                'partial'   => 'badge-warning',
+                                                'failed'    => 'badge-danger',
+                                                default     => 'badge-info',
+                                            };
+                                        @endphp
+                                        <span class="badge {{ $badgeClass }}">{{ $batch->status ?? 'N/A' }}</span>
+                                    </td>
                                     <td>{{ $batch->created_at ? $batch->created_at->diffForHumans() : 'N/A' }}</td>
                                 </tr>
                             @endforeach
@@ -232,7 +242,15 @@
                                     <td><span class="badge badge-info">{{ $user->role ?? 'N/A' }}</span></td>
                                     <td>{{ optional($user->tenant)->name ?? 'N/A' }}</td>
                                     <td>{{ $user->last_login_at ? \Carbon\Carbon::parse($user->last_login_at)->diffForHumans() : 'Never' }}</td>
-                                    <td><span class="badge badge-warning">Inactive</span></td>
+                                    <td>
+                                        @if($user->is_active)
+                                            <span class="badge badge-success">Active</span>
+                                        @elseif($user->last_login_at)
+                                            <span class="badge badge-warning">Inactive</span>
+                                        @else
+                                            <span class="badge badge-danger">Never Logged In</span>
+                                        @endif
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>

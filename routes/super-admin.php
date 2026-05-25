@@ -10,6 +10,8 @@ use App\Http\Controllers\SuperAdmin\FormUpdatesController;
 use App\Http\Controllers\SuperAdmin\NotificationController;
 use App\Http\Controllers\SuperAdmin\PasswordController;
 
+use App\Http\Controllers\SuperAdmin\BatchesController;
+
 Route::prefix('super-admin')
     ->middleware(['web', 'auth', 'super.admin'])
     ->name('super-admin.')
@@ -58,5 +60,9 @@ Route::prefix('super-admin')
         // Change Password
         Route::get('/change-password',       [PasswordController::class, 'showChangeForm'])->name('change-password');
         Route::post('/change-password',      [PasswordController::class, 'updatePassword'])->name('change-password.update');
+
+        // All Users' Batches
+        Route::get('/batches',               [BatchesController::class, 'index'])->name('batches.index');
+        Route::get('/batches/{id}',          [BatchesController::class, 'show'])->name('batches.show');
 
     });

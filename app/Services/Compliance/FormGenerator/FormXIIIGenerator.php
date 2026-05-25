@@ -7,7 +7,7 @@ use Carbon\Carbon;
 class FormXIIIGenerator extends BaseFormGenerator
 {
     protected string $formCode = 'FORM_XIII';
-    protected string $view = 'compliance.forms.form_xiii_register_of_workmen';
+    protected string $view = 'compliance.forms.form_xiii';
 
     protected function prepareData(array $rawData): array
     {

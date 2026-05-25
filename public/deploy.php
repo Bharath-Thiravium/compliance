@@ -10,4 +10,4 @@ if (!isset($_GET['token']) || $_GET['token'] !== $secret) {
 $projectRoot = dirname(__DIR__);
 $output = shell_exec('cd ' . escapeshellarg($projectRoot) . ' && bash deploy.sh 2>&1');
 
-echo '<pre>' . htmlspecialchars($output) . '</pre>';}
+echo '<pre>' . htmlspecialchars($output) . '</pre>';

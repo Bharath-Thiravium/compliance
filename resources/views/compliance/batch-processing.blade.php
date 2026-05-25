@@ -100,72 +100,74 @@
 
 <script>
 const batchId = {{ $batch->id }};
-const statusUrl = `/compliance/batch/${batchId}/status`;
-let pollingInterval;
+const processUrl = `/compliance/batch/${batchId}/process-next`;
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
+let isProcessing = false;
 
-function startPolling() {
-    pollingInterval = setInterval(pollStatus, 3000);
-}
+function processNext() {
+    if (isProcessing) return;
+    isProcessing = true;
 
-function stopPolling() {
-    clearInterval(pollingInterval);
-}
+    fetch(processUrl, {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': csrfToken, 'Content-Type': 'application/json', 'Accept': 'application/json' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        isProcessing = false;
 
-function pollStatus() {
-    fetch(statusUrl)
-        .then(response => response.json())
-        .then(data => {
-            updateUI(data);
-            
-            // Check if all forms are generated
-            const allGenerated = data.every(form => form.status === 'generated');
-            if (allGenerated) {
-                stopPolling();
-                showCompletionMessage();
-            }
-        })
-        .catch(error => console.error('Polling error:', error));
+        if (data.status === 'processing') {
+            updateUI(data.forms);
+            updateCounts(data.generated, 0, data.total - data.generated);
+            processNext(); // continue chain
+        } else if (data.status === 'complete') {
+            updateUI(data.forms);
+            updateCounts(data.generated, 0, 0);
+            showCompletionMessage();
+        } else if (data.status === 'error') {
+            console.error('Processing error:', data.message);
+            setTimeout(processNext, 2000); // retry on error
+        }
+    })
+    .catch(err => {
+        isProcessing = false;
+        console.error('Fetch error:', err);
+        setTimeout(processNext, 2000);
+    });
 }
 
 function updateUI(forms) {
-    let generatedCount = 0;
-    let processingCount = 0;
-    let pendingCount = 0;
-
     forms.forEach(form => {
         const row = document.querySelector(`[data-form-code="${form.form_code}"]`);
         if (!row) return;
 
         const statusBadge = row.querySelector('.status-badge');
-        const statusIcon = row.querySelector('.status-icon');
-        const previewBtn = row.querySelector('.preview-btn');
+        const previewBtn  = row.querySelector('.preview-btn');
 
-        // Update status counts
         if (form.status === 'generated') {
-            generatedCount++;
             statusBadge.textContent = '✔ Generated';
             statusBadge.className = 'status-badge inline-block px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800';
-            statusIcon.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>';
             previewBtn.classList.remove('hidden');
         } else if (form.status === 'processing') {
-            processingCount++;
             statusBadge.textContent = '⏳ Processing...';
             statusBadge.className = 'status-badge inline-block px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800';
-            statusIcon.innerHTML = '<svg class="w-4 h-4 text-blue-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+            previewBtn.classList.add('hidden');
+        } else if (form.status === 'failed') {
+            statusBadge.textContent = '✗ Failed';
+            statusBadge.className = 'status-badge inline-block px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-800';
             previewBtn.classList.add('hidden');
         } else {
-            pendingCount++;
             statusBadge.textContent = 'Pending';
             statusBadge.className = 'status-badge inline-block px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-800';
-            statusIcon.innerHTML = '<svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
             previewBtn.classList.add('hidden');
         }
     });
+}
 
-    // Update summary counts
-    document.getElementById('generated-count').textContent = generatedCount;
-    document.getElementById('processing-count').textContent = processingCount;
-    document.getElementById('pending-count').textContent = pendingCount;
+function updateCounts(generated, processing, pending) {
+    document.getElementById('generated-count').textContent = generated;
+    document.getElementById('processing-count').textContent = processing;
+    document.getElementById('pending-count').textContent = pending;
 }
 
 function showCompletionMessage() {
@@ -203,11 +205,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Start polling
-    startPolling();
-    
-    // Initial poll
-    pollStatus();
+    // Start processing chain
+    processNext();
 });
 
 // Close modal when clicking outside

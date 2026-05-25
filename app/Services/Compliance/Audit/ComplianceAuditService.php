@@ -117,7 +117,7 @@ class ComplianceAuditService
         if (!$batch) return ['status' => 'error', 'message' => 'Batch not found'];
 
         $forms = \App\Models\ComplianceBatchForm::where('batch_id', $batchId)
-            ->where('status', 'success')
+            ->where('status', 'generated')
             ->get();
 
         if ($forms->isEmpty()) {

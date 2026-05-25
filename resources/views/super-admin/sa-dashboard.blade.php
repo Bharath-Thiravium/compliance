@@ -108,7 +108,7 @@
                 </div>
                 <div class="grid-col col-1-3">
                     <div class="stat-card">
-                        <h3 style="color:var(--color-warning);">{{ $pendingFilingsCount }}</h3>
+                        <h3 style="color:var(--color-warning);">{{ $alerts['users_pending_filing'] }}</h3>
                         <p>Users Pending Filing</p>
                     </div>
                 </div>
@@ -203,13 +203,15 @@
                                 <th>Section</th>
                                 <th>Period</th>
                                 <th>Status</th>
+                                <th>Audit Score</th>
+                                <th>Audit Status</th>
                                 <th>Created</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($recentBatches as $batch)
-                                <tr>
-                                    <td><strong>#{{ $batch->id }}</strong></td>
+                                <tr class="batch-row" style="cursor:pointer;" onclick="toggleBatchForms({{ $batch->id }})">
+                                    <td><strong>#{{ $batch->id }}</strong> <span style="font-size:11px;color:#aaa;">▼</span></td>
                                     <td>{{ optional($batch->tenant)->name ?? 'N/A' }}</td>
                                     <td>{{ optional($batch->section)->section_name ?? 'N/A' }}</td>
                                     <td>
@@ -219,8 +221,99 @@
                                             N/A
                                         @endif
                                     </td>
-                                    <td><span class="badge badge-success">{{ $batch->status ?? 'N/A' }}</span></td>
+                                    <td>
+                                        @php
+                                            $batchBadge = match($batch->status) {
+                                                'completed' => 'badge-success',
+                                                'partial'   => 'badge-warning',
+                                                'failed'    => 'badge-danger',
+                                                'abandoned' => 'badge-danger',
+                                                default     => 'badge-info',
+                                            };
+                                        @endphp
+                                        <span class="badge {{ $batchBadge }}">{{ $batch->status ?? 'N/A' }}</span>
+                                    </td>
+                                    <td>
+                                        @if($batch->audit_score !== null)
+                                            <strong>{{ $batch->audit_score }}%</strong>
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($batch->audit_status)
+                                            @php
+                                                $auditBadge = match($batch->audit_status) {
+                                                    'passed'  => 'badge-success',
+                                                    'partial' => 'badge-warning',
+                                                    'failed'  => 'badge-danger',
+                                                    default   => 'badge-info',
+                                                };
+                                            @endphp
+                                            <span class="badge {{ $auditBadge }}">{{ ucfirst($batch->audit_status) }}</span>
+                                        @else
+                                            <span class="text-muted">Not Audited</span>
+                                        @endif
+                                    </td>
                                     <td>{{ $batch->created_at ? $batch->created_at->diffForHumans() : 'N/A' }}</td>
+                                </tr>
+                                {{-- Expandable forms row --}}
+                                <tr id="batch-forms-{{ $batch->id }}" style="display:none; background:#f9f9f9;">
+                                    <td colspan="8" style="padding:0;">
+                                        <table class="data-table" style="margin:0; font-size:12px;">
+                                            <thead>
+                                                <tr style="background:#f0f0f0;">
+                                                    <th style="padding:6px 12px;">Form Code</th>
+                                                    <th>Section</th>
+                                                    <th>Status</th>
+                                                    <th>Audit Score</th>
+                                                    <th>Audit Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @forelse($batch->batch_forms as $form)
+                                                    <tr>
+                                                        <td style="padding:5px 12px;"><strong>{{ $form->form_code }}</strong></td>
+                                                        <td>{{ $form->section ?? '-' }}</td>
+                                                        <td>
+                                                            @php
+                                                                $fBadge = match($form->status) {
+                                                                    'generated'  => 'badge-success',
+                                                                    'failed'     => 'badge-danger',
+                                                                    'processing' => 'badge-info',
+                                                                    default      => 'badge-default',
+                                                                };
+                                                            @endphp
+                                                            <span class="badge {{ $fBadge }}">{{ ucfirst($form->status) }}</span>
+                                                        </td>
+                                                        <td>
+                                                            @if($form->audit_score !== null)
+                                                                <strong>{{ $form->audit_score }}%</strong>
+                                                            @else
+                                                                <span class="text-muted">-</span>
+                                                            @endif
+                                                        </td>
+                                                        <td>
+                                                            @if($form->audit_status)
+                                                                @php
+                                                                    $fAuditBadge = match($form->audit_status) {
+                                                                        'passed'  => 'badge-success',
+                                                                        'failed'  => 'badge-danger',
+                                                                        default   => 'badge-warning',
+                                                                    };
+                                                                @endphp
+                                                                <span class="badge {{ $fAuditBadge }}">{{ ucfirst($form->audit_status) }}</span>
+                                                            @else
+                                                                <span class="text-muted">Not Audited</span>
+                                                            @endif
+                                                        </td>
+                                                    </tr>
+                                                @empty
+                                                    <tr><td colspan="5" class="text-muted text-center" style="padding:8px;">No forms found.</td></tr>
+                                                @endforelse
+                                            </tbody>
+                                        </table>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -346,3 +439,13 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+function toggleBatchForms(batchId) {
+    const row = document.getElementById('batch-forms-' + batchId);
+    if (!row) return;
+    row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+}
+</script>
+@endpush

@@ -5,7 +5,20 @@ namespace App\Services\Compliance\FormGenerator;
 class FormXVIGenerator extends BaseFormGenerator
 {
     protected string $formCode = 'FORM_XVI';
-    protected string $view = 'compliance.forms.form_xvi_muster_roll';
+    protected string $view = 'compliance.forms.form_xvi'; // same template as preview
+
+    public function generatePdf(array $formData): string
+    {
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView($this->view, $formData)
+            ->setPaper('A4', 'landscape')
+            ->setOption('isHtml5ParserEnabled', true)
+            ->setOption('isRemoteEnabled', false)
+            ->setOption('dpi', 96)
+            ->setOption('defaultFont', 'Arial')
+            ->setOption('chroot', [public_path()]);
+
+        return $pdf->output();
+    }
 
     protected function prepareData(array $rawData): array
     {

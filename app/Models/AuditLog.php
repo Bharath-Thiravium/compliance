@@ -15,9 +15,11 @@ class AuditLog extends Model
 
     public $timestamps = false;
 
+    const CREATED_AT = 'created_at';
+
     protected $fillable = [
         'tenant_id', 'user_id', 'action', 'form_code',
-        'batch_id', 'ip_address', 'user_agent', 'metadata',
+        'batch_id', 'ip_address', 'user_agent', 'metadata', 'created_at',
     ];
 
     protected $casts = [

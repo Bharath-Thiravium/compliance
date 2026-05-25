@@ -15,13 +15,19 @@ class PendingFilingsController extends Controller
             ->latest('id')
             ->paginate(50);
 
+        // Only users who have at least one pending/processing batch
+        $tenantIdsWithPending = ComplianceExecutionBatch::whereIn('status', ['pending', 'processing', 'awaiting_data'])
+            ->pluck('tenant_id')
+            ->unique();
+
         $usersWithPending = User::with('tenant')
             ->where('is_super_admin', false)
+            ->whereIn('tenant_id', $tenantIdsWithPending)
             ->paginate(50);
 
         $stats = [
-            'pending_batches'   => ComplianceExecutionBatch::whereIn('status', ['pending', 'processing', 'awaiting_data'])->count(),
-            'users_with_pending'=> User::where('is_super_admin', false)->count(),
+            'pending_batches'    => $pendingBatches->total(),
+            'users_with_pending' => $usersWithPending->total(),
         ];
 
         return view('super-admin.pending-filings', compact('pendingBatches', 'usersWithPending', 'stats'));

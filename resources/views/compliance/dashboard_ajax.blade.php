@@ -239,7 +239,7 @@
                         <tbody>
                             @foreach ($batches as $batch)
                                 <tr data-batch-id="{{ $batch->id }}">
-                                    <td><strong>#{{ $batch->id }}</strong></td>
+                                    <td><strong>#{{ $batch->user_batch_number ?? $batch->id }}</strong></td>
                                     <td>{{ $batch->section->section_name ?? 'N/A' }}</td>
                                     <td>
                                         @if ($batch->period_month && $batch->period_year)
@@ -308,7 +308,7 @@
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header" style="background: #f0f2f5; border-bottom: 2px solid #d9d9d9;">
-                            <h5 class="modal-title"><strong>🔍 Audit Details - Batch #{{ $batch->id }}</strong></h5>
+                            <h5 class="modal-title"><strong>🔍 Audit Details - Batch #{{ $batch->user_batch_number ?? $batch->id }}</strong></h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">

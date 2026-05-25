@@ -36,6 +36,16 @@ class BatchProcessingController extends Controller
                 $failed    = $forms->where('status', 'failed')->count();
                 $total     = $forms->count();
 
+                $batchModel->update([
+                    'status'       => $failed === 0 ? 'completed' : 'partial',
+                    'processed_at' => now(),
+                ]);
+
+                // Run audit silently in background — does NOT affect user flow
+                try {
+                    app(\App\Services\Compliance\Audit\ComplianceAuditService::class)->auditBatch($batch);
+                } catch (\Throwable) {}
+
                 return response()->json([
                     'status'       => 'complete',
                     'batch_id'     => $batch,

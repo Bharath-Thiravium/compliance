@@ -46,17 +46,22 @@ class BatchOrchestrator
         $periodFrom = Carbon::create($year, $month, 1)->startOfMonth();
         $periodTo = Carbon::create($year, $month, 1)->endOfMonth();
 
+        // Per-tenant sequential batch number (each tenant starts from 1)
+        $userBatchNumber = ComplianceExecutionBatch::where('tenant_id', $tenantId)->count() + 1;
+
         // Create batch with pending status
         $batch = ComplianceExecutionBatch::create([
-            'tenant_id' => $tenantId,
-            'branch_id' => $branch->id,
-            'section_id' => $section->id,
-            'period_month' => $month,
-            'period_year' => $year,
-            'period_from' => $periodFrom,
-            'period_to' => $periodTo,
-            'form_ids' => json_encode($applicableForms->pluck('id')->toArray()),
-            'status' => 'pending',
+            'tenant_id'         => $tenantId,
+            'branch_id'         => $branch->id,
+            'section_id'        => $section->id,
+            'period_month'      => $month,
+            'period_year'       => $year,
+            'period_from'       => $periodFrom,
+            'period_to'         => $periodTo,
+            'form_ids'          => json_encode($applicableForms->pluck('id')->toArray()),
+            'status'            => 'pending',
+            'created_by'        => auth()->id(),
+            'user_batch_number' => $userBatchNumber,
         ]);
 
         // Attach forms to batch with pending status

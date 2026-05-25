@@ -288,7 +288,7 @@
                         <tbody>
                             @foreach ($batches as $batch)
                                 <tr data-batch-id="{{ $batch->id }}">
-                                    <td><strong>#{{ $batch->id }}</strong></td>
+                                    <td><strong>#{{ $batch->user_batch_number ?? $batch->id }}</strong></td>
                                     <td>{{ $batch->section->section_name ?? 'N/A' }}</td>
                                     <td>
                                         @if ($batch->period_month && $batch->period_year)

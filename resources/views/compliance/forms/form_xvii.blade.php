@@ -4,119 +4,79 @@
     <meta charset="UTF-8">
     <title>FORM XVII - Register of Wages</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-        }
+        @page { margin: 3mm; size: A4 landscape; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Times New Roman', Times, serif;
-            padding: 12px;
+            font-size: 6px;
         }
         .form-container {
-            border: 2px solid black;
-            padding: 10px;
-            margin: 0 auto;
-            width: 99%;
+            border: 1px solid black;
+            padding: 2px;
+            width: 100%;
         }
         .form-header {
             text-align: center;
-            margin-bottom: 10px;
-            font-size: 11px;
-        }
-        .form-header div {
-            margin: 2px 0;
+            margin-bottom: 2px;
         }
         .header-title {
             font-weight: bold;
-            font-size: 12px;
+            font-size: 8px;
         }
         .header-subtitle {
-            font-size: 9px;
+            font-size: 6px;
         }
         .header-section {
-            display: flex;
-            margin-bottom: 8px;
-            font-size: 9px;
-            gap: 2px;
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2px;
+            font-size: 6px;
         }
-        .header-left,
-        .header-right {
-            flex: 1;
+        .header-section td {
             border: 1px solid black;
-            padding: 4px;
+            padding: 1px;
+            vertical-align: top;
+            width: 50%;
         }
         .header-row {
-            margin-bottom: 3px;
-            line-height: 1.3;
+            margin-bottom: 1px;
+            line-height: 1.1;
         }
-        .header-label {
-            font-weight: bold;
-            display: inline;
-        }
-        .header-value {
-            display: inline;
-        }
+        .header-label { font-weight: bold; }
         .register-table {
             width: 100%;
             border-collapse: collapse;
             border: 1px solid black;
-            font-size: 8px;
-            margin-bottom: 10px;
+            font-size: 5px;
+            margin-bottom: 2px;
+            table-layout: fixed;
         }
         .register-table th,
         .register-table td {
             border: 1px solid black;
-            padding: 2px 1px;
+            padding: 0px 1px;
             text-align: center;
             vertical-align: middle;
+            overflow: hidden;
+            word-wrap: break-word;
         }
         .register-table th {
             font-weight: bold;
-            background-color: #fff;
-            word-wrap: break-word;
-            line-height: 1.1;
-            height: 20px;
+            line-height: 1.0;
+            height: 11px;
         }
-        .register-table td {
-            height: 18px;
+        .register-table td { height: 9px; }
+        .text-right { text-align: right; }
+        .text-left  { text-align: left; }
+        .signature-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 4px;
+            font-size: 6px;
         }
-        .col-sl { width: 2.5%; }
-        .col-name { width: 7%; text-align: left; }
-        .col-serial { width: 5%; }
-        .col-designation { width: 6%; text-align: left; }
-        .col-days { width: 4%; }
-        .col-unit { width: 4%; }
-        .col-rate { width: 5%; text-align: right; }
-        .col-basic { width: 5%; text-align: right; }
-        .col-da { width: 5%; text-align: right; }
-        .col-ot { width: 5%; text-align: right; }
-        .col-other { width: 5%; text-align: right; }
-        .col-total { width: 5%; text-align: right; }
-        .col-esi { width: 4%; text-align: right; }
-        .col-pf { width: 4%; text-align: right; }
-        .col-pt { width: 4%; text-align: right; }
-        .col-deduct-total { width: 4%; text-align: right; }
-        .col-net { width: 5%; text-align: right; }
-        .col-signature { width: 5%; }
-        .col-initial { width: 5%; }
-        .signature-space {
-            margin-top: 20px;
-        }
-        .signature-row{
-            display:flex;
-            justify-content:space-between;
-            margin-top:30px;
-            font-size:9px;
-            page-break-inside: avoid;
-        }
-
-        .left-sign{
-            text-align:left;
-        }
-
-        .right-sign{
-            text-align:right;
-        }
+        .signature-table td { padding: 0; }
+        .sign-left  { text-align: left;  width: 50%; }
+        .sign-right { text-align: right; width: 50%; }
     </style>
 </head>
 <body>
@@ -124,92 +84,108 @@
         <div class="form-header">
             <div class="header-title">FORM XVII</div>
             <div class="header-title">REGISTER OF WAGES</div>
-            <div class="header-subtitle">[Rule 78(1)(a)(i) of Contract Labour (Regulation & Abolition) Central Rules]</div>
+            <div class="header-subtitle">[Rule 78(1)(a)(i) of Contract Labour (Regulation &amp; Abolition) Central Rules]</div>
         </div>
 
-        <div class="header-section">
-            <div class="header-left">
-                <div class="header-row">
-                    <span class="header-label">Name and address of Contractor:</span><br>
-                    <span class="header-value">{{ $header['contractor_name'] ?? '' }}</span>
-                </div>
-                <div class="header-row">
-                    <span class="header-label">Nature and location of work:</span><br>
-                    <span class="header-value">{{ $header['work_nature'] ?? '' }}{{ !empty($header['work_location']) ? ' - ' . $header['work_location'] : '' }}</span>
-                </div>
-                <div class="header-row">
-                    <span class="header-label">Wage period:</span>
-                    <span class="header-value">{{ $header['wage_period'] ?? '' }}</span>
-                </div>
-            </div>
-            <div class="header-right">
-                <div class="header-row">
-                    <span class="header-label">Name and address of Establishment in/under which contract is carried on:</span><br>
-                    <span class="header-value">{{ $header['establishment_name'] ?? '' }}</span>
-                </div>
-                <div class="header-row">
-                    <span class="header-label">Name and address of Principal Employer:</span><br>
-                    <span class="header-value">{{ $header['principal_employer'] ?? '' }}</span>
-                </div>
-            </div>
-        </div>
+        <table class="header-section">
+            <tr>
+                <td>
+                    <div class="header-row">
+                        <span class="header-label">Name and address of Contractor:</span><br>
+                        {{ $header['contractor_name'] ?? '' }}
+                    </div>
+                    <div class="header-row">
+                        <span class="header-label">Nature and location of work:</span><br>
+                        {{ $header['work_nature'] ?? '' }}{{ !empty($header['work_location']) ? ' - ' . $header['work_location'] : '' }}
+                    </div>
+                    <div class="header-row">
+                        <span class="header-label">Wage period:</span>
+                        {{ $header['wage_period'] ?? '' }}
+                    </div>
+                </td>
+                <td>
+                    <div class="header-row">
+                        <span class="header-label">Name and address of Establishment in/under which contract is carried on:</span><br>
+                        {{ $header['establishment_name'] ?? '' }}
+                    </div>
+                    <div class="header-row">
+                        <span class="header-label">Name and address of Principal Employer:</span><br>
+                        {{ $header['principal_employer'] ?? '' }}
+                    </div>
+                </td>
+            </tr>
+        </table>
 
         <table class="register-table">
+            <colgroup>
+                <col style="width:2.5%">  {{-- S.No --}}
+                <col style="width:7%">    {{-- Name --}}
+                <col style="width:5%">    {{-- Serial No --}}
+                <col style="width:6%">    {{-- Designation --}}
+                <col style="width:4%">    {{-- Days --}}
+                <col style="width:4%">    {{-- Unit --}}
+                <col style="width:5%">    {{-- Rate --}}
+                <col style="width:5%">    {{-- Basic --}}
+                <col style="width:5%">    {{-- DA --}}
+                <col style="width:5%">    {{-- OT --}}
+                <col style="width:5%">    {{-- Other --}}
+                <col style="width:5%">    {{-- Total --}}
+                <col style="width:4%">    {{-- ESI --}}
+                <col style="width:4%">    {{-- PF --}}
+                <col style="width:4%">    {{-- PT --}}
+                <col style="width:4%">    {{-- Deduct Total --}}
+                <col style="width:5%">    {{-- Net --}}
+                <col style="width:5%">    {{-- Signature --}}
+                <col style="width:5%">    {{-- Initial --}}
+            </colgroup>
             <thead>
-
                 <tr>
-                    <th rowspan="2" class="col-sl">S.No</th>
-                    <th rowspan="2" class="col-name">Name of Workman</th>
-                    <th rowspan="2" class="col-serial">Serial No in Register of Workmen</th>
-                    <th rowspan="2" class="col-designation">Designation / Nature of Work</th>
-                    <th rowspan="2" class="col-days">No. of Days Worked</th>
-                    <th rowspan="2" class="col-unit">Unit of Work Done</th>
-                    <th rowspan="2" class="col-rate">Daily Rate of Wages / Piece Rate</th>
-
-                    <th rowspan="2" class="col-basic">Basic Wages</th>
-                    <th rowspan="2" class="col-da">Dearness Allowance</th>
-                    <th rowspan="2" class="col-ot">Overtime</th>
-                    <th rowspan="2" class="col-other">Other Cash Payments</th>
-
-                    <th rowspan="2" class="col-total">Total</th>
-
+                    <th rowspan="2">S.No</th>
+                    <th rowspan="2">Name of Workman</th>
+                    <th rowspan="2">Serial No in Register of Workmen</th>
+                    <th rowspan="2">Designation / Nature of Work</th>
+                    <th rowspan="2">No. of Days Worked</th>
+                    <th rowspan="2">Unit of Work Done</th>
+                    <th rowspan="2">Daily Rate of Wages / Piece Rate</th>
+                    <th rowspan="2">Basic Wages</th>
+                    <th rowspan="2">Dearness Allowance</th>
+                    <th rowspan="2">Overtime</th>
+                    <th rowspan="2">Other Cash Payments</th>
+                    <th rowspan="2">Total</th>
                     <th colspan="4">Deductions (if any)</th>
-
-                    <th rowspan="2" class="col-net">Net Amount Paid</th>
-                    <th rowspan="2" class="col-signature">Signature / Thumb Impression of Workman</th>
-                    <th rowspan="2" class="col-initial">Initial of Contractor or his representative</th>
+                    <th rowspan="2">Net Amount Paid</th>
+                    <th rowspan="2">Signature / Thumb Impression of Workman</th>
+                    <th rowspan="2">Initial of Contractor or his representative</th>
                 </tr>
-
                 <tr>
-                    <th class="col-esi">ESI</th>
-                    <th class="col-pf">PF</th>
-                    <th class="col-pt">PT</th>
-                    <th class="col-deduct-total">Total</th>
+                    <th>ESI</th>
+                    <th>PF</th>
+                    <th>PT</th>
+                    <th>Total</th>
                 </tr>
-
             </thead>
             <tbody>
                 @forelse($rows ?? [] as $index => $row)
                 <tr>
-                    <td class="col-sl">{{ $index + 1 }}</td>
-                    <td class="col-name">{{ $row['name'] ?? '' }}</td>
-                    <td class="col-father">{{ $row['father_name'] ?? '' }}</td>
-                    <td class="col-designation">{{ $row['designation'] ?? '' }}</td>
-                    <td class="col-days">{{ $row['days_worked'] ?? '' }}</td>
-                    <td class="col-unit">{{ $row['unit_work'] ?? '' }}</td>
-                    <td class="col-rate">{{ ($row['daily_rate'] ?? '') ? number_format($row['daily_rate'], 2) : '' }}</td>
-                    <td class="col-basic">{{ ($row['basic_wages'] ?? '') ? number_format($row['basic_wages'], 2) : '' }}</td>
-                    <td class="col-da">{{ ($row['da'] ?? '') ? number_format($row['da'], 2) : '' }}</td>
-                    <td class="col-ot">{{ ($row['overtime'] ?? '') ? number_format($row['overtime'], 2) : '' }}</td>
-                    <td class="col-other">{{ ($row['other_cash'] ?? '') ? number_format($row['other_cash'], 2) : '' }}</td>
-                    <td class="col-total">{{ ($row['gross_salary'] ?? '') ? number_format($row['gross_salary'], 2) : '' }}</td>
-                    <td class="col-esi">{{ ($row['esi'] ?? '') ? number_format($row['esi'], 2) : '' }}</td>
-                    <td class="col-pf">{{ ($row['pf'] ?? '') ? number_format($row['pf'], 2) : '' }}</td>
-                    <td class="col-pt">{{ ($row['pt'] ?? '') ? number_format($row['pt'], 2) : '' }}</td>
-                    <td class="col-deduct-total">{{ ($row['total_deductions'] ?? '') ? number_format($row['total_deductions'], 2) : '' }}</td>
-                    <td class="col-net">{{ ($row['net_amount'] ?? '') ? number_format($row['net_amount'], 2) : '' }}</td>
-                    <td class="col-signature"></td>
-                    <td class="col-initial"></td>
+                    <td>{{ $index + 1 }}</td>
+                    <td class="text-left">{{ $row['name'] ?? '' }}</td>
+                    <td>{{ $row['father_name'] ?? '' }}</td>
+                    <td class="text-left">{{ $row['designation'] ?? '' }}</td>
+                    <td>{{ $row['days_worked'] ?? '' }}</td>
+                    <td>{{ $row['unit_work'] ?? '' }}</td>
+                    <td class="text-right">{{ ($row['daily_rate'] ?? 0) ? number_format($row['daily_rate'], 2) : '' }}</td>
+                    <td class="text-right">{{ ($row['basic_wages'] ?? 0) ? number_format($row['basic_wages'], 2) : '' }}</td>
+                    <td class="text-right">{{ ($row['da'] ?? 0) ? number_format($row['da'], 2) : '' }}</td>
+                    <td class="text-right">{{ ($row['overtime'] ?? 0) ? number_format($row['overtime'], 2) : '' }}</td>
+                    <td class="text-right">{{ ($row['other_cash'] ?? 0) ? number_format($row['other_cash'], 2) : '' }}</td>
+                    <td class="text-right">{{ ($row['gross_salary'] ?? 0) ? number_format($row['gross_salary'], 2) : '' }}</td>
+                    <td class="text-right">{{ ($row['esi'] ?? 0) ? number_format($row['esi'], 2) : '' }}</td>
+                    <td class="text-right">{{ ($row['pf'] ?? 0) ? number_format($row['pf'], 2) : '' }}</td>
+                    <td class="text-right">{{ ($row['pt'] ?? 0) ? number_format($row['pt'], 2) : '' }}</td>
+                    <td class="text-right">{{ ($row['total_deductions'] ?? 0) ? number_format($row['total_deductions'], 2) : '' }}</td>
+                    <td class="text-right">{{ ($row['net_amount'] ?? 0) ? number_format($row['net_amount'], 2) : '' }}</td>
+                    <td></td>
+                    <td></td>
                 </tr>
                 @empty
                     <tr>
@@ -219,12 +195,12 @@
             </tbody>
         </table>
 
-       <div class="signature-space">
-            <div class="signature-row">
-                <div class="left-sign">Signature of the Site Engineer</div>
-                <div class="right-sign">Signature of the Contractor with Seal</div>
-            </div>
-        </div>
+        <table class="signature-table">
+            <tr>
+                <td class="sign-left">Signature of the Site Engineer</td>
+                <td class="sign-right">Signature of the Contractor with Seal</td>
+            </tr>
+        </table>
     </div>
 </body>
 </html>

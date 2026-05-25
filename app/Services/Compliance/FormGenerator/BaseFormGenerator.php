@@ -49,26 +49,36 @@ abstract class BaseFormGenerator
     abstract protected function prepareData(array $rawData): array;
 
     /**
-     * Generate PDF from prepared form data
+     * Generate PDF from pre-rendered HTML (same HTML used for preview).
+     * Accepts the rendered HTML string so PDF matches preview exactly.
      *
-     * @param array $formData Formatted data from generate()
+     * @param array $formData Formatted data from generate() — must contain 'rendered_html'
      * @return string PDF binary content
      */
     public function generatePdf(array $formData): string
     {
         try {
+            $html = $formData['rendered_html'] ?? null;
+
+            if (!$html) {
+                // Fallback: render the view now (should not normally happen)
+                $html = \Illuminate\Support\Facades\View::make($this->view, $formData)->render();
+            }
+
             $formKey   = strtolower(str_replace('_', '', $this->formCode));
             $pdfConfig = config("pdf_{$formKey}.{$this->formCode}", []);
-            $landscapeForms = ['FORM_2', 'FORM_10', 'FORM_11', 'FORM_12', 'FORM_17', 'FORM_18', 'FORM_25', 'ESI_FORM_11'];
+            $landscapeForms = ['FORM_2', 'FORM_10', 'FORM_11', 'FORM_12', 'FORM_17', 'FORM_18', 'FORM_25', 'ESI_FORM_11', 'FORM_XIII', 'FORM_XVII'];
             $orientation = $pdfConfig['orientation'] ?? (in_array($this->formCode, $landscapeForms) ? 'landscape' : 'portrait');
-            $paper       = $pdfConfig['paper']       ?? 'A4';
+            $paper       = $pdfConfig['paper'] ?? 'A4';
 
-            $pdf = Pdf::loadView($this->view, $formData)
+            $pdf = Pdf::loadHTML($html)
                 ->setPaper($paper, $orientation)
                 ->setOption('isHtml5ParserEnabled', true)
                 ->setOption('isRemoteEnabled', false)
                 ->setOption('dpi', 96)
                 ->setOption('defaultFont', 'Arial')
+                ->setOption('isFontSubsettingEnabled', true)
+                ->setOption('enable_php', false)
                 ->setOption('chroot', [public_path()]);
 
             return $pdf->output();

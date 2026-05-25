@@ -15,9 +15,27 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use App\Models\AuditLog;
 
 class ComplianceExecutionController extends Controller
 {
+    private function auditLog(string $action, array $meta = []): void
+    {
+        try {
+            AuditLog::create([
+                'tenant_id'  => Auth::user()?->tenant_id ?? 0,
+                'user_id'    => Auth::id(),
+                'action'     => $action,
+                'form_code'  => $meta['form_code'] ?? null,
+                'batch_id'   => $meta['batch_id'] ?? null,
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'metadata'   => array_merge(['status' => 'success'], $meta),
+                'created_at' => now(),
+            ]);
+        } catch (\Throwable) {}
+    }
+
     public function __construct(
         private ComplianceExecutionService $executionService,
         private ComplianceReportBuilder $reportBuilder,
@@ -70,6 +88,10 @@ class ComplianceExecutionController extends Controller
 
             $batches = ComplianceExecutionBatch::with('section')
                 ->where('tenant_id', $tenantId)
+                ->where(function ($q) use ($user) {
+                    $q->where('created_by', $user->id)
+                      ->orWhereNull('created_by');
+                })
                 ->orderBy('created_at', 'desc')
                 ->limit(10)
                 ->get();
@@ -208,6 +230,8 @@ class ComplianceExecutionController extends Controller
 
             $period = Carbon::create($validated['period_year'], $validated['period_month'], 1)->format('F Y');
 
+            $this->auditLog('batch_create', ['batch_id' => $batch->id, 'period' => $period]);
+
             return response()->json([
                 'status'            => 'success',
                 'batch_id'          => $batch->id,
@@ -312,8 +336,52 @@ class ComplianceExecutionController extends Controller
             abort(400, $result['error']);
         }
 
+        $this->auditLog('preview_form', ['batch_id' => $batch, 'form_code' => $form]);
+
         return response($result['result']['html'])
             ->header('Content-Type', 'text/html; charset=utf-8');
+    }
+
+    public function downloadFormPdf(int $batch, string $form)
+    {
+        $batchModel = ComplianceExecutionBatch::where('tenant_id', Auth::user()->tenant_id)
+            ->where('id', $batch)
+            ->firstOrFail();
+
+        $branchId = \App\Services\Compliance\ComplianceContextValidator::resolveBranchSafe(
+            $batchModel->tenant_id,
+            $batchModel->branch_id
+        );
+
+        $orchestrator = app(\App\Services\Compliance\ComplianceOrchestrator::class);
+        $result = $orchestrator->execute(
+            $batchModel->tenant_id,
+            $branchId,
+            $batchModel->period_month,
+            $batchModel->period_year,
+            $form,
+            'preview',
+            $batch
+        );
+
+        if ($result['status'] === 'failed') {
+            abort(400, $result['error']);
+        }
+
+        $html = $result['result']['html'];
+
+        $landscapeForms = ['FORM_2', 'FORM_10', 'FORM_11', 'FORM_12', 'FORM_17', 'FORM_18', 'FORM_25', 'ESI_FORM_11', 'FORM_XIII', 'FORM_XVII', 'FormXIII', 'FormXVII'];
+        $orientation = in_array($form, $landscapeForms) ? 'landscape' : 'portrait';
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)
+            ->setPaper('A4', $orientation)
+            ->setOption('isHtml5ParserEnabled', true)
+            ->setOption('isRemoteEnabled', false)
+            ->setOption('dpi', 96)
+            ->setOption('defaultFont', 'Arial')
+            ->setOption('chroot', [public_path()]);
+
+        return $pdf->download("{$form}.pdf");
     }
 
     public function refreshFormData(int $batch, string $form)
@@ -594,7 +662,9 @@ class ComplianceExecutionController extends Controller
 
             $fileName = "inspection_pack_batch_{$batch}.zip";
 
-            return response()->download($result['path'], $fileName, ['Content-Type' => 'application/zip']);
+            $this->auditLog('download_inspection_pack', ['batch_id' => $batch]);
+
+        return response()->download($result['path'], $fileName, ['Content-Type' => 'application/zip']);
 
         } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
             throw $e;

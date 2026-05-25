@@ -54,6 +54,7 @@ Route::prefix('compliance')->middleware(['web', 'auth'])->group(function () {
     // Available to all subscribers
     Route::get('/preview/{formCode}', [CompliancePreviewController::class, 'preview'])->name('compliance.preview');
     Route::get('/batch/{batch}/preview/{form}', [ComplianceExecutionController::class, 'previewForm'])->name('compliance.batch.preview');
+    Route::get('/batch/{batch}/pdf/{form}', [ComplianceExecutionController::class, 'downloadFormPdf'])->name('compliance.batch.form.pdf');
     Route::get('/batch/{batch}/review', [ComplianceExecutionController::class, 'reviewBatch'])->name('compliance.batch.review');
     Route::post('/batch/{batch}/re-audit/{form}', [ComplianceExecutionController::class, 'reAudit'])->name('compliance.batch.reAudit');
     Route::post('/batch/{batch}/fix-violations/{form}', [ComplianceExecutionController::class, 'fixViolations'])->name('compliance.batch.fixViolations');

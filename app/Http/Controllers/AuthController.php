@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Models\AuditLog;
 
 class AuthController extends Controller
 {
@@ -34,7 +35,22 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            if (Auth::user()->is_super_admin) {
+            $user = Auth::user();
+            $user->update(['last_login_at' => now()]);
+
+            try {
+                AuditLog::create([
+                    'tenant_id'  => $user->tenant_id ?? 0,
+                    'user_id'    => $user->id,
+                    'action'     => 'login',
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                    'metadata'   => ['status' => 'success', 'email' => $user->email],
+                    'created_at' => now(),
+                ]);
+            } catch (\Throwable) {}
+
+            if ($user->is_super_admin) {
                 return redirect()->route('super-admin.dashboard');
             }
 

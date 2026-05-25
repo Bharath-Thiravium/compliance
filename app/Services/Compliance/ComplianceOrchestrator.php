@@ -69,7 +69,7 @@ class ComplianceOrchestrator
                 'preview' => $this->executePreview($formCode, $formData, $month, $year, $batchId),
                 'pdf' => $this->executePdf($formCode, $formData, $month, $year),
                 'batch' => $this->executeBatch($formCode, $formData, $tenantId, $branchId, $batchId, $month, $year),
-                'inspection_pack' => $this->executeInspectionPack($formCode, $formData, $tenantId, $branchId, $batchId),
+                'inspection_pack' => $this->executeInspectionPack($formCode, $formData, $tenantId, $branchId, $batchId, $month, $year),
                 default => throw new \Exception("Invalid execution mode: {$mode}")
             };
 
@@ -106,6 +106,9 @@ class ComplianceOrchestrator
         $formData['batch_id'] = $batchId ?? 0;
         $formData['period_month'] = $month;
         $formData['period_year'] = $year;
+
+        // Render preview HTML once — PDF uses the same HTML (single render pipeline)
+        $formData['rendered_html'] = $this->renderPreviewHtml($formCode, $formData, $month, $year, $batchId);
         
         \Log::info("Orchestrator: Generating PDF for {$formCode}", ['batch_id' => $batchId]);
         $pdfContent = $generator->generatePdf($formData);
@@ -160,6 +163,9 @@ class ComplianceOrchestrator
         $formData['batch_id'] = 0;
         $formData['period_month'] = $month;
         $formData['period_year'] = $year;
+
+        // Render preview HTML once — PDF uses the same HTML (single render pipeline)
+        $formData['rendered_html'] = $this->renderPreviewHtml($formCode, $formData, $month, $year, null);
         
         $pdfContent = $generator->generatePdf($formData);
 
@@ -209,9 +215,13 @@ class ComplianceOrchestrator
         ];
     }
 
-    public function executeInspectionPack(string $formCode, array $formData, int $tenantId, int $branchId, ?int $batchId): array
+    public function executeInspectionPack(string $formCode, array $formData, int $tenantId, int $branchId, ?int $batchId, int $month = 0, int $year = 0): array
     {
         $generator = $this->factory::make($formCode);
+
+        // Render preview HTML once — PDF uses the same HTML (single render pipeline)
+        $formData['rendered_html'] = $this->renderPreviewHtml($formCode, $formData, $month, $year, $batchId);
+
         $pdfContent = $generator->generatePdf($formData);
 
         if (!$pdfContent || strlen($pdfContent) === 0) {
@@ -242,6 +252,34 @@ class ComplianceOrchestrator
             'file_count' => 1,
             'created' => true
         ];
+    }
+
+    /**
+     * Render the Blade view to HTML — the single source of truth for both preview and PDF.
+     */
+    private function renderPreviewHtml(string $formCode, array $formData, int $month, int $year, ?int $batchId): string
+    {
+        $viewPath = FormTemplateRegistry::resolve($formCode);
+
+        $viewData = array_merge(
+            $formData['header'] ?? [],
+            [
+                'form_title'   => $formData['header']['form_title'] ?? $formCode,
+                'form_code'    => $formCode,
+                'period_month' => $month,
+                'period_year'  => $year,
+                'batch_id'     => $batchId ?? 0,
+                'header'       => $formData['header'] ?? [],
+                'rows'         => $formData['rows'] ?? [],
+                'entries'      => $formData['rows'] ?? [],
+                'cards'        => $formData['cards'] ?? [],
+                'slips'        => $formData['slips'] ?? [],
+                'totals'       => $formData['totals'] ?? [],
+                'is_nil'       => $formData['is_nil'] ?? empty($formData['rows']),
+            ]
+        );
+
+        return View::make($viewPath, $viewData)->render();
     }
 
     private function runValidationPipeline(int $tenantId, int $branchId, int $month, int $year): void

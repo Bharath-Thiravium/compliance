@@ -107,7 +107,7 @@
                                     <td>
                                         {{ $user->last_login_at ? \Carbon\Carbon::parse($user->last_login_at)->diffForHumans() : 'Never' }}
                                     </td>
-                                    <td><span class="badge badge-warning">Pending Filing</span></td>
+                                    <td><span class="badge badge-warning">Has Pending Batch</span></td>
                                 </tr>
                             @endforeach
                         </tbody>

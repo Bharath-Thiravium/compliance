@@ -53,6 +53,8 @@
     <script>
         const SUBSCRIPTION = '{{ $subscription ?? 'MINIMAL' }}';
         const IS_FULL = SUBSCRIPTION === 'FULL';
+        const BASE_URL = '{{ rtrim(config('app.url'), '/') }}';
+        const url = path => BASE_URL + path;
 
         const BatchProcessor = {
             processing: false,
@@ -66,13 +68,15 @@
 
                 while (this.processing) {
                     try {
-                        const response = await fetch(`/compliance/batch/${batchId}/process-next`, {
+                        const response = await fetch(url(`/compliance/batch/${batchId}/process-next`), {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                             }
                         });
+
+                        if (response.status === 419) { window.location.reload(); return; }
 
                         const data = await response.json();
 
@@ -214,7 +218,7 @@
             btn.disabled = true;
             spinner.classList.remove('d-none');
 
-            const endpoint = IS_FULL ? '/compliance/batch/create' : '/compliance/batch/create-minimal';
+            const endpoint = IS_FULL ? url('/compliance/batch/create') : url('/compliance/batch/create-minimal');
 
             fetch(endpoint, {
                 method: 'POST',
@@ -224,7 +228,14 @@
                 },
                 body: JSON.stringify({ period_month: month, period_year: year })
             })
-            .then(r => r.json())
+            .then(r => {
+                if (r.status === 419) {
+                    // CSRF token expired — refresh the page to get a new token
+                    window.location.reload();
+                    return Promise.reject(new Error('Session expired. Refreshing page...'));
+                }
+                return r.json();
+            })
             .then(data => {
                 if (data.status === 'success') {
                     renderBatchReview(data);
@@ -407,12 +418,58 @@
             document.getElementById('batch-review-container').innerHTML = html;
         }
 
+        // Snapshot of body state before any modal opens
+        const _bodySnapshot = {
+            overflow:     '',
+            paddingRight: '',
+            marginRight:  '',
+        };
+
+        function _snapshotBody() {
+            _bodySnapshot.overflow     = document.body.style.overflow;
+            _bodySnapshot.paddingRight = document.body.style.paddingRight;
+            _bodySnapshot.marginRight  = document.body.style.marginRight;
+        }
+
+        function _cleanupModalBody() {
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow     = _bodySnapshot.overflow;
+            document.body.style.paddingRight  = _bodySnapshot.paddingRight;
+            document.body.style.marginRight   = _bodySnapshot.marginRight;
+            // Remove any lingering Bootstrap backdrop
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        }
+
+        function _bindModalCleanup(modalEl) {
+            modalEl.addEventListener('hidden.bs.modal', function () {
+                _cleanupModalBody();
+                if (modalEl.dataset.dynamic === 'true') modalEl.remove();
+            }, { once: true });
+        }
+
+        // Persistent cleanup for the static preview modal (NOT once — fires every close)
+        const _staticPreviewModal = document.getElementById('preview-modal');
+        if (_staticPreviewModal) {
+            _staticPreviewModal.addEventListener('show.bs.modal', function () {
+                _snapshotBody();
+            });
+            _staticPreviewModal.addEventListener('hidden.bs.modal', function () {
+                _cleanupModalBody();
+                const iframe = document.getElementById('preview-iframe');
+                if (iframe) {
+                    iframe.removeAttribute('srcdoc');
+                    iframe.src = 'about:blank';
+                }
+            });
+        }
+
         function showManualDataModal(batchId) {
             const existing = document.getElementById('manualDataModal');
-            if (existing) existing.remove();
+            if (existing) { bootstrap.Modal.getInstance(existing)?.dispose(); existing.remove(); }
             const modal = document.createElement('div');
             modal.className = 'modal fade';
             modal.id = 'manualDataModal';
+            modal.dataset.dynamic = 'true';
             modal.innerHTML = `
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
@@ -452,13 +509,18 @@
                     </div>
                 </div>`;
             document.body.appendChild(modal);
-            new bootstrap.Modal(modal).show();
+            const _manualBsModal = new bootstrap.Modal(modal);
+            _bindModalCleanup(modal);
+            _manualBsModal.show();
         }
 
         function showPdfUploadModal(batchId, forms) {
+            const existing = document.getElementById('pdfUploadModal');
+            if (existing) { bootstrap.Modal.getInstance(existing)?.dispose(); existing.remove(); }
             const modal = document.createElement('div');
             modal.className = 'modal fade';
             modal.id = 'pdfUploadModal';
+            modal.dataset.dynamic = 'true';
             modal.innerHTML = `
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
@@ -481,6 +543,7 @@
             `;
             document.body.appendChild(modal);
             const bsModal = new bootstrap.Modal(modal);
+            _bindModalCleanup(modal);
             bsModal.show();
 
             const container = document.getElementById('pdf-uploads-container');
@@ -546,7 +609,7 @@
                     const formData = new FormData();
                     formData.append('file', file);
 
-                    const response = await fetch(`/compliance/form/upload/${batchId}/${formCode}`, {
+                    const response = await fetch(url(`/compliance/form/upload/${batchId}/${formCode}`), {
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
@@ -566,7 +629,8 @@
             }
 
             if (failedCount === 0) {
-                bootstrap.Modal.getInstance(document.getElementById('pdfUploadModal'))?.hide();
+                const _pdfModalEl = document.getElementById('pdfUploadModal');
+                bootstrap.Modal.getInstance(_pdfModalEl)?.hide();
                 if (!IS_FULL) {
                     markMinimalDataProvided('pdf');
                 } else {
@@ -578,7 +642,8 @@
         }
 
         function showCsvUploadModal(batchId) {
-            document.getElementById('csvUploadModal')?.remove();
+            const existing = document.getElementById('csvUploadModal');
+            if (existing) { bootstrap.Modal.getInstance(existing)?.dispose(); existing.remove(); }
 
             const modal = document.createElement('div');
             modal.className = 'modal fade';
@@ -593,46 +658,55 @@
                         <div class="modal-body">
                             <div id="csv-upload-result" class="mb-3 d-none"></div>
                             <form id="csvUploadForm" novalidate>
-                                <div class="row g-3">
+                                <div class="grid-row">
 
-                                    <div class="col-md-4">
-                                        <div class="p-3 border rounded h-100 d-flex flex-column">
-                                            <label class="form-label"><strong>👥 Employees CSV</strong> <span class="text-danger">*</span></label>
-                                            <input type="file" class="form-control csv-file-input" id="csvEmployees"
-                                                   data-type="employees" accept=".csv,.txt" required>
-                                            <div class="form-text">Required: <code>employee_code, name</code></div>
-                                            <div class="mt-2" id="csv-status-employees"></div>
-                                            <div class="mt-auto pt-3 border-top">
-                                                        <span class="text-muted text-xs mb-1">📥 Sample CSV Format</span>
-                                                <a href="/compliance/csv-template/employees" class="btn btn-sm w-100" download>⬇️ Download Template</a>
+                                    <div class="grid-col col-1-3">
+                                        <div class="upload-card" style="border-style:solid;">
+                                            <div class="upload-card-head">👥 Employees CSV <span style="color:#ffccc7;">*</span></div>
+                                            <div class="upload-card-body">
+                                                <label class="form-label" style="font-size:13px;">Select file</label>
+                                                <input type="file" class="csv-file-input" id="csvEmployees"
+                                                       data-type="employees" accept=".csv,.txt" required>
+                                                <div style="font-size:11px;color:#8c8c8c;margin-top:6px;">Required: <code>employee_code, name</code></div>
+                                                <div class="mt-2" id="csv-status-employees"></div>
+                                                <div class="sample-box mt-3">
+                                                    <span class="sample-title">📥 Sample CSV Format</span>
+                                                    <a href="/compliance/csv-template/employees" class="sample-btn" download>⬇ Download Template</a>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="col-md-4">
-                                        <div class="p-3 border rounded h-100 d-flex flex-column">
-                                            <label class="form-label"><strong>💰 Payroll CSV</strong> <span class="text-danger">*</span></label>
-                                            <input type="file" class="form-control csv-file-input" id="csvPayroll"
-                                                   data-type="payroll" accept=".csv,.txt" required>
-                                            <div class="form-text">Required: <code>employee_code, gross_salary, net_salary</code></div>
-                                            <div class="mt-2" id="csv-status-payroll"></div>
-                                            <div class="mt-auto pt-3 border-top">
-                                                <span class="text-muted text-xs mb-1">📥 Sample CSV Format</span>
-                                                <a href="/compliance/csv-template/payroll" class="btn btn-sm w-100" download>⬇️ Download Template</a>
+                                    <div class="grid-col col-1-3">
+                                        <div class="upload-card" style="border-style:solid;">
+                                            <div class="upload-card-head">💰 Payroll CSV <span style="color:#ffccc7;">*</span></div>
+                                            <div class="upload-card-body">
+                                                <label class="form-label" style="font-size:13px;">Select file</label>
+                                                <input type="file" class="csv-file-input" id="csvPayroll"
+                                                       data-type="payroll" accept=".csv,.txt" required>
+                                                <div style="font-size:11px;color:#8c8c8c;margin-top:6px;">Required: <code>employee_code, gross_salary, net_salary</code></div>
+                                                <div class="mt-2" id="csv-status-payroll"></div>
+                                                <div class="sample-box mt-3">
+                                                    <span class="sample-title">📥 Sample CSV Format</span>
+                                                    <a href="/compliance/csv-template/payroll" class="sample-btn" download>⬇ Download Template</a>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="col-md-4">
-                                        <div class="p-3 border rounded h-100 d-flex flex-column">
-                                            <label class="form-label"><strong>📅 Attendance CSV</strong> <span class="text-danger">*</span></label>
-                                            <input type="file" class="form-control csv-file-input" id="csvAttendance"
-                                                   data-type="attendance" accept=".csv,.txt" required>
-                                            <div class="form-text">Required: <code>employee_code, working_days</code></div>
-                                            <div class="mt-2" id="csv-status-attendance"></div>
-                                            <div class="mt-auto pt-3 border-top">
-                                                <span class="text-muted text-xs mb-1">📥 Sample CSV Format</span>
-                                                <a href="/compliance/csv-template/attendance" class="btn btn-sm w-100" download>⬇️ Download Template</a>
+                                    <div class="grid-col col-1-3">
+                                        <div class="upload-card" style="border-style:solid;">
+                                            <div class="upload-card-head">📅 Attendance CSV <span style="color:#ffccc7;">*</span></div>
+                                            <div class="upload-card-body">
+                                                <label class="form-label" style="font-size:13px;">Select file</label>
+                                                <input type="file" class="csv-file-input" id="csvAttendance"
+                                                       data-type="attendance" accept=".csv,.txt" required>
+                                                <div style="font-size:11px;color:#8c8c8c;margin-top:6px;">Required: <code>employee_code, working_days</code></div>
+                                                <div class="mt-2" id="csv-status-attendance"></div>
+                                                <div class="sample-box mt-3">
+                                                    <span class="sample-title">📥 Sample CSV Format</span>
+                                                    <a href="/compliance/csv-template/attendance" class="sample-btn" download>⬇ Download Template</a>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -650,6 +724,7 @@
                     </div>
                 </div>`;
 
+            modal.dataset.dynamic = 'true';
             document.body.appendChild(modal);
 
             modal.querySelectorAll('.csv-file-input').forEach(input => {
@@ -665,7 +740,9 @@
                 });
             });
 
-            new bootstrap.Modal(modal).show();
+            const _csvBsModal = new bootstrap.Modal(modal);
+            _bindModalCleanup(modal);
+            _csvBsModal.show();
         }
 
         function submitManualData(batchId) {
@@ -681,7 +758,7 @@
 
             const formData = new FormData(form);
 
-            fetch(`/compliance/batch/${batchId}/save-manual-data`, {
+            fetch(url(`/compliance/batch/${batchId}/save-manual-data`), {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
                 body: formData
@@ -726,7 +803,7 @@
                 fd.append('dataset_type', type);
 
                 try {
-                    const res = await fetch(`/compliance/batch/${batchId}/upload-csv`, {
+                    const res = await fetch(url(`/compliance/batch/${batchId}/upload-csv`), {
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
@@ -780,7 +857,8 @@
                 _csvShowResult('success', successMsg);
 
                 setTimeout(() => {
-                    bootstrap.Modal.getInstance(document.getElementById('csvUploadModal'))?.hide();
+                    const _csvModalEl = document.getElementById('csvUploadModal');
+                bootstrap.Modal.getInstance(_csvModalEl)?.hide();
 
                     if (gen && gen.triggered && gen.generated_forms > 0) {
                         BatchProcessor.showComplete(batchId);
@@ -835,20 +913,38 @@
         });
 
         function openPreview(batchId, formCode) {
-            const previewModal = new bootstrap.Modal(document.getElementById('preview-modal'));
-            document.getElementById('preview-title').textContent = `Preview - ${escapeHtml(formCode)}`;
-            document.getElementById('preview-content').innerHTML = '<div class="text-center"><div class="spinner-border"></div></div>';
+            const modalEl = document.getElementById('preview-modal');
+            const iframe  = document.getElementById('preview-iframe');
+            document.getElementById('preview-title').textContent = `Preview — ${escapeHtml(formCode)}`;
 
-            fetch(`/compliance/batch/${batchId}/preview/${formCode}`)
+            // Set PDF download link to the same batch/form
+            const pdfBtn = document.getElementById('preview-pdf-btn');
+            if (pdfBtn) pdfBtn.href = url(`/compliance/batch/${batchId}/pdf/${formCode}`);
+
+            // Reset iframe before loading to prevent stale content
+            iframe.removeAttribute('srcdoc');
+            iframe.src = 'about:blank';
+
+            // Snapshot body state before Bootstrap mutates it
+            _snapshotBody();
+
+            // Show loading state
+            iframe.srcdoc = '<html><body style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#888;">Loading…</body></html>';
+
+            fetch(url(`/compliance/batch/${batchId}/preview/${formCode}`))
                 .then(r => r.text())
-                .then(html => {
-                    document.getElementById('preview-content').innerHTML = html;
-                })
+                .then(html => { iframe.srcdoc = html; })
                 .catch(err => {
-                    document.getElementById('preview-content').innerHTML = `<div class="alert alert-danger">Error: ${escapeHtml(err.message)}</div>`;
+                    iframe.srcdoc = `<html><body style="padding:20px;font-family:sans-serif;"><div style="color:#cf1322;background:#fff2f0;border:1px solid #ffccc7;padding:12px;border-radius:6px;">Error: ${escapeHtml(err.message)}</div></body></html>`;
                 });
 
-            previewModal.show();
+            // Always get a fresh instance — never reuse a stale one
+            let bsModal = bootstrap.Modal.getInstance(modalEl);
+            if (bsModal) {
+                bsModal.dispose();
+            }
+            bsModal = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true });
+            bsModal.show();
         }
 
         // ─── Manual Compliance Panel ───────────────────────────────────────────
@@ -873,7 +969,7 @@
 
             async loadItems() {
                 try {
-                    const res = await fetch(`/compliance/manual-batch/${this.batchId}`);
+                    const res = await fetch(url(`/compliance/manual-batch/${this.batchId}`));
                     const data = await res.json();
                     if (!res.ok) throw new Error(data.message || 'Failed to load tasks');
                     this.renderItems(data.items || []);
@@ -912,7 +1008,7 @@
 
             async updateProgress() {
                 try {
-                    const res = await fetch(`/compliance/manual-batch/${this.batchId}/summary`);
+                    const res = await fetch(url(`/compliance/manual-batch/${this.batchId}/summary`));
                     const data = await res.json();
                     if (!res.ok) return;
 
@@ -956,7 +1052,7 @@
                 fd.append('file', file);
 
                 try {
-                    const res = await fetch('/compliance/manual-item/upload', {
+                    const res = await fetch(url('/compliance/manual-item/upload'), {
                         method: 'POST',
                         headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
                         body: fd
@@ -981,7 +1077,7 @@
                 if (row) row.style.opacity = '0.5';
 
                 try {
-                    const res = await fetch('/compliance/manual-item/skip', {
+                    const res = await fetch(url('/compliance/manual-item/skip'), {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1113,7 +1209,7 @@
                                 id="download-pack-btn"
                                 disabled
                                 title="Complete all automated PDFs and manual tasks first"
-                                onclick="window.location='/compliance/batch/${batchId}/inspection-pack'">
+                                onclick="window.location=url('/compliance/batch/${batchId}/inspection-pack')">
                             📦 Download Inspection Pack
                         </button>
                     </div>`;
