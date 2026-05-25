@@ -1,6 +1,7 @@
-@extends('compliance.layouts.antd_base')
+@extends('compliance.layouts.app')
 
 @section('title', 'Dashboard - Compliance Engine')
+@section('page-title', 'Dashboard')
 
 @section('content')
     <div class="container-fluid dashboard-wrapper">
@@ -8,35 +9,27 @@
         @include('compliance.partials.timeline-status')
 
         @if (isset($subscription) && $subscription === 'MINIMAL')
-            <div class="ant-alert ant-alert-warning">
+            <div class="alert alert-warning">
                 <strong>⚠️ MINIMAL Subscription:</strong> Enter statutory data manually to auto-generate forms.
             </div>
         @endif
 
         @if (session('success'))
-            <div class="ant-alert ant-alert-success">{{ session('success') }}</div>
+            <div class="alert alert-success">{{ session('success') }}</div>
         @endif
 
         @if (session('error'))
-            <div class="ant-alert ant-alert-error">{{ session('error') }}</div>
+            <div class="alert alert-danger">{{ session('error') }}</div>
         @endif
 
-        <div class="ant-row" gutter="16">
-            <div class="ant-col ant-col-6">
+        <div class="grid-row">
+            <div class="grid-col col-1-2">
                 @include('compliance.partials.create-batch-card')
             </div>
-            <div class="ant-col ant-col-6">
+            <div class="grid-col col-1-2">
                 @include('compliance.partials.quick-stats')
             </div>
         </div>
-
-        <style>
-            #batch-section-row { display: flex; flex-wrap: wrap; gap: 16px; }
-            #batch-col { flex: 1 1 0; min-width: 0; display: flex; justify-content: center; }
-            #batch-col > #batch-review-container { width: 100%; max-width: 900px; }
-            #manual-col { flex: 0 0 auto; width: 60%;min-width: 0; }
-            #batch-section-row.has-manual #batch-col > #batch-review-container { max-width: 100%; }
-        </style>
 
         <div id="batch-section-row" class="mt-4">
             <div id="batch-col">
@@ -47,10 +40,8 @@
             </div>
         </div>
 
-        <div class="ant-row mt-4" style="justify-content: center;">
-            <div class="ant-col ant-col-24">
-                @include('compliance.partials.recent-batches')
-            </div>
+        <div class="mt-4">
+            @include('compliance.partials.recent-batches')
         </div>
     </div>
 
@@ -86,7 +77,7 @@
                         const data = await response.json();
 
                         if (data.status === 'complete') {
-                            this.updateProgress(data);  // render final form states first
+                            this.updateProgress(data);
                             this.showComplete(batchId, data);
                             this.processing = false;
                             break;
@@ -106,25 +97,25 @@
 
             showProcessingUI(batchId) {
                 const html = `
-                    <div class="ant-card mb-3" id="processing-card">
-                        <div class="ant-card-head info">⏳ Processing Batch #${batchId}</div>
-                        <div class="ant-card-body">
-                            <div style="margin-bottom:20px">
-                                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <div class="card mb-3" id="processing-card">
+                        <div class="card-header info">⏳ Processing Batch #${batchId}</div>
+                        <div class="card-body">
+                            <div class="progress-section">
+                                <div class="progress-label-row">
                                     <strong>Progress</strong>
-                                    <span id="progress-text" class="ant-tag ant-tag-processing">0/0 forms</span>
+                                    <span id="progress-text" class="badge badge-info">0/0 forms</span>
                                 </div>
-                                <div class="progress" style="height:24px;">
-                                    <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:0%; font-weight:bold;">0%</div>
+                                <div class="progress">
+                                    <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated fw-bold" style="width:0%">0%</div>
                                 </div>
                             </div>
-                            <div style="overflow-x:auto">
-                                <table class="ant-table">
+                            <div class="table-responsive">
+                                <table class="data-table">
                                     <thead>
                                         <tr>
-                                            <th style="width:35%">Form Code</th>
-                                            <th style="width:30%">Status</th>
-                                            <th style="width:35%">Action</th>
+                                            <th>Form Code</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody id="forms-table-body"></tbody>
@@ -155,16 +146,16 @@
                         let statusBadge, actionBtn;
 
                         if (form.status === 'generated') {
-                            statusBadge = '<span class="ant-tag ant-tag-success">✅ Generated</span>';
-                            actionBtn = `<button class="ant-btn ant-btn-primary ant-btn-sm preview-btn" data-batch="${data.batch_id}" data-form="${form.form_code}">👁️ Preview</button>`;
+                            statusBadge = '<span class="badge badge-success">✅ Generated</span>';
+                            actionBtn = `<button class="btn btn-primary btn-sm preview-btn" data-batch="${data.batch_id}" data-form="${form.form_code}">👁️ Preview</button>`;
                         } else if (form.status === 'failed') {
-                            statusBadge = '<span class="ant-tag ant-tag-error">❌ Failed</span>';
+                            statusBadge = '<span class="badge badge-danger">❌ Failed</span>';
                             actionBtn = '-';
                         } else if (form.status === 'processing') {
-                            statusBadge = '<span class="ant-tag ant-tag-processing">⏳ Processing</span>';
+                            statusBadge = '<span class="badge badge-info">⏳ Processing</span>';
                             actionBtn = '-';
                         } else {
-                            statusBadge = '<span class="ant-tag">⏸️ Pending</span>';
+                            statusBadge = '<span class="badge">⏸️ Pending</span>';
                             actionBtn = '-';
                         }
 
@@ -194,7 +185,7 @@
                 const card = document.getElementById('processing-card');
                 if (card) {
                     const completeMsg = document.createElement('div');
-                    completeMsg.className = 'ant-alert ant-alert-success mt-3';
+                    completeMsg.className = 'alert alert-success mt-3';
                     const failed = data?.failed ?? 0;
                     completeMsg.innerHTML = failed > 0
                         ? `<strong>⚠️ ${data.generated}/${data.total} Forms Generated (${failed} failed)</strong>`
@@ -249,13 +240,12 @@
             });
         });
 
-        // Track which data categories have been provided in MINIMAL mode
         const _minimalDataProvided = { employees: false, attendance: false, payroll: false };
 
         function markMinimalDataProvided(category) {
             if (category === 'manual')    { _minimalDataProvided.employees = _minimalDataProvided.attendance = _minimalDataProvided.payroll = true; }
             else if (category === 'csv') { _minimalDataProvided[document.getElementById('csvDataType')?.value] = true; }
-            else if (category === 'pdf') { _minimalDataProvided.employees = true; } // PDF covers form data
+            else if (category === 'pdf') { _minimalDataProvided.employees = true; }
             refreshMinimalProceedBtn();
         }
 
@@ -265,15 +255,13 @@
             if (!btn) return;
             if (allProvided) {
                 btn.removeAttribute('disabled');
-                btn.classList.remove('ant-btn-default');
-                btn.classList.add('ant-btn-primary');
+                btn.classList.add('btn-primary');
                 const hint = document.getElementById('proceed-hint');
                 if (hint) hint.textContent = '✅ All data provided. You can now generate forms.';
             }
-            // Update checklist badges
             ['employees','attendance','payroll'].forEach(cat => {
                 const el = document.getElementById('data-check-' + cat);
-                if (el) el.className = 'ant-tag ' + (_minimalDataProvided[cat] ? 'ant-tag-success' : 'ant-tag-error');
+                if (el) el.className = 'badge ' + (_minimalDataProvided[cat] ? 'badge-success' : 'badge-danger');
             });
         }
 
@@ -281,74 +269,71 @@
             const isMinimal = data.minimal_mode === true;
 
             const dataAvailabilityHtml = data.data_availability.all_data_exists
-                ? `<div class="ant-alert ant-alert-success mb-3"><strong>✅ All Required Data Available</strong></div>`
+                ? `<div class="alert alert-success mb-3"><strong>✅ All Required Data Available</strong></div>`
                 : isMinimal
-                    ? `<div class="ant-alert ant-alert-warning mb-3">
+                    ? `<div class="alert alert-warning mb-3">
                         <strong>📋 Provide data for all three categories below to generate forms.</strong>
                        </div>`
-                    : `<div class="ant-alert ant-alert-warning mb-3">
+                    : `<div class="alert alert-warning mb-3">
                         <strong>⚠️ Missing Data Detected</strong>
                         <ul class="mb-0 mt-2">
                             ${data.data_availability.missing_data.map(m => `<li>${escapeHtml(m.charAt(0).toUpperCase() + m.slice(1).replace(/_/g, ' '))}</li>`).join('')}
                         </ul>
                        </div>`;
 
-            // Data checklist for MINIMAL
             const minimalChecklist = isMinimal ? `
-                <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px;">
+                <div class="data-check-row">
                     <span>Data status:</span>
-                    <span id="data-check-employees" class="ant-tag ant-tag-error">Employees ✗</span>
-                    <span id="data-check-attendance" class="ant-tag ant-tag-error">Attendance ✗</span>
-                    <span id="data-check-payroll"    class="ant-tag ant-tag-error">Payroll ✗</span>
+                    <span id="data-check-employees" class="badge badge-danger">Employees ✗</span>
+                    <span id="data-check-attendance" class="badge badge-danger">Attendance ✗</span>
+                    <span id="data-check-payroll"    class="badge badge-danger">Payroll ✗</span>
                 </div>` : '';
 
-            // Data summary table (FULL only)
             const dataSummaryHtml = !isMinimal ? `
                 <div class="mt-3">
                     <p class="mb-2"><strong>Data Summary:</strong></p>
-                    <table class="ant-table" style="font-size:12px; margin-bottom:0;">
+                    <table class="data-table text-xs mb-0">
                         <tbody>
                             ${Object.entries(data.data_availability.data_summary).map(([key, count]) => `
                                 <tr>
-                                    <td style="width:60%;"><strong>${escapeHtml(key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' '))}</strong></td>
-                                    <td style="text-align:right;">
-                                        <span class="ant-tag ${parseInt(count) > 0 ? 'ant-tag-success' : 'ant-tag-error'}">${parseInt(count)} records</span>
+                                    <td class="w-60"><strong>${escapeHtml(key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' '))}</strong></td>
+                                    <td class="text-right">
+                                        <span class="badge ${parseInt(count) > 0 ? 'badge-success' : 'badge-danger'}">${parseInt(count)} records</span>
                                     </td>
                                 </tr>`).join('')}
                         </tbody>
                     </table>
                 </div>` : '';
 
-            // Show data input panel: always for MINIMAL, only when missing for FULL
             const showDataInput = isMinimal || !data.can_proceed;
             const dataInputHtml = showDataInput ? `
-                <div class="ant-card mb-3" id="data-input-options">
-                    <div class="ant-card-head info">📥 ${isMinimal ? 'Provide Compliance Data' : 'Fill Missing Data'}</div>
-                    <div class="ant-card-body">
+                <div class="card mb-3" id="data-input-options">
+                    <div class="card-header info">📥 ${isMinimal ? 'Provide Compliance Data' : 'Fill Missing Data'}</div>
+                    <div class="card-body">
                         ${isMinimal
-                            ? `<p class="mb-3" style="font-size:13px;">Provide data using any combination of the three methods below. All three categories (Employees, Attendance, Payroll) must be covered before you can generate forms.</p>`
+                            ? `<p class="mb-3 text-sm">Provide data using any combination of the three methods below. All three categories (Employees, Attendance, Payroll) must be covered before you can generate forms.</p>`
                             : `<p class="mb-3">Choose one of the following options to provide missing data:</p>`
                         }
-                        <div class="ant-row" gutter="16">
-                            <div class="ant-col ant-col-8">
-                                <div class="ant-card" style="cursor:pointer; text-align:center; padding:20px;" onclick="showManualDataModal(${data.batch_id})">
-                                    <div style="font-size:32px; margin-bottom:10px;">✍️</div>
+                        <div class="grid-row">
+                            <div class="grid-col col-1-3">
+                                <div class="card card-input" onclick="showManualDataModal(${data.batch_id})">
+                                    <div class="card-input-icon">✍️</div>
                                     <strong>Manual Data Entry</strong>
-                                    <p class="text-muted mt-2" style="font-size:12px;">Enter employees, attendance &amp; payroll data directly</p>
+                                    <p class="card-input-desc">Enter employees, attendance &amp; payroll data directly</p>
                                 </div>
                             </div>
-                            <div class="ant-col ant-col-8">
-                                <div class="ant-card" style="cursor:pointer; text-align:center; padding:20px;" onclick="showPdfUploadModal(${data.batch_id}, ${JSON.stringify(data.forms).replace(/"/g, '&quot;')})">
-                                    <div style="font-size:32px; margin-bottom:10px;">📄</div>
+                            <div class="grid-col col-1-3">
+                                <div class="card card-input" onclick="showPdfUploadModal(${data.batch_id}, ${JSON.stringify(data.forms).replace(/"/g, '&quot;')})">
+                                    <div class="card-input-icon">📄</div>
                                     <strong>PDF Upload</strong>
-                                    <p class="text-muted mt-2" style="font-size:12px;">Upload filled PDF forms directly</p>
+                                    <p class="card-input-desc">Upload filled PDF forms directly</p>
                                 </div>
                             </div>
-                            <div class="ant-col ant-col-8">
-                                <div class="ant-card" style="cursor:pointer; text-align:center; padding:20px;" onclick="showCsvUploadModal(${data.batch_id})">
-                                    <div style="font-size:32px; margin-bottom:10px;">📊</div>
+                            <div class="grid-col col-1-3">
+                                <div class="card card-input" onclick="showCsvUploadModal(${data.batch_id})">
+                                    <div class="card-input-icon">📊</div>
                                     <strong>CSV Upload</strong>
-                                    <p class="text-muted mt-2" style="font-size:12px;">Upload CSV for employees, attendance or payroll</p>
+                                    <p class="card-input-desc">Upload CSV for employees, attendance or payroll</p>
                                 </div>
                             </div>
                         </div>
@@ -364,39 +349,39 @@
 
             const html = `
                 <div class="batch-review-wrapper" data-batch-id="${data.batch_id}">
-                    <div class="ant-card mb-3">
-                        <div class="ant-card-head success">✅ Batch Created — ${escapeHtml(data.period)}</div>
-                        <div class="ant-card-body">
-                            <div class="ant-row">
-                                <div class="ant-col ant-col-6"><p class="mb-0"><strong>Batch ID:</strong> #${data.batch_id}</p></div>
-                                <div class="ant-col ant-col-6"><p class="mb-0"><strong>Period:</strong> ${escapeHtml(data.period)}</p></div>
+                    <div class="card mb-3">
+                        <div class="card-header success">✅ Batch Created — ${escapeHtml(data.period)}</div>
+                        <div class="card-body">
+                            <div class="grid-row">
+                                <div class="grid-col col-1-2"><p class="mb-0"><strong>Batch ID:</strong> #${data.batch_id}</p></div>
+                                <div class="grid-col col-1-2"><p class="mb-0"><strong>Period:</strong> ${escapeHtml(data.period)}</p></div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="ant-card mb-3">
-                        <div class="ant-card-head info">📋 Forms to be Generated (${data.forms.length})</div>
-                        <div class="ant-card-body">
+                    <div class="card mb-3">
+                        <div class="card-header info">📋 Forms to be Generated (${data.forms.length})</div>
+                        <div class="card-body">
                             ${data.forms.length > 0 ? `
-                                <div style="max-height:260px; overflow-y:auto;">
-                                    <table class="ant-table" style="font-size:13px; margin-bottom:0;">
+                                <div class="table-scroll-260">
+                                    <table class="data-table text-sm mb-0">
                                         <thead><tr><th>Form Code</th><th>Section</th><th>Status</th></tr></thead>
                                         <tbody>
                                             ${data.forms.map(f => `
                                                 <tr>
                                                     <td><strong>${escapeHtml(f.form_code)}</strong></td>
                                                     <td>${escapeHtml(f.section || '-')}</td>
-                                                    <td><span class="ant-tag ant-tag-processing">${escapeHtml(f.status.charAt(0).toUpperCase() + f.status.slice(1))}</span></td>
+                                                    <td><span class="badge badge-info">${escapeHtml(f.status.charAt(0).toUpperCase() + f.status.slice(1))}</span></td>
                                                 </tr>`).join('')}
                                         </tbody>
                                     </table>
-                                </div>` : `<p class="text-muted text-center" style="padding:20px 0;">No forms detected.</p>`}
+                                </div>` : `<p class="text-muted text-center py-4">No forms detected.</p>`}
                         </div>
                     </div>
 
-                    <div class="ant-card mb-3">
-                        <div class="ant-card-head warning">📊 Data ${isMinimal ? 'Input Required' : 'Availability Check'}</div>
-                        <div class="ant-card-body">
+                    <div class="card mb-3">
+                        <div class="card-header warning">📊 Data ${isMinimal ? 'Input Required' : 'Availability Check'}</div>
+                        <div class="card-body">
                             ${dataAvailabilityHtml}
                             ${minimalChecklist}
                             ${dataSummaryHtml}
@@ -405,16 +390,16 @@
 
                     ${dataInputHtml}
 
-                    <div class="ant-card">
-                        <div class="ant-card-body">
+                    <div class="card">
+                        <div class="card-body">
                             <div class="d-flex gap-2 justify-content-end">
-                                <button type="button" class="ant-btn ant-btn-default cancel-batch-btn" data-batch="${data.batch_id}">❌ Cancel</button>
-                                <button type="button" class="ant-btn ant-btn-default proceed-batch-btn" id="proceed-generate-btn"
+                                <button type="button" class="btn cancel-batch-btn" data-batch="${data.batch_id}">❌ Cancel</button>
+                                <button type="button" class="btn proceed-batch-btn" id="proceed-generate-btn"
                                         data-batch="${data.batch_id}" ${proceedDisabled}>
                                     ✅ Proceed to Generate
                                 </button>
                             </div>
-                            ${proceedHint ? `<p class="text-muted text-center mt-2" id="proceed-hint" style="font-size:12px;">${proceedHint}</p>` : ''}
+                            ${proceedHint ? `<p class="text-muted text-center text-xs mt-2" id="proceed-hint">${proceedHint}</p>` : ''}
                         </div>
                     </div>
                 </div>`;
@@ -436,7 +421,7 @@
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
-                            ${!IS_FULL ? `<div class="alert alert-info" style="font-size:13px;">
+                            ${!IS_FULL ? `<div class="alert alert-info text-sm">
                                 <strong>📌 MINIMAL mode:</strong> Fill all three sections. This data will be used directly for form generation.
                             </div>` : ''}
                             <form id="manualDataForm">
@@ -461,7 +446,7 @@
                             </form>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn" data-bs-dismiss="modal">Cancel</button>
                             <button type="button" class="btn btn-primary" onclick="submitManualData(${batchId})">Save &amp; Continue</button>
                         </div>
                     </div>
@@ -483,12 +468,12 @@
                         </div>
                         <div class="modal-body">
                             <div id="pdf-uploads-container"></div>
-                            <button type="button" class="btn btn-secondary btn-sm mt-3" onclick="addPdfUploadRow()">
+                            <button type="button" class="btn btn-sm mt-3" onclick="addPdfUploadRow()">
                                 ➕ Add Another Form
                             </button>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn" data-bs-dismiss="modal">Cancel</button>
                             <button type="button" class="btn btn-primary" onclick="submitAllPdfUploads(${batchId})">Upload All PDFs</button>
                         </div>
                     </div>
@@ -498,7 +483,6 @@
             const bsModal = new bootstrap.Modal(modal);
             bsModal.show();
 
-            // Initialize with first row
             const container = document.getElementById('pdf-uploads-container');
             container.innerHTML = '';
             addPdfUploadRow(forms);
@@ -534,9 +518,7 @@
 
         function removePdfUploadRow(rowId) {
             const row = document.getElementById(rowId);
-            if (row) {
-                row.remove();
-            }
+            if (row) row.remove();
         }
 
         async function submitAllPdfUploads(batchId) {
@@ -596,7 +578,6 @@
         }
 
         function showCsvUploadModal(batchId) {
-            // Remove stale modal if re-opened
             document.getElementById('csvUploadModal')?.remove();
 
             const modal = document.createElement('div');
@@ -610,7 +591,7 @@
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
-                            <div id="csv-upload-result" class="mb-3" style="display:none;"></div>
+                            <div id="csv-upload-result" class="mb-3 d-none"></div>
                             <form id="csvUploadForm" novalidate>
                                 <div class="row g-3">
 
@@ -622,8 +603,8 @@
                                             <div class="form-text">Required: <code>employee_code, name</code></div>
                                             <div class="mt-2" id="csv-status-employees"></div>
                                             <div class="mt-auto pt-3 border-top">
-                                                <div class="text-muted" style="font-size:11px; margin-bottom:4px;">📥 Sample CSV Format</div>
-                                                <a href="/compliance/csv-template/employees" class="btn btn-outline-secondary btn-sm w-100" download>⬇️ Download Template</a>
+                                                        <span class="text-muted text-xs mb-1">📥 Sample CSV Format</span>
+                                                <a href="/compliance/csv-template/employees" class="btn btn-sm w-100" download>⬇️ Download Template</a>
                                             </div>
                                         </div>
                                     </div>
@@ -636,8 +617,8 @@
                                             <div class="form-text">Required: <code>employee_code, gross_salary, net_salary</code></div>
                                             <div class="mt-2" id="csv-status-payroll"></div>
                                             <div class="mt-auto pt-3 border-top">
-                                                <div class="text-muted" style="font-size:11px; margin-bottom:4px;">📥 Sample CSV Format</div>
-                                                <a href="/compliance/csv-template/payroll" class="btn btn-outline-secondary btn-sm w-100" download>⬇️ Download Template</a>
+                                                <span class="text-muted text-xs mb-1">📥 Sample CSV Format</span>
+                                                <a href="/compliance/csv-template/payroll" class="btn btn-sm w-100" download>⬇️ Download Template</a>
                                             </div>
                                         </div>
                                     </div>
@@ -650,8 +631,8 @@
                                             <div class="form-text">Required: <code>employee_code, working_days</code></div>
                                             <div class="mt-2" id="csv-status-attendance"></div>
                                             <div class="mt-auto pt-3 border-top">
-                                                <div class="text-muted" style="font-size:11px; margin-bottom:4px;">📥 Sample CSV Format</div>
-                                                <a href="/compliance/csv-template/attendance" class="btn btn-outline-secondary btn-sm w-100" download>⬇️ Download Template</a>
+                                                <span class="text-muted text-xs mb-1">📥 Sample CSV Format</span>
+                                                <a href="/compliance/csv-template/attendance" class="btn btn-sm w-100" download>⬇️ Download Template</a>
                                             </div>
                                         </div>
                                     </div>
@@ -660,7 +641,7 @@
                             </form>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn" data-bs-dismiss="modal">Cancel</button>
                             <button type="button" class="btn btn-primary" id="csvSubmitBtn"
                                     onclick="submitCsvUpload(${batchId})">
                                 ⬆️ Upload All 3 Files
@@ -671,14 +652,13 @@
 
             document.body.appendChild(modal);
 
-            // File-picker feedback
             modal.querySelectorAll('.csv-file-input').forEach(input => {
                 input.addEventListener('change', function () {
                     const type   = this.dataset.type;
                     const status = document.getElementById('csv-status-' + type);
                     if (this.files.length) {
                         const kb = (this.files[0].size / 1024).toFixed(1);
-                        status.innerHTML = `<span class="badge bg-success">✓ ${escapeHtml(this.files[0].name)} (${kb} KB)</span>`;
+                        status.innerHTML = `<span class="badge badge-success">✓ ${escapeHtml(this.files[0].name)} (${kb} KB)</span>`;
                     } else {
                         status.innerHTML = '';
                     }
@@ -725,7 +705,6 @@
                 { id: 'csvAttendance', type: 'attendance' },
             ];
 
-            // Validate all 3 files are selected
             const missing = inputs.filter(i => !document.getElementById(i.id)?.files[0]);
             if (missing.length) {
                 _csvShowResult('error', '⚠️ Please select all 3 CSV files: ' +
@@ -740,7 +719,6 @@
 
             const results = { success: [], failed: [], generationResult: null };
 
-            // Upload each file sequentially so employees exist before payroll/attendance
             for (const { id, type } of inputs) {
                 const file = document.getElementById(id).files[0];
                 const fd   = new FormData();
@@ -757,11 +735,8 @@
                         body: fd,
                     });
 
-                    // Guard: always read as text first, then parse — prevents
-                    // JSON.parse crash when server returns HTML on fatal errors.
                     const rawText = await res.text();
-                    // Strip UTF-8 BOM (\uFEFF) that some PHP environments prepend
-                    const cleanText = rawText.replace(/^\uFEFF/, '').trim();
+                    const cleanText = rawText.replace(/^﻿/, '').trim();
                     let data;
                     try {
                         data = JSON.parse(cleanText);
@@ -773,19 +748,18 @@
                     if (data.status === 'success') {
                         results.success.push(`${type} (${data.records_inserted} records)`);
                         document.getElementById('csv-status-' + type).innerHTML =
-                            `<span class="badge bg-success">✅ ${data.records_inserted} records imported</span>`;
-                        // Capture generation result from the last file (attendance triggers it)
+                            `<span class="badge badge-success">✅ ${data.records_inserted} records imported</span>`;
                         if (data.generation) results.generationResult = data.generation;
                     } else {
-                        const hint = data.hint ? ` <em style="font-size:11px;">(${escapeHtml(data.hint)})</em>` : '';
+                        const hint = data.hint ? ` <em class="text-xs text-muted">(${escapeHtml(data.hint)})</em>` : '';
                         results.failed.push(`${type}: ${data.message}`);
                         document.getElementById('csv-status-' + type).innerHTML =
-                            `<span class="badge bg-danger">❌ ${escapeHtml(data.message)}</span>${hint}`;
+                            `<span class="badge badge-danger">❌ ${escapeHtml(data.message)}</span>${hint}`;
                     }
                 } catch (err) {
                     results.failed.push(`${type}: ${err.message}`);
                     document.getElementById('csv-status-' + type).innerHTML =
-                        `<span class="badge bg-danger">❌ ${escapeHtml(err.message)}</span>`;
+                        `<span class="badge badge-danger">❌ ${escapeHtml(err.message)}</span>`;
                 }
             }
 
@@ -793,15 +767,14 @@
             btn.textContent = '⬆️ Upload All 3 Files';
 
             if (results.failed.length === 0) {
-                // All 3 succeeded — check if generation was auto-triggered
                 const gen = results.generationResult;
 
                 let successMsg = `<strong>✅ All 3 datasets uploaded successfully.</strong>`;
 
                 if (gen && gen.triggered) {
-                    successMsg += `<br><span class="badge bg-success mt-1">🚀 Forms generated automatically: ${gen.generated_forms} generated, ${gen.failed_forms} failed</span>`;
+                    successMsg += `<br><span class="badge badge-success mt-1">🚀 Forms generated automatically: ${gen.generated_forms} generated, ${gen.failed_forms} failed</span>`;
                 } else if (gen && !gen.triggered) {
-                    successMsg += `<br><span class="badge bg-warning text-dark mt-1">⏳ ${escapeHtml(gen.reason)}</span>`;
+                    successMsg += `<br><span class="badge badge-warning mt-1">⏳ ${escapeHtml(gen.reason)}</span>`;
                 }
 
                 _csvShowResult('success', successMsg);
@@ -809,22 +782,18 @@
                 setTimeout(() => {
                     bootstrap.Modal.getInstance(document.getElementById('csvUploadModal'))?.hide();
 
-                    // If generation ran, trigger the batch processing UI so the
-                    // dashboard reflects the new state without a page reload
                     if (gen && gen.triggered && gen.generated_forms > 0) {
                         BatchProcessor.showComplete(batchId);
                     }
                 }, 1200);
 
-                // Enable proceed button for ALL subscription types after successful upload
                 _minimalDataProvided.employees  = true;
                 _minimalDataProvided.payroll    = true;
                 _minimalDataProvided.attendance = true;
                 const proceedBtn = document.getElementById('proceed-generate-btn');
                 if (proceedBtn) {
                     proceedBtn.removeAttribute('disabled');
-                    proceedBtn.classList.remove('ant-btn-default');
-                    proceedBtn.classList.add('ant-btn-primary');
+                    proceedBtn.classList.add('btn-primary');
                     const hint = document.getElementById('proceed-hint');
                     if (hint) hint.textContent = '✅ All data uploaded. You can now generate forms.';
                 }
@@ -842,10 +811,10 @@
         function _csvShowResult(type, msg) {
             const el = document.getElementById('csv-upload-result');
             if (!el) return;
-            if (!type) { el.style.display = 'none'; return; }
+            if (!type) { el.classList.add('d-none'); return; }
             el.className = type === 'error' ? 'alert alert-danger' : 'alert alert-success';
             el.innerHTML = msg;
-            el.style.display = '';
+            el.classList.remove('d-none');
         }
 
         document.addEventListener('click', function(e) {
@@ -896,7 +865,7 @@
                     try { this.uploadModal = new bootstrap.Modal(modalEl); } catch(e) { console.warn('Modal init failed:', e); }
                 }
                 const panel = document.getElementById('manual-compliance-panel');
-                if (panel) panel.style.display = '';
+                if (panel) panel.classList.remove('d-none');
                 const row = document.getElementById('batch-section-row');
                 if (row) row.classList.add('has-manual');
                 this.loadItems();
@@ -917,20 +886,20 @@
             renderItems(items) {
                 const tbody = document.getElementById('manual-tasks-body');
                 if (!items.length) {
-                    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted" style="padding:20px;">No manual tasks for this period.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">No manual tasks for this period.</td></tr>';
                     return;
                 }
                 tbody.innerHTML = items.map(item => {
                     const statusBadge = {
-                        completed: '<span class="ant-tag ant-tag-success">✅ Completed</span>',
-                        skipped:   '<span class="ant-tag ant-tag-default">⏭️ Skipped</span>',
-                        pending:   '<span class="ant-tag ant-tag-processing">⏳ Pending</span>',
-                    }[item.status] || `<span class="ant-tag">${escapeHtml(item.status)}</span>`;
+                        completed: '<span class="badge badge-success">✅ Completed</span>',
+                        skipped:   '<span class="badge badge-default">⏭️ Skipped</span>',
+                        pending:   '<span class="badge badge-info">⏳ Pending</span>',
+                    }[item.status] || `<span class="badge">${escapeHtml(item.status)}</span>`;
 
                     const actions = item.status === 'pending'
-                        ? `<button class="ant-btn ant-btn-primary ant-btn-sm me-1 manual-yes-btn" data-id="${item.item_id}" data-name="${escapeHtml(item.compliance_name)}">✅ YES</button>
-                           <button class="ant-btn ant-btn-default ant-btn-sm manual-no-btn" data-id="${item.item_id}">❌ NO</button>`
-                        : `<span class="text-muted" style="font-size:12px;">—</span>`;
+                        ? `<button class="btn btn-primary btn-sm me-1 manual-yes-btn" data-id="${item.item_id}" data-name="${escapeHtml(item.compliance_name)}">✅ YES</button>
+                           <button class="btn btn-sm manual-no-btn" data-id="${item.item_id}">❌ NO</button>`
+                        : `<span class="text-muted text-xs">—</span>`;
 
                     return `<tr id="manual-row-${item.item_id}">
                         <td><strong>${escapeHtml(item.compliance_name)}</strong></td>
@@ -960,7 +929,6 @@
                         bar.classList.add('bg-success');
                     }
 
-                    // Store for download-lock check
                     window._manualPending = pending;
                     checkDownloadLock();
                 } catch (_) {}
@@ -1029,7 +997,7 @@
                 } catch (err) {
                     if (row) row.style.opacity = '';
                     const errCell = row?.querySelector('td:last-child');
-                    if (errCell) errCell.innerHTML += `<div class="text-danger" style="font-size:11px;">${escapeHtml(err.message)}</div>`;
+                    if (errCell) errCell.innerHTML += `<div class="field-error text-xs">${escapeHtml(err.message)}</div>`;
                 }
             },
 
@@ -1038,11 +1006,11 @@
                 if (!row) return;
                 row.style.opacity = '';
                 const badges = {
-                    completed: '<span class="ant-tag ant-tag-success">✅ Completed</span>',
-                    skipped:   '<span class="ant-tag ant-tag-default">⏭️ Skipped</span>',
+                    completed: '<span class="badge badge-success">✅ Completed</span>',
+                    skipped:   '<span class="badge badge-default">⏭️ Skipped</span>',
                 };
                 row.cells[2].innerHTML = badges[status] || '';
-                row.cells[3].innerHTML = '<span class="text-muted" style="font-size:12px;">—</span>';
+                row.cells[3].innerHTML = '<span class="text-muted text-xs">—</span>';
             },
 
             showGlobalError(msg) {
@@ -1052,7 +1020,6 @@
             }
         };
 
-        // Wire up manual panel button clicks via delegation
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('manual-yes-btn')) {
                 ManualPanel.openUploadModal(
@@ -1067,21 +1034,18 @@
 
         document.getElementById('manual-upload-submit').addEventListener('click', () => ManualPanel.submitUpload());
 
-        // Prevent disabled download link from navigating
         document.addEventListener('click', function(e) {
             const btn = e.target.closest('#download-pack-btn');
             if (btn && btn.hasAttribute('disabled')) e.preventDefault();
         });
 
-        // ─── Download Lock Logic ───────────────────────────────────────────────
         window._automatedComplete = false;
-        window._manualPending = null; // null = not yet loaded
+        window._manualPending = null;
 
         function checkDownloadLock() {
             const btn = document.getElementById('download-pack-btn');
             if (!btn) return;
 
-            // null means manual panel hasn't loaded yet — don't unlock
             const manualReady = window._manualPending === 0;
             const canDownload = window._automatedComplete && manualReady;
 
@@ -1089,8 +1053,7 @@
                 btn.removeAttribute('disabled');
                 btn.style.pointerEvents = '';
                 btn.title = '';
-                btn.classList.remove('ant-btn-default');
-                btn.classList.add('ant-btn-primary');
+                btn.classList.add('btn-primary');
 
                 if (!btn.dataset.unlocked) {
                     btn.dataset.unlocked = '1';
@@ -1100,8 +1063,7 @@
                 btn.setAttribute('disabled', 'disabled');
                 btn.style.pointerEvents = 'none';
                 btn.title = 'Complete all automated PDFs and manual tasks first';
-                btn.classList.remove('ant-btn-primary');
-                btn.classList.add('ant-btn-default');
+                btn.classList.remove('btn-primary');
             }
 
             updateDualProgressLabel();
@@ -1121,14 +1083,13 @@
 
         function showUnlockToast() {
             const toast = document.createElement('div');
-            toast.className = 'ant-alert ant-alert-success';
-            toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;padding:14px 20px;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.15);max-width:360px;';
+            toast.className = 'alert alert-success';
+            toast.className = 'alert alert-success toast-fixed';
             toast.innerHTML = '🎉 <strong>All compliance tasks completed.</strong> You can now download the inspection pack.';
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 5000);
         }
 
-        // Patch BatchProcessor.showComplete to set automated flag
         const _origShowComplete = BatchProcessor.showComplete.bind(BatchProcessor);
         BatchProcessor.showComplete = function(batchId, data) {
             _origShowComplete(batchId, data);
@@ -1140,18 +1101,17 @@
                 summary.id = 'dual-progress-summary';
                 summary.className = 'mt-3';
                 summary.innerHTML = `
-                    <div class="ant-alert ant-alert-info" style="margin-bottom:12px;">
-                        <div style="display:flex; gap:24px; flex-wrap:wrap;">
+                    <div class="alert alert-info mb-3">
+                        <div class="dual-progress-row">
                             <span>🤖 <strong>Automated PDFs:</strong> <span id="auto-progress-label">Complete ✅</span></span>
                             <span>📋 <strong>Manual Compliance:</strong> <span id="manual-progress-label">Loading…</span></span>
                         </div>
                     </div>
                     <div class="text-end">
                         <button type="button"
-                                class="ant-btn ant-btn-default"
+                                class="btn"
                                 id="download-pack-btn"
                                 disabled
-                                style="pointer-events:none;"
                                 title="Complete all automated PDFs and manual tasks first"
                                 onclick="window.location='/compliance/batch/${batchId}/inspection-pack'">
                             📦 Download Inspection Pack
@@ -1163,7 +1123,6 @@
             checkDownloadLock();
         };
 
-        // Keep dual-progress label in sync
         const _origUpdateProgress = BatchProcessor.updateProgress.bind(BatchProcessor);
         BatchProcessor.updateProgress = function(data) {
             _origUpdateProgress(data);
@@ -1171,10 +1130,8 @@
             if (lbl) lbl.textContent = `${data.generated ?? 0} / ${data.total ?? 0} generated`;
         };
 
-        // Activate manual panel when batch processing starts
         const _origProcessBatch = BatchProcessor.processBatch.bind(BatchProcessor);
         BatchProcessor.processBatch = async function(batchId) {
-            // Init manual panel in background — never block form generation
             try { ManualPanel.init(batchId); } catch(e) { console.warn('ManualPanel.init failed:', e); }
             await _origProcessBatch(batchId);
         };

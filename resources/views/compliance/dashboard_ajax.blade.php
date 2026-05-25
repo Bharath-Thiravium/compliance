@@ -1,4 +1,4 @@
-@extends('compliance.layouts.antd_base')
+@extends('compliance.layouts.app')
 
 @push('styles')
 <style>

@@ -183,8 +183,9 @@ class ComplianceDashboardController extends Controller
         }
     }
 
-    private function batchQuery(int $tenantId, ?int $branchId)
+    private function batchQuery(?int $tenantId, ?int $branchId)
     {
+        if ($tenantId === null) return ComplianceExecutionBatch::whereRaw('0=1');
         $q = ComplianceExecutionBatch::where('tenant_id', $tenantId);
         if ($branchId !== null) {
             $q->where(function ($q) use ($branchId) {
@@ -194,8 +195,9 @@ class ComplianceDashboardController extends Controller
         return $q;
     }
 
-    private function findBatch(int $batchId, int $tenantId, ?int $branchId): ComplianceExecutionBatch
+    private function findBatch(int $batchId, ?int $tenantId, ?int $branchId): ComplianceExecutionBatch
     {
+        if ($tenantId === null) throw new \Illuminate\Database\Eloquent\ModelNotFoundException();
         $q = ComplianceExecutionBatch::where('id', $batchId)->where('tenant_id', $tenantId);
         if ($branchId !== null) {
             $q->where(function ($q) use ($branchId) {
@@ -205,8 +207,9 @@ class ComplianceDashboardController extends Controller
         return $q->firstOrFail();
     }
 
-    private function itemQuery(int $batchId, int $tenantId, ?int $branchId)
+    private function itemQuery(int $batchId, ?int $tenantId, ?int $branchId)
     {
+        if ($tenantId === null) return ManualComplianceBatchItem::whereRaw('0=1');
         $q = ManualComplianceBatchItem::where('batch_id', $batchId)
             ->where('tenant_id', $tenantId);
         if ($branchId !== null) {

@@ -1,105 +1,93 @@
-@extends('layouts.app')
+@extends('compliance.layouts.app')
+
+@section('title', 'Manual Compliance Dashboard')
+@section('page-title', 'Manual Compliance Dashboard')
 
 @section('content')
-<div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1 class="h3 mb-0">Compliance Execution Dashboard</h1>
-            <p class="text-muted mt-2">
+<div class="container-fluid">
+    <div class="flex-between mb-3">
+        <div>
+            <h4 class="mb-0">Compliance Execution Dashboard</h4>
+            <p class="text-muted mt-1">
                 <span id="current-batch-period">Loading...</span>
             </p>
         </div>
-        <div class="col-md-4 text-end">
-            <select id="batch-selector" class="form-select" style="max-width: 250px;">
+        <div>
+            <select id="batch-selector" class="form-select batch-selector-width">
                 <option value="">Select a batch...</option>
             </select>
         </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-1 small">Total Tasks</p>
-                            <h3 class="mb-0" id="stat-total">0</h3>
-                        </div>
-                        <span class="badge bg-primary">📋</span>
+    <div class="grid-row mb-3">
+        <div class="grid-col col-1-4">
+            <div class="stat-card">
+                <div class="flex-between">
+                    <div>
+                        <p class="text-muted text-sm mb-1">Total Tasks</p>
+                        <h3 class="mb-0" id="stat-total">0</h3>
                     </div>
+                    <span class="badge badge-info">📋</span>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-1 small">Completed</p>
-                            <h3 class="mb-0 text-success" id="stat-completed">0</h3>
-                        </div>
-                        <span class="badge bg-success">✓</span>
+        <div class="grid-col col-1-4">
+            <div class="stat-card">
+                <div class="flex-between">
+                    <div>
+                        <p class="text-muted text-sm mb-1">Completed</p>
+                        <h3 class="mb-0 stat-value-success" id="stat-completed">0</h3>
                     </div>
+                    <span class="badge badge-success">✓</span>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-1 small">Pending</p>
-                            <h3 class="mb-0 text-warning" id="stat-pending">0</h3>
-                        </div>
-                        <span class="badge bg-warning">⏳</span>
+        <div class="grid-col col-1-4">
+            <div class="stat-card">
+                <div class="flex-between">
+                    <div>
+                        <p class="text-muted text-sm mb-1">Pending</p>
+                        <h3 class="mb-0 stat-value-warning" id="stat-pending">0</h3>
                     </div>
+                    <span class="badge badge-warning">⏳</span>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-1 small">Skipped</p>
-                            <h3 class="mb-0 text-secondary" id="stat-skipped">0</h3>
-                        </div>
-                        <span class="badge bg-secondary">⊘</span>
+        <div class="grid-col col-1-4">
+            <div class="stat-card">
+                <div class="flex-between">
+                    <div>
+                        <p class="text-muted text-sm mb-1">Skipped</p>
+                        <h3 class="mb-0 stat-value-muted" id="stat-skipped">0</h3>
                     </div>
+                    <span class="badge badge-default">⊘</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Compliance Timeline Status -->
     @include('compliance.partials.timeline-status', ['timeline' => []])
 
-    <!-- Progress Bar -->
-    <div class="card border-0 shadow-sm mb-4">
+    <div class="card mb-3">
         <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <h6 class="mb-0">Completion Progress</h6>
-                <span class="badge bg-info" id="progress-percentage">0%</span>
+            <div class="flex-between mb-2">
+                <strong>Completion Progress</strong>
+                <span class="badge badge-info" id="progress-percentage">0%</span>
             </div>
-            <div class="progress" style="height: 24px;">
-                <div id="progress-bar" class="progress-bar bg-success" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                    <span class="d-flex align-items-center justify-content-center h-100 small fw-bold text-white" id="progress-text">0 of 0</span>
+            <div class="progress">
+                <div id="progress-bar" class="progress-bar" role="progressbar" style="width:0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                    <span id="progress-text">0 of 0</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Compliance Table -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-light border-bottom">
-            <h6 class="mb-0">Compliance Tasks</h6>
-        </div>
+    <div class="card">
+        <div class="card-header">Compliance Tasks</div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
+                <table class="data-table mb-0">
+                    <thead>
                         <tr>
                             <th class="ps-4">Compliance Name</th>
                             <th>Act Name</th>
@@ -110,7 +98,7 @@
                     </thead>
                     <tbody id="compliance-table-body">
                         <tr>
-                            <td colspan="5" class="text-center py-4 text-muted">
+                            <td colspan="5" class="text-center text-muted py-4">
                                 Select a batch to view compliance tasks
                             </td>
                         </tr>
@@ -121,7 +109,6 @@
     </div>
 </div>
 
-<!-- Upload Modal -->
 <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-modal="true" role="dialog">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -133,16 +120,16 @@
                 @csrf
                 <div class="modal-body">
                     <input type="hidden" id="upload-item-id" name="item_id">
-                    <div class="mb-3">
+                    <div class="form-group">
                         <label for="upload-file" class="form-label">Select File</label>
-                        <input type="file" class="form-control" id="upload-file" name="file"
-                               accept=".pdf,.jpg,.jpeg,.png" required aria-describedby="upload-hint">
-                        <small id="upload-hint" class="text-muted">Accepted: PDF, JPG, PNG (Max 5MB)</small>
-                        <div id="upload-error" class="text-danger small mt-1" role="alert" aria-live="polite"></div>
+                        <input type="file" class="form-input" id="upload-file" name="file"
+                               accept=".pdf,.jpg,.jpeg,.png" required>
+                        <small class="text-muted">Accepted: PDF, JPG, PNG (Max 5MB)</small>
+                        <div id="upload-error" class="field-error"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="upload-submit-btn" class="btn btn-primary">Upload</button>
                 </div>
             </form>
@@ -152,31 +139,21 @@
 
 @push('scripts')
 <script>
-if (typeof bootstrap === 'undefined') {
-    console.error('Bootstrap JS failed to load. Modal and UI components will not work.');
-}
-
-const API_BASE = '/compliance';
+const API_BASE = '{{ rtrim(config("app.url"), "/") }}/compliance';
 let currentBatchId = null;
-let _uploadModal = null;  // single Bootstrap modal instance
-const _inFlight = new Set(); // guard against duplicate requests
+let _uploadModal = null;
+const _inFlight = new Set();
 
-// ── CSRF ──────────────────────────────────────────────────────────────────────
 function csrfToken() {
     const meta = document.querySelector('meta[name="csrf-token"]');
     if (!meta) throw new Error('CSRF meta tag missing from layout.');
     return meta.content;
 }
 
-// ── XSS escape ────────────────────────────────────────────────────────────────
 const esc = s => String(s ?? '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;')
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-// ── Global fetch wrapper ──────────────────────────────────────────────────────
-// Always reads body as text first, then parses — so a non-JSON response
-// (HTML error page, empty body, redirect) produces a readable error message
-// instead of a cryptic JSON.parse crash.
 async function apiFetch(url, options = {}) {
     let res;
     try {
@@ -193,7 +170,6 @@ async function apiFetch(url, options = {}) {
     try {
         data = JSON.parse(text);
     } catch {
-        // Backend returned non-JSON (HTML error page, empty body, redirect)
         console.error('Non-JSON response from', url, '\n', text.slice(0, 300));
         throw new Error(`Server returned an unexpected response (HTTP ${res.status}).`);
     }
@@ -204,23 +180,16 @@ async function apiFetch(url, options = {}) {
     return data;
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     _uploadModal = new bootstrap.Modal(document.getElementById('uploadModal'));
-
-    // Reset modal state fully on close so re-open is always clean
     document.getElementById('uploadModal').addEventListener('hidden.bs.modal', resetModal);
-
     document.getElementById('batch-selector').addEventListener('change', e => {
         if (e.target.value) loadBatchData(e.target.value);
     });
-
     document.getElementById('uploadForm').addEventListener('submit', handleUpload);
-
     loadBatches();
 });
 
-// ── Timeline Status ───────────────────────────────────────────────────────────
 function loadTimelineStatus(batchId, period) {
     apiFetch(`${API_BASE}/batch/${batchId}/timeline-status`)
         .then(data => updateTimeline(data, period))
@@ -236,7 +205,6 @@ function updateTimeline(data, period) {
     if (period) document.getElementById('timeline-period').textContent = period;
 }
 
-// ── Batch loading ─────────────────────────────────────────────────────────────
 function loadBatches() {
     apiFetch(`${API_BASE}/manual-batches`)
         .then(batches => {
@@ -273,7 +241,6 @@ function loadBatchData(batchId) {
     .catch(err => showGlobalError('Failed to load batch: ' + err.message));
 }
 
-// ── Summary ───────────────────────────────────────────────────────────────────
 function updateSummary(s) {
     document.getElementById('current-batch-period').textContent = `${s.month}/${s.year}`;
     document.getElementById('stat-total').textContent     = s.total;
@@ -287,14 +254,12 @@ function updateSummary(s) {
     document.getElementById('progress-text').textContent = `${s.completed} of ${s.total}`;
 }
 
-// Locally adjust summary counters after a single action — avoids a round-trip.
 function adjustSummary(fromStatus, toStatus) {
     const dec = id => { const el = document.getElementById(id); el.textContent = Math.max(0, +el.textContent - 1); };
     const inc = id => { const el = document.getElementById(id); el.textContent = +el.textContent + 1; };
     const map = { pending: 'stat-pending', completed: 'stat-completed', skipped: 'stat-skipped' };
     if (map[fromStatus]) dec(map[fromStatus]);
     if (map[toStatus])   inc(map[toStatus]);
-    // Recalculate progress from updated DOM values
     const total     = +document.getElementById('stat-total').textContent;
     const completed = +document.getElementById('stat-completed').textContent;
     const pct       = total > 0 ? Math.round((completed / total) * 100) : 0;
@@ -305,11 +270,10 @@ function adjustSummary(fromStatus, toStatus) {
     document.getElementById('progress-text').textContent = `${completed} of ${total}`;
 }
 
-// ── Table rendering ───────────────────────────────────────────────────────────
 function updateTable(items) {
     const tbody = document.getElementById('compliance-table-body');
     if (!items.length) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No compliance tasks found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No compliance tasks found</td></tr>';
         return;
     }
     tbody.innerHTML = items.map(item => buildRow(item)).join('');
@@ -317,12 +281,9 @@ function updateTable(items) {
 
 function buildRow(item) {
     const docCell = item.document_path
-        ? `<a href="${API_BASE}/manual-item/${item.item_id}/document" target="_blank"
-              class="text-decoration-none" aria-label="View document for ${esc(item.compliance_name)}">📄 View</a>`
+        ? `<a href="${API_BASE}/manual-item/${item.item_id}/document" target="_blank" class="text-decoration-none">📄 View</a>`
         : '<span class="text-muted">—</span>';
-
     const actionCell = buildActionCell(item.item_id, item.status);
-
     return `<tr data-item-id="${item.item_id}">
         <td class="ps-4">${esc(item.compliance_name)}</td>
         <td>${esc(item.act_name)}</td>
@@ -333,16 +294,11 @@ function buildRow(item) {
 }
 
 function buildActionCell(itemId, status) {
-    if (status !== 'pending') return '<span class="text-muted small">—</span>';
-    return `<button class="btn btn-sm btn-success me-1"
-                    data-action="yes" data-item-id="${itemId}"
-                    aria-label="Upload document">YES</button>
-            <button class="btn btn-sm btn-outline-danger"
-                    data-action="no" data-item-id="${itemId}"
-                    aria-label="Skip compliance">NO</button>`;
+    if (status !== 'pending') return '<span class="text-muted text-sm">—</span>';
+    return `<button class="btn btn-success btn-sm me-1" data-action="yes" data-item-id="${itemId}">YES</button>
+            <button class="btn btn-danger btn-sm" data-action="no" data-item-id="${itemId}">NO</button>`;
 }
 
-// ── Delegated click handler (single listener, no inline onclick) ──────────────
 document.addEventListener('click', e => {
     const btn = e.target.closest('button[data-action]');
     if (!btn) return;
@@ -351,7 +307,6 @@ document.addEventListener('click', e => {
     if (btn.dataset.action === 'no')  skipCompliance(itemId, btn);
 });
 
-// ── Upload ────────────────────────────────────────────────────────────────────
 function openUploadModal(itemId) {
     document.getElementById('upload-item-id').value = itemId;
     _uploadModal.show();
@@ -368,27 +323,22 @@ function resetModal() {
 async function handleUpload(e) {
     e.preventDefault();
     const itemId = +document.getElementById('upload-item-id').value;
-
-    if (_inFlight.has(itemId)) return; // duplicate guard
-
+    if (_inFlight.has(itemId)) return;
     const file = document.getElementById('upload-file').files[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
         document.getElementById('upload-error').textContent = 'File exceeds 5 MB limit.';
         return;
     }
-
     const btn = document.getElementById('upload-submit-btn');
     btn.disabled = true;
     btn.textContent = 'Uploading…';
     document.getElementById('upload-error').textContent = '';
     _inFlight.add(itemId);
-
     const formData = new FormData(e.target);
-
     try {
         const data = await apiFetch(`${API_BASE}/manual-item/upload`, { method: 'POST', body: formData });
-        _uploadModal.hide(); // triggers hidden.bs.modal → resetModal()
+        _uploadModal.hide();
         updateRow(itemId, 'completed', data.document_path, data.file_size);
         adjustSummary('pending', 'completed');
     } catch (err) {
@@ -400,15 +350,12 @@ async function handleUpload(e) {
     }
 }
 
-// ── Skip ──────────────────────────────────────────────────────────────────────
 async function skipCompliance(itemId, btn) {
     if (_inFlight.has(itemId)) return;
-
     const prevText = btn.textContent;
     btn.disabled = true;
     btn.textContent = '…';
     _inFlight.add(itemId);
-
     try {
         await apiFetch(`${API_BASE}/manual-item/skip`, {
             method: 'POST',
@@ -426,20 +373,16 @@ async function skipCompliance(itemId, btn) {
     }
 }
 
-// ── DOM update helpers ────────────────────────────────────────────────────────
 function updateRow(itemId, status, docPath, fileSize) {
     const row = document.querySelector(`tr[data-item-id="${itemId}"]`);
     if (!row) return;
-
-    row.querySelector('.action-cell').innerHTML = '<span class="text-muted small">—</span>';
+    row.querySelector('.action-cell').innerHTML = '<span class="text-muted text-sm">—</span>';
     row.querySelector('td:nth-child(3)').innerHTML =
         `<span class="badge ${getStatusBadgeClass(status)}">${getStatusLabel(status)}</span>`;
-
     if (docPath) {
         const sizeLabel = fileSize ? ` <small class="text-muted">(${(fileSize / 1024).toFixed(1)} KB)</small>` : '';
         row.querySelector('.doc-cell').innerHTML =
-            `<a href="${API_BASE}/manual-item/${itemId}/document" target="_blank"
-                class="text-decoration-none">📄 View${sizeLabel}</a>`;
+            `<a href="${API_BASE}/manual-item/${itemId}/document" target="_blank" class="text-decoration-none">📄 View${sizeLabel}</a>`;
     }
 }
 
@@ -449,8 +392,7 @@ function showRowError(itemId, msg) {
     const cell = row.querySelector('.action-cell');
     if (!cell.querySelector('.row-error')) {
         const div = document.createElement('div');
-        div.className = 'row-error text-danger small mt-1';
-        div.setAttribute('role', 'alert');
+        div.className = 'row-error text-sm mt-1 field-error';
         div.textContent = msg;
         cell.appendChild(div);
     }
@@ -458,15 +400,13 @@ function showRowError(itemId, msg) {
 
 function showGlobalError(msg) {
     console.error(msg);
-    // Surface in the batch period label so it's always visible
     const el = document.getElementById('current-batch-period');
     el.textContent = '⚠ ' + msg;
-    el.classList.add('text-danger');
+    el.style.color = 'var(--color-danger)';
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
 function getStatusBadgeClass(status) {
-    return { completed: 'bg-success', pending: 'bg-warning text-dark', skipped: 'bg-secondary' }[status] ?? 'bg-light text-dark';
+    return { completed: 'badge-success', pending: 'badge-warning', skipped: 'badge-default' }[status] ?? 'badge-default';
 }
 
 function getStatusLabel(status) {
@@ -475,21 +415,4 @@ function getStatusLabel(status) {
 </script>
 @endpush
 
-@push('styles')
-<style>
-.card {
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-.card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
-}
-.table-hover tbody tr:hover {
-    background-color: #f8f9fa;
-}
-.progress {
-    background-color: #e9ecef;
-}
-</style>
-@endpush
 @endsection

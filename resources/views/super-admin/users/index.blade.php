@@ -3,26 +3,26 @@
 @section('page-title', 'Users')
 
 @section('content')
-<div class="sa-card">
-    <div class="sa-card-header">
-        <span class="sa-card-title">All Users ({{ $users->total() }})</span>
-        <a href="{{ route('super-admin.users.create') }}" class="sa-btn sa-btn-accent">+ New User</a>
+<div class="card">
+    <div class="card-header flex-between">
+        <span>All Users ({{ $users->total() }})</span>
+        <a href="{{ route('super-admin.users.create') }}" class="btn btn-accent btn-sm">+ New User</a>
     </div>
-    <div class="sa-card-body" style="padding:16px 20px;">
-        <form method="GET" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
-            <input type="text" name="search" class="sa-input" style="max-width:240px;" placeholder="Name or email..." value="{{ request('search') }}">
-            <select name="tenant_id" class="sa-select" style="max-width:200px;">
+    <div class="card-body">
+        <form method="GET" class="flex-wrap-gap mb-3">
+            <input type="text" name="search" class="form-input" style="max-width:240px;" placeholder="Name or email..." value="{{ request('search') }}">
+            <select name="tenant_id" class="form-select" style="max-width:200px;">
                 <option value="">All Tenants</option>
                 @foreach($tenants as $t)
                     <option value="{{ $t->id }}" {{ request('tenant_id') == $t->id ? 'selected' : '' }}>{{ $t->name }}</option>
                 @endforeach
             </select>
-            <button type="submit" class="sa-btn sa-btn-primary">Filter</button>
-            <a href="{{ route('super-admin.users') }}" class="sa-btn sa-btn-outline">Reset</a>
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <a href="{{ route('super-admin.users') }}" class="btn btn-sm">Reset</a>
         </form>
     </div>
-    <div style="overflow-x:auto;">
-        <table class="sa-table">
+    <div class="mobile-table-wrap">
+        <table class="data-table">
             <thead>
                 <tr>
                     <th>#</th>
@@ -37,13 +37,13 @@
             <tbody>
                 @forelse($users as $user)
                 <tr>
-                    <td style="color:#aaa;">{{ $user->id }}</td>
+                    <td class="text-muted">{{ $user->id }}</td>
                     <td><strong>{{ $user->name }}</strong></td>
-                    <td style="color:#555;">{{ $user->email }}</td>
+                    <td class="text-muted">{{ $user->email }}</td>
                     <td>{{ $user->tenant?->name ?? '—' }}</td>
                     <td>
                         @if($user->tenant)
-                            <span class="badge-{{ strtolower($user->tenant->subscription_type) }}">
+                            <span class="badge badge-{{ strtolower($user->tenant->subscription_type) }}">
                                 {{ $user->tenant->subscription_type }}
                             </span>
                         @else
@@ -51,23 +51,23 @@
                         @endif
                     </td>
                     <td>{{ $user->created_at->format('d M Y') }}</td>
-                    <td style="display:flex;gap:6px;flex-wrap:wrap;">
-                        <a href="{{ route('super-admin.users.edit', $user) }}" class="sa-btn sa-btn-outline sa-btn-sm">✏️ Edit</a>
-                        <form method="POST" action="{{ route('super-admin.users.delete', $user) }}" style="margin:0;"
+                    <td class="flex-wrap-gap">
+                        <a href="{{ route('super-admin.users.edit', $user) }}" class="btn btn-sm">✏️ Edit</a>
+                        <form method="POST" action="{{ route('super-admin.users.delete', $user) }}"
                               onsubmit="return confirm('Delete user {{ addslashes($user->name) }}?')">
                             @csrf @method('DELETE')
-                            <button type="submit" class="sa-btn sa-btn-danger sa-btn-sm">🗑️</button>
+                            <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
                         </form>
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="7" style="text-align:center;color:#aaa;padding:32px;">No users found.</td></tr>
+                <tr><td colspan="7" style="text-align:center; color:#aaa; padding:32px;">No users found.</td></tr>
                 @endforelse
             </tbody>
         </table>
     </div>
     @if($users->hasPages())
-    <div style="padding:16px 20px;">{{ $users->links() }}</div>
+    <div class="p-3">{{ $users->links() }}</div>
     @endif
 </div>
 @endsection

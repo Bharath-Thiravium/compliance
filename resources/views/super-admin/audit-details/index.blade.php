@@ -1,55 +1,56 @@
-@extends('super-admin.layouts.app')
+@extends('super-admin.layout')
 
 @section('title', 'Audit Details - Super Admin')
+@section('page-title', 'Audit Details')
 
 @section('content')
-    <div class="ant-card">
-        <div class="ant-card-head">📊 Audit Summary</div>
-        <div class="ant-card-body">
-            <div class="ant-row">
-                <div class="ant-col ant-col-4">
+    <div class="card">
+        <div class="card-header">📊 Audit Summary</div>
+        <div class="card-body">
+            <div class="grid-row">
+                <div class="grid-col col-1-3">
                     <div class="stat-card">
                         <h3>{{ $stats['total_audits'] }}</h3>
                         <p>Total Audit Records</p>
                     </div>
                 </div>
-                <div class="ant-col ant-col-4">
+                <div class="grid-col col-1-3">
                     <div class="stat-card">
-                        <h3 style="color: #52c41a;">{{ $stats['successful'] }}</h3>
+                        <h3 style="color:var(--color-success);">{{ $stats['successful'] }}</h3>
                         <p>Successful Actions</p>
                     </div>
                 </div>
-                <div class="ant-col ant-col-4">
+                <div class="grid-col col-1-3">
                     <div class="stat-card">
-                        <h3 style="color: #ff4d4f;">{{ $stats['failed'] }}</h3>
+                        <h3 style="color:var(--color-danger);">{{ $stats['failed'] }}</h3>
                         <p>Failed Actions</p>
                     </div>
                 </div>
             </div>
-            <div class="ant-row mt-4">
-                <div class="ant-col ant-col-4">
+            <div class="grid-row mt-3">
+                <div class="grid-col col-1-3">
                     <div class="stat-card">
-                        <h3 style="color: #722ed1;">{{ $stats['total_batches'] }}</h3>
+                        <h3 style="color:#722ed1;">{{ $stats['total_batches'] }}</h3>
                         <p>Total Batches Created</p>
                     </div>
                 </div>
-                <div class="ant-col ant-col-4">
+                <div class="grid-col col-1-3">
                     <div class="stat-card">
-                        <h3 style="color: #faad14;">{{ $stats['total_previews'] }}</h3>
+                        <h3 style="color:var(--color-warning);">{{ $stats['total_previews'] }}</h3>
                         <p>Total Forms Previewed</p>
                     </div>
                 </div>
-                <div class="ant-col ant-col-4">
+                <div class="grid-col col-1-3">
                     <div class="stat-card">
-                        <h3 style="color: #13c2c2;">{{ $stats['total_downloads'] }}</h3>
+                        <h3 style="color:var(--color-info);">{{ $stats['total_downloads'] }}</h3>
                         <p>Total Downloads</p>
                     </div>
                 </div>
             </div>
-            <div class="ant-row mt-4">
-                <div class="ant-col ant-col-4">
+            <div class="grid-row mt-3">
+                <div class="grid-col col-1-3">
                     <div class="stat-card">
-                        <h3 style="color: #ff4d4f;">{{ $stats['users_not_filled'] }}</h3>
+                        <h3 style="color:var(--color-danger);">{{ $stats['users_not_filled'] }}</h3>
                         <p>Users Not Filled</p>
                     </div>
                 </div>
@@ -57,57 +58,63 @@
         </div>
     </div>
 
-    <div class="ant-card section-spacing">
-        <div class="ant-card-head">🔍 Audit Activity Filters</div>
-        <div class="ant-card-body">
+    <div class="card section-spacing">
+        <div class="card-header">🔍 Audit Activity Filters</div>
+        <div class="card-body">
             <form method="GET" action="{{ route('super-admin.audit-details') }}">
-                <div class="ant-row">
-                    <div class="ant-col ant-col-4">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 500;">User</label>
-                        <select name="user_id" class="ant-select" style="height: 40px; padding: 4px 11px; border: 1px solid #d9d9d9; border-radius: 6px; width: 100%;">
-                            <option value="">All Users</option>
-                            @foreach($users as $user)
-                                <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>
-                                    {{ $user->name }}
-                                </option>
-                            @endforeach
-                        </select>
+                <div class="grid-row">
+                    <div class="grid-col col-1-3">
+                        <div class="form-group">
+                    <label class="form-label">User</label>
+                            <select name="user_id" class="form-select">
+                                <option value="">All Users</option>
+                                @foreach($users as $user)
+                                    <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>
+                                        {{ $user->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
-                    <div class="ant-col ant-col-4">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 500;">Status</label>
-                        <select name="status" class="ant-select" style="height: 40px; padding: 4px 11px; border: 1px solid #d9d9d9; border-radius: 6px; width: 100%;">
-                            <option value="">All Status</option>
-                            <option value="success" {{ request('status') == 'success' ? 'selected' : '' }}>Success</option>
-                            <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Failed</option>
-                        </select>
+                    <div class="grid-col col-1-3">
+                        <div class="form-group">
+                    <label class="form-label">Status</label>
+                            <select name="status" class="form-select">
+                                <option value="">All Status</option>
+                                <option value="success" {{ request('status') == 'success' ? 'selected' : '' }}>Success</option>
+                                <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Failed</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="ant-col ant-col-4">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 500;">Action Type</label>
-                        <select name="action_type" class="ant-select" style="height: 40px; padding: 4px 11px; border: 1px solid #d9d9d9; border-radius: 6px; width: 100%;">
-                            <option value="">All Actions</option>
-                            <option value="login" {{ request('action_type') == 'login' ? 'selected' : '' }}>Login</option>
-                            <option value="batch_create" {{ request('action_type') == 'batch_create' ? 'selected' : '' }}>Batch Create</option>
-                            <option value="preview_form" {{ request('action_type') == 'preview_form' ? 'selected' : '' }}>Preview Form</option>
-                            <option value="download_report" {{ request('action_type') == 'download_report' ? 'selected' : '' }}>Download Report</option>
-                        </select>
+                    <div class="grid-col col-1-3">
+                        <div class="form-group">
+                    <label class="form-label">Action Type</label>
+                            <select name="action_type" class="form-select">
+                                <option value="">All Actions</option>
+                                <option value="login" {{ request('action_type') == 'login' ? 'selected' : '' }}>Login</option>
+                                <option value="batch_create" {{ request('action_type') == 'batch_create' ? 'selected' : '' }}>Batch Create</option>
+                                <option value="preview_form" {{ request('action_type') == 'preview_form' ? 'selected' : '' }}>Preview Form</option>
+                                <option value="download_report" {{ request('action_type') == 'download_report' ? 'selected' : '' }}>Download Report</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
-                <div class="ant-row mt-4">
-                    <div class="ant-col ant-col-12">
-                        <button type="submit" class="ant-btn ant-btn-primary">Apply Filters</button>
-                        <a href="{{ route('super-admin.audit-details') }}" class="ant-btn" style="margin-left: 8px;">Clear Filters</a>
+                <div class="grid-row mt-3">
+                    <div class="grid-col col-full">
+                        <button type="submit" class="btn btn-primary">Apply Filters</button>
+                    <a href="{{ route('super-admin.audit-details') }}" class="btn ms-2">Clear Filters</a>
                     </div>
                 </div>
             </form>
         </div>
     </div>
 
-    <div class="ant-card section-spacing">
-        <div class="ant-card-head">📋 Recent Audit Activity</div>
-        <div class="ant-card-body">
+    <div class="card section-spacing">
+        <div class="card-header">📋 Recent Audit Activity</div>
+        <div class="card-body">
             @if($audits->count() > 0)
                 <div class="mobile-table-wrap">
-                    <table class="ant-table">
+                    <table class="data-table">
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -134,14 +141,14 @@
                                     <td>{{ $audit->form_code ?? '-' }}</td>
                                     <td>{{ $audit->batch_id ? '#' . $audit->batch_id : '-' }}</td>
                                     <td>
-                                        <span class="ant-tag {{ $audit->status === 'success' ? 'ant-tag-success' : 'ant-tag-error' }}">
+                                        <span class="badge {{ $audit->status === 'success' ? 'badge-success' : 'badge-danger' }}">
                                             {{ $audit->status }}
                                         </span>
                                     </td>
                                     <td><small>{{ $audit->ip_address ?? '-' }}</small></td>
                                     <td>{{ $audit->created_at ? $audit->created_at->diffForHumans() : '-' }}</td>
                                     <td>
-                                        <a href="{{ route('super-admin.audit-details.show', $audit->id) }}" class="ant-btn ant-btn-sm ant-btn-primary">
+                                        <a href="{{ route('super-admin.audit-details.show', $audit->id) }}" class="btn btn-sm btn-primary">
                                             View
                                         </a>
                                     </td>
@@ -150,10 +157,8 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="mt-4">
-                    <div class="sa-pagination">
-                        {{ $audits->links() }}
-                    </div>
+                <div class="sa-pagination">
+                    {{ $audits->links() }}
                 </div>
             @else
                 <p class="text-muted text-center">No audit records found.</p>
@@ -161,12 +166,12 @@
         </div>
     </div>
 
-    <div class="ant-card section-spacing">
-        <div class="ant-card-head">📦 Recent Batch Audit</div>
-        <div class="ant-card-body">
+    <div class="card section-spacing">
+        <div class="card-header">📦 Recent Batch Audit</div>
+        <div class="card-body">
             @if($recentBatches->count() > 0)
                 <div class="mobile-table-wrap">
-                    <table class="ant-table">
+                    <table class="data-table">
                         <thead>
                             <tr>
                                 <th>Batch ID</th>
@@ -190,7 +195,7 @@
                                             N/A
                                         @endif
                                     </td>
-                                    <td><span class="ant-tag ant-tag-success">{{ $batch->status ?? 'N/A' }}</span></td>
+                                    <td><span class="badge badge-success">{{ $batch->status ?? 'N/A' }}</span></td>
                                     <td>{{ $batch->created_at ? $batch->created_at->diffForHumans() : 'N/A' }}</td>
                                 </tr>
                             @endforeach
@@ -203,12 +208,12 @@
         </div>
     </div>
 
-    <div class="ant-card section-spacing">
-        <div class="ant-card-head warning">👤 Users Who Have Not Filled Forms</div>
-        <div class="ant-card-body">
+    <div class="card section-spacing">
+        <div class="card-header warning">👤 Users Who Have Not Filled Forms</div>
+        <div class="card-body">
             @if($inactiveUsers->count() > 0)
                 <div class="mobile-table-wrap">
-                    <table class="ant-table">
+                    <table class="data-table">
                         <thead>
                             <tr>
                                 <th>Name</th>
@@ -224,10 +229,10 @@
                                 <tr>
                                     <td>{{ $user->name ?? 'N/A' }}</td>
                                     <td>{{ $user->email ?? 'N/A' }}</td>
-                                    <td><span class="ant-tag ant-tag-info">{{ $user->role ?? 'N/A' }}</span></td>
+                                    <td><span class="badge badge-info">{{ $user->role ?? 'N/A' }}</span></td>
                                     <td>{{ optional($user->tenant)->name ?? 'N/A' }}</td>
                                     <td>{{ $user->last_login_at ? \Carbon\Carbon::parse($user->last_login_at)->diffForHumans() : 'Never' }}</td>
-                                    <td><span class="ant-tag ant-tag-warning">Inactive</span></td>
+                                    <td><span class="badge badge-warning">Inactive</span></td>
                                 </tr>
                             @endforeach
                         </tbody>

@@ -1,4 +1,4 @@
-@extends('compliance.layouts.antd_base')
+@extends('compliance.layouts.app')
 
 @section('title', 'Dashboard - Compliance Engine')
 

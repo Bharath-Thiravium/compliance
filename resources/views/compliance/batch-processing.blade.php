@@ -218,13 +218,4 @@ document.getElementById('preview-modal')?.addEventListener('click', function(e) 
 });
 </script>
 
-<style>
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-.animate-spin {
-    animation: spin 1s linear infinite;
-}
-</style>
 @endsection

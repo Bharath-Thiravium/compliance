@@ -7,8 +7,9 @@
         "dev": "vite"
     },
     "dependencies": {
-        "antd": "^5.13.0",
         "@ant-design/icons": "^5.2.6",
+        "@tailwindcss/vite": "^4.3.0",
+        "antd": "^5.13.0",
         "dayjs": "^1.11.10"
     },
     "devDependencies": {

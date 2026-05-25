@@ -1,25 +1,26 @@
-@extends('super-admin.layouts.app')
+@extends('super-admin.layout')
 
 @section('title', 'Pending Filings - Super Admin')
+@section('page-title', 'Pending Filings')
 
 @section('content')
     <div class="page-header">
-        <a href="{{ route('super-admin.dashboard') }}" class="ant-btn">← Back to Dashboard</a>
+        <a href="{{ route('super-admin.dashboard') }}" class="btn">← Back to Dashboard</a>
     </div>
 
-    <div class="ant-card">
-        <div class="ant-card-head warning">📊 Pending Filings Summary</div>
-        <div class="ant-card-body">
-            <div class="ant-row">
-                <div class="ant-col ant-col-6">
+    <div class="card">
+        <div class="card-header warning">📊 Pending Filings Summary</div>
+        <div class="card-body">
+            <div class="grid-row">
+                <div class="grid-col col-1-2">
                     <div class="stat-card">
-                        <h3 style="color: #faad14;">{{ $stats['pending_batches'] ?? 0 }}</h3>
+                        <h3 style="color:var(--color-warning);">{{ $stats['pending_batches'] ?? 0 }}</h3>
                         <p>Pending Batches</p>
                     </div>
                 </div>
-                <div class="ant-col ant-col-6">
+                <div class="grid-col col-1-2">
                     <div class="stat-card">
-                        <h3 style="color: #faad14;">{{ $stats['users_with_pending'] ?? 0 }}</h3>
+                        <h3 style="color:var(--color-warning);">{{ $stats['users_with_pending'] ?? 0 }}</h3>
                         <p>Users With Pending Filings</p>
                     </div>
                 </div>
@@ -27,12 +28,12 @@
         </div>
     </div>
 
-    <div class="ant-card section-spacing">
-        <div class="ant-card-head warning">📦 Pending Batches</div>
-        <div class="ant-card-body">
+    <div class="card section-spacing">
+        <div class="card-header warning">📦 Pending Batches</div>
+        <div class="card-body">
             @if($pendingBatches->count() > 0)
                 <div class="mobile-table-wrap">
-                    <table class="ant-table">
+                    <table class="data-table">
                         <thead>
                             <tr>
                                 <th>Batch ID</th>
@@ -57,7 +58,7 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <span class="ant-tag ant-tag-warning">
+                                        <span class="badge badge-warning">
                                             {{ ucfirst(str_replace('_', ' ', $batch->status ?? 'N/A')) }}
                                         </span>
                                     </td>
@@ -67,11 +68,8 @@
                         </tbody>
                     </table>
                 </div>
-
-                <div class="mt-4">
-                    <div class="sa-pagination">
-                        {{ $pendingBatches->withQueryString()->links() }}
-                    </div>
+                <div class="sa-pagination">
+                    {{ $pendingBatches->withQueryString()->links() }}
                 </div>
             @else
                 <p class="text-muted text-center">No pending batches found.</p>
@@ -79,12 +77,12 @@
         </div>
     </div>
 
-    <div class="ant-card section-spacing">
-        <div class="ant-card-head warning">👤 Users With Pending Filings</div>
-        <div class="ant-card-body">
+    <div class="card section-spacing">
+        <div class="card-header warning">👤 Users With Pending Filings</div>
+        <div class="card-body">
             @if($usersWithPending->count() > 0)
                 <div class="mobile-table-wrap">
-                    <table class="ant-table">
+                    <table class="data-table">
                         <thead>
                             <tr>
                                 <th>Name</th>
@@ -101,7 +99,7 @@
                                     <td>{{ $user->name ?? 'N/A' }}</td>
                                     <td>{{ $user->email ?? 'N/A' }}</td>
                                     <td>
-                                        <span class="ant-tag ant-tag-info">
+                                        <span class="badge badge-info">
                                             {{ ucfirst(str_replace('_', ' ', $user->role ?? 'N/A')) }}
                                         </span>
                                     </td>
@@ -109,17 +107,14 @@
                                     <td>
                                         {{ $user->last_login_at ? \Carbon\Carbon::parse($user->last_login_at)->diffForHumans() : 'Never' }}
                                     </td>
-                                    <td><span class="ant-tag ant-tag-warning">Pending Filing</span></td>
+                                    <td><span class="badge badge-warning">Pending Filing</span></td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
-
-                <div class="mt-4">
-                    <div class="sa-pagination">
-                        {{ $usersWithPending->withQueryString()->links() }}
-                    </div>
+                <div class="sa-pagination">
+                    {{ $usersWithPending->withQueryString()->links() }}
                 </div>
             @else
                 <p class="text-muted text-center">No users with pending filings found.</p>

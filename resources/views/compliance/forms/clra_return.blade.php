@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('compliance.layouts.statutory_base')
 
 @section('content')
 @php

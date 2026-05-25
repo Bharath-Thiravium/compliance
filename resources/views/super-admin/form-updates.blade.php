@@ -1,46 +1,46 @@
-@extends('super-admin.layouts.app')
+@extends('super-admin.layout')
 
 @section('title', 'Government Form Updates - Super Admin')
+@section('page-title', 'Form Updates')
 
 @section('content')
     <div class="page-header">
-        <a href="{{ route('super-admin.dashboard') }}" class="ant-btn">← Back to Dashboard</a>
+        <a href="{{ route('super-admin.dashboard') }}" class="btn">← Back to Dashboard</a>
     </div>
 
-    <!-- Summary Stats -->
-    <div class="ant-card">
-        <div class="ant-card-head info">📊 Government Forms Summary</div>
-        <div class="ant-card-body">
-            <div class="ant-row">
-                <div class="ant-col ant-col-4">
+    <div class="card">
+        <div class="card-header info">📊 Government Forms Summary</div>
+        <div class="card-body">
+            <div class="grid-row">
+                <div class="grid-col col-1-3">
                     <div class="stat-card">
-                        <h3 style="color: #722ed1;">{{ $stats['total_forms'] }}</h3>
+                        <h3 style="color:#722ed1;">{{ $stats['total_forms'] }}</h3>
                         <p>Total Forms</p>
                     </div>
                 </div>
-                <div class="ant-col ant-col-4">
+                <div class="grid-col col-1-3">
                     <div class="stat-card">
-                        <h3 style="color: #52c41a;">{{ $stats['active_forms'] }}</h3>
+                        <h3 style="color:var(--color-success);">{{ $stats['active_forms'] }}</h3>
                         <p>Active Forms</p>
                     </div>
                 </div>
-                <div class="ant-col ant-col-4">
+                <div class="grid-col col-1-3">
                     <div class="stat-card">
-                        <h3 style="color: #13c2c2;">{{ $stats['recent_updates'] }}</h3>
+                        <h3 style="color:var(--color-info);">{{ $stats['recent_updates'] }}</h3>
                         <p>Recently Updated</p>
                     </div>
                 </div>
             </div>
-            <div class="ant-row mt-4">
-                <div class="ant-col ant-col-4">
+            <div class="grid-row mt-3">
+                <div class="grid-col col-1-3">
                     <div class="stat-card">
-                        <h3 style="color: #faad14;">{{ $stats['with_changes'] }}</h3>
+                        <h3 style="color:var(--color-warning);">{{ $stats['with_changes'] }}</h3>
                         <p>Forms With Changes</p>
                     </div>
                 </div>
-                <div class="ant-col ant-col-4">
+                <div class="grid-col col-1-3">
                     <div class="stat-card">
-                        <h3 style="color: #ff4d4f;">{{ $stats['inactive_forms'] }}</h3>
+                        <h3 style="color:var(--color-danger);">{{ $stats['inactive_forms'] }}</h3>
                         <p>Inactive Forms</p>
                     </div>
                 </div>
@@ -48,31 +48,28 @@
         </div>
     </div>
 
-    <!-- Recent Updates Notification Panel -->
     @if($recentUpdates->count() > 0)
-        <div class="ant-card section-spacing">
-            <div class="ant-card-head warning">🔔 Recent Form Updates (Last 30 Days)</div>
-            <div class="ant-card-body">
-                <div style="display: grid; gap: 12px;">
+        <div class="card section-spacing">
+            <div class="card-header warning">🔔 Recent Form Updates (Last 30 Days)</div>
+            <div class="card-body">
+                <div style="display:grid; gap:12px;">
                     @foreach($recentUpdates as $form)
-                        <div class="summary-card">
-                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
-                                <div>
-                                    <strong style="font-size: 16px;">{{ $form->form_code }}</strong>
-                                    <span style="margin-left: 12px; color: #8c8c8c;">{{ $form->form_name }}</span>
+                        <div class="card mb-2" style="border:1px solid #e8e8e8;">
+                            <div class="card-body">
+                                <div class="flex-between mb-2">
+                                    <div>
+                                        <strong style="font-size:16px;">{{ $form->form_code }}</strong>
+                                        <span class="text-muted ms-2">{{ $form->form_name }}</span>
+                                    </div>
+                                    <span class="badge badge-warning">Updated on: {{ $form->updated_at ? $form->updated_at->format('d M Y') : 'N/A' }}</span>
                                 </div>
-                                <span class="ant-tag ant-tag-warning">Updated on: {{ $form->updated_at ? $form->updated_at->format('d M Y') : 'N/A' }}</span>
+                                @if($form->change_summary)
+                                    <div class="mb-2"><strong>What Changed:</strong> {{ $form->change_summary }}</div>
+                                @endif
+                                @if($form->effective_date)
+                                    <div class="text-muted text-sm"><strong>Effective Date:</strong> {{ $form->effective_date->format('M d, Y') }}</div>
+                                @endif
                             </div>
-                            @if($form->change_summary)
-                                <div style="color: #595959; margin-bottom: 8px;">
-                                    <strong>What Changed:</strong> {{ $form->change_summary }}
-                                </div>
-                            @endif
-                            @if($form->effective_date)
-                                <div style="color: #8c8c8c; font-size: 13px;">
-                                    <strong>Effective Date:</strong> {{ $form->effective_date->format('M d, Y') }}
-                                </div>
-                            @endif
                         </div>
                     @endforeach
                 </div>
@@ -80,13 +77,12 @@
         </div>
     @endif
 
-    <!-- All Forms Table -->
-    <div class="ant-card section-spacing">
-        <div class="ant-card-head info">📋 All Government Forms ({{ $allForms->count() }})</div>
-        <div class="ant-card-body">
+    <div class="card section-spacing">
+        <div class="card-header info">📋 All Government Forms ({{ $allForms->count() }})</div>
+        <div class="card-body">
             @if($allForms->count() > 0)
                 <div class="mobile-table-wrap">
-                    <table class="ant-table">
+                    <table class="data-table">
                         <thead>
                             <tr>
                                 <th>Form Code</th>
@@ -110,42 +106,42 @@
                                     <td>{{ $form->act_type }}</td>
                                     <td>
                                         @if($form->version_number)
-                                            <span class="ant-tag ant-tag-info">v{{ $form->version_number }}</span>
+                                            <span class="badge badge-info">v{{ $form->version_number }}</span>
                                         @else
-                                            <span class="ant-tag ant-tag-default">-</span>
+                                            <span class="badge badge-default">-</span>
                                         @endif
                                     </td>
                                     <td>
                                         @if($form->effective_date)
                                             {{ $form->effective_date->format('M d, Y') }}
                                         @else
-                                            <span style="color: #8c8c8c;">-</span>
+                                            <span class="text-muted">-</span>
                                         @endif
                                     </td>
                                     <td>
                                         @if($form->source_url)
-                                            <a href="{{ $form->source_url }}" target="_blank" class="ant-btn ant-btn-sm" style="background: #13c2c2; color: white; border: none; padding: 4px 8px; text-decoration: none;">
+                                            <a href="{{ $form->source_url }}" target="_blank" class="btn btn-sm btn-info">
                                                 {{ $form->department_name ?? $form->source_name ?? 'View Source' }}
                                             </a>
                                         @else
-                                            <span style="color: #8c8c8c;">{{ $form->department_name ?? $form->source_name ?? '-' }}</span>
+                                            <span class="text-muted">{{ $form->department_name ?? $form->source_name ?? '-' }}</span>
                                         @endif
                                     </td>
                                     <td>
                                         @if($form->change_summary)
-                                            <span title="{{ $form->change_summary }}" style="cursor: help; color: #595959;">
+                                            <span title="{{ $form->change_summary }}" class="text-muted" style="cursor:help;">
                                                 {{ Str::limit($form->change_summary, 40) }}
                                             </span>
                                         @else
-                                            <span style="color: #8c8c8c;">-</span>
+                                            <span class="text-muted">-</span>
                                         @endif
                                     </td>
                                     <td>
-                                        <span class="ant-tag {{ $form->is_active ? 'ant-tag-success' : 'ant-tag-error' }}">
+                                        <span class="badge {{ $form->is_active ? 'badge-success' : 'badge-danger' }}">
                                             {{ $form->is_active ? 'Active' : 'Inactive' }}
                                         </span>
                                     </td>
-                                    <td><span style="font-size: 13px; color: #8c8c8c;">{{ $form->updated_at ? $form->updated_at->format('d M Y') : 'N/A' }}</span></td>
+                                    <td><span class="text-muted text-sm">{{ $form->updated_at ? $form->updated_at->format('d M Y') : 'N/A' }}</span></td>
                                 </tr>
                             @endforeach
                         </tbody>

@@ -1,27 +1,24 @@
 {{-- Manual Compliance Tasks Panel --}}
 {{-- Shown only after a batch is active (JS sets data-batch-id on #manual-compliance-panel) --}}
-<div id="manual-compliance-panel" style="display:none;" class="ant-card">
-    <div class="ant-card-head info" style="display:flex; justify-content:space-between; align-items:center;">
+<div id="manual-compliance-panel" class="card d-none">
+    <div class="card-header info flex-between">
         <span>📋 Manual Compliance Tasks</span>
-        <span id="manual-progress-badge" class="ant-tag ant-tag-processing">0 / 0 completed</span>
+        <span id="manual-progress-badge" class="badge badge-info">0 / 0 completed</span>
     </div>
-    <div class="ant-card-body">
+    <div class="card-body">
 
-        {{-- Progress bar --}}
-        <div style="margin-bottom:16px;">
+        <div class="mb-3">
             <div class="progress" style="height:18px;">
                 <div id="manual-progress-bar"
-                     class="progress-bar progress-bar-striped progress-bar-animated bg-info"
-                     style="width:0%; font-size:12px; font-weight:bold;">0%</div>
+                     class="progress-bar progress-bar-striped progress-bar-animated"
+                     style="width:0%; font-size:12px; font-weight:bold; background:var(--color-info);">0%</div>
             </div>
         </div>
 
-        {{-- Global error --}}
-        <div id="manual-global-error" class="ant-alert ant-alert-error" style="display:none; margin-bottom:12px;"></div>
+        <div id="manual-global-error" class="alert alert-danger d-none mb-3"></div>
 
-        {{-- Tasks table --}}
-        <div style="overflow-x:auto;">
-            <table class="ant-table" style="font-size:13px;">
+        <div class="table-wrap">
+            <table class="data-table text-sm">
                 <thead>
                     <tr>
                         <th style="width:35%">Compliance</th>
@@ -47,12 +44,12 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p id="manual-upload-compliance-name" class="fw-bold mb-3"></p>
-                <input type="file" id="manual-upload-file" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
-                <div id="manual-upload-error" class="text-danger mt-2" style="display:none;"></div>
+                <p id="manual-upload-compliance-name" class="fw-600 mb-3"></p>
+                <input type="file" id="manual-upload-file" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                <div id="manual-upload-error" class="alert alert-danger d-none mt-2"></div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" id="manual-upload-submit">Upload & Complete</button>
             </div>
         </div>

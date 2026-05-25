@@ -9,26 +9,25 @@
     <style>
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         :root{
-            --accent:#2563eb;--accent-h:#1d4ed8;
-            --text:#0f172a;--muted:#64748b;
-            --border:#e2e8f0;--ibg:#f8fafc;
+            --brand:#1890ff;--brand-h:#40a9ff;--brand-d:#096dd9;
+            --text:#0f172a;--muted:#64748b;--border:#e2e8f0;--ibg:#f8fafc;
             --red:#dc2626;--red-bg:#fef2f2;--red-bd:#fecaca;
+            --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
         }
-        html,body{height:100%}
+        html,body{height:100%;font-family:var(--font)}
         body{
-            font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
             min-height:100vh;display:flex;
             background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 50%,#0f172a 100%);
             color:var(--text);
         }
+        /* ── Page / Card ── */
         .page{display:flex;width:100%;min-height:100vh;align-items:center;justify-content:center;padding:24px 16px}
         .card{
             display:flex;width:100%;max-width:920px;min-height:560px;
             border-radius:20px;overflow:hidden;
             box-shadow:0 24px 64px rgba(0,0,0,0.45),0 0 0 1px rgba(255,255,255,0.06);
         }
-
-        /* ── Left ── */
+        /* ── Left panel ── */
         .left{
             flex:1.1;background:linear-gradient(160deg,#1e3a5f 0%,#0f172a 100%);
             padding:52px 44px;display:flex;flex-direction:column;justify-content:space-between;
@@ -42,15 +41,12 @@
         }
         .left::after{
             content:'';position:absolute;width:360px;height:360px;border-radius:50%;
-            background:radial-gradient(circle,rgba(59,130,246,0.14) 0%,transparent 70%);
+            background:radial-gradient(circle,rgba(24,144,255,0.14) 0%,transparent 70%);
             bottom:-80px;right:-80px;
         }
         .lc{position:relative;z-index:1}
         .logo-row{display:flex;align-items:center;gap:14px;margin-bottom:36px}
-        .logo-box{
-            width:52px;height:62px;border-radius:10px;overflow:hidden;flex-shrink:0;
-            background:#fff;border:1px solid rgba(255,255,255,0.2);
-        }
+        .logo-box{width:52px;height:62px;border-radius:10px;overflow:hidden;flex-shrink:0;background:#fff;border:1px solid rgba(255,255,255,0.2)}
         .logo-box img{width:100%;height:100%;object-fit:cover;display:block}
         .logo-txt{font-size:14px;font-weight:700;color:#fff;line-height:1.3}
         .logo-txt small{display:block;font-size:11px;font-weight:400;color:rgba(255,255,255,0.4)}
@@ -58,36 +54,33 @@
         .l-h em{font-style:normal;color:#60a5fa}
         .l-p{font-size:13px;color:rgba(255,255,255,0.5);line-height:1.7;margin-bottom:40px;max-width:280px}
         .feats{display:flex;flex-direction:column;gap:10px}
-        .feat{
-            display:flex;align-items:center;gap:10px;
-            background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);
-            border-radius:10px;padding:10px 14px;
-        }
-        .fi{width:30px;height:30px;border-radius:7px;flex-shrink:0;background:rgba(59,130,246,0.18);display:flex;align-items:center;justify-content:center}
+        .feat{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 14px}
+        .fi{width:30px;height:30px;border-radius:7px;flex-shrink:0;background:rgba(24,144,255,0.18);display:flex;align-items:center;justify-content:center}
         .fi svg{width:14px;height:14px;stroke:#93c5fd;fill:none;stroke-width:2}
         .fb strong{display:block;font-size:12px;font-weight:600;color:#fff}
         .fb span{font-size:11px;color:rgba(255,255,255,0.4)}
         .lf{position:relative;z-index:1}
         .lf p{font-size:11px;color:rgba(255,255,255,0.2);margin-top:28px}
-
-        /* ── Right ── */
+        /* ── Right panel ── */
         .right{flex:1;background:#fff;padding:52px 48px;display:flex;flex-direction:column;justify-content:center}
         .fh{margin-bottom:32px}
         .badge{
             display:inline-flex;align-items:center;gap:5px;
-            background:#eff6ff;border:1px solid #bfdbfe;color:var(--accent-h);
+            background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;
             border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.4px;
             padding:3px 10px;margin-bottom:14px;text-transform:uppercase;
         }
         .badge svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:2.5}
         .fh h1{font-size:26px;font-weight:800;color:var(--text);letter-spacing:-.5px;margin-bottom:6px}
         .fh p{font-size:13px;color:var(--muted)}
+        /* Alert */
         .alert{
             display:flex;align-items:flex-start;gap:9px;padding:11px 14px;border-radius:9px;
             margin-bottom:20px;font-size:13px;line-height:1.5;
             background:var(--red-bg);border:1px solid var(--red-bd);color:var(--red);
         }
         .alert svg{width:14px;height:14px;flex-shrink:0;margin-top:1px;fill:none;stroke:currentColor;stroke-width:2}
+        /* Fields */
         .field{margin-bottom:18px}
         .field label{display:block;font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px}
         .ib{position:relative}
@@ -95,30 +88,31 @@
         .ib input{
             width:100%;height:44px;padding:0 40px 0 38px;
             border:1.5px solid var(--border);border-radius:9px;
-            font-size:14px;font-family:inherit;color:var(--text);background:var(--ibg);
+            font-size:14px;font-family:var(--font);color:var(--text);background:var(--ibg);
             outline:none;transition:border-color .15s,box-shadow .15s;
         }
         .ib input::placeholder{color:#cbd5e1}
-        .ib input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.12);background:#fff}
+        .ib input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(24,144,255,.12);background:#fff}
         .ib input.err{border-color:var(--red);box-shadow:0 0 0 3px rgba(220,38,38,.1)}
         .eye{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:3px;color:#94a3b8;display:flex;align-items:center;transition:color .15s}
         .eye:hover{color:var(--text)}
         .eye svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2}
+        /* Remember */
         .rem{display:flex;align-items:center;gap:7px;margin-bottom:22px;font-size:13px;color:var(--muted);cursor:pointer;user-select:none}
-        .rem input{width:15px;height:15px;accent-color:var(--accent);cursor:pointer}
+        .rem input{width:15px;height:15px;accent-color:var(--brand);cursor:pointer}
+        /* Submit */
         .btn{
-            width:100%;height:46px;background:var(--accent);color:#fff;
-            font-size:14px;font-weight:700;font-family:inherit;
+            width:100%;height:46px;background:var(--brand);color:#fff;
+            font-size:14px;font-weight:700;font-family:var(--font);
             border:none;border-radius:10px;cursor:pointer;
             display:flex;align-items:center;justify-content:center;gap:7px;
-            box-shadow:0 4px 14px rgba(37,99,235,.35);
+            box-shadow:0 4px 14px rgba(24,144,255,.35);
             transition:background .15s,box-shadow .15s,transform .1s;
         }
-        .btn:hover{background:var(--accent-h);box-shadow:0 6px 20px rgba(37,99,235,.4)}
+        .btn:hover{background:var(--brand-h);box-shadow:0 6px 20px rgba(24,144,255,.4)}
         .btn:active{transform:scale(.99)}
         .btn svg{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:2.2}
         .foot{margin-top:24px;text-align:center;font-size:12px;color:#94a3b8}
-
         @media(max-width:680px){
             .left{display:none}
             .right{padding:40px 28px}
@@ -175,7 +169,7 @@
         </div>
       @endif
       @if($errors->any())
-        <div class="alert" role="alert" aria-live="polite">
+        <div class="alert" role="alert">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           <div>@foreach($errors->all() as $e)<div>{{ $e }}</div>@endforeach</div>
         </div>
