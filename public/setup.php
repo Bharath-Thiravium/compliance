@@ -7,7 +7,7 @@
 
 $secret = 'setup_compliance_2026';
 
-if (!isset($_GET['token']) || $_GET['token'] !== $secret) {
+if (!isset($_GET['token']) || !hash_equals($secret, (string) $_GET['token'])) {
     http_response_code(403);
     echo '<h3>403 Unauthorized</h3>';
     echo '<p>Access with <code>?token=setup_compliance_2026</code></p>';
@@ -66,13 +66,55 @@ if (file_exists($envPath)) {
     }
 }
 
-// ── 4. Run migrations ────────────────────────────────────────────────────
+// ── 4. Patch critical .env values ────────────────────────────────────────────
+// Auto-detect the base URL from this request so APP_URL / ASSET_URL are correct
+// regardless of which subdirectory the app lives in on the server.
+if (file_exists($envPath)) {
+    $envRaw = file_get_contents($envPath);
+
+    $scheme   = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host     = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    // SCRIPT_NAME = /compliance/ce/setup.php  →  base = /compliance/ce
+    $basePath = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? '/setup.php'), '/');
+    $appUrl   = $scheme . '://' . $host . $basePath;
+    $assetUrl = $appUrl . '/public';
+
+    $patches = [
+        'APP_ENV'               => 'production',
+        'APP_DEBUG'             => 'false',
+        'SESSION_SECURE_COOKIE' => 'true',
+    ];
+
+    // Only overwrite APP_URL / ASSET_URL when they still point to localhost
+    $currentAppUrl = '';
+    if (preg_match('/^APP_URL=(.*)$/m', $envRaw, $m)) {
+        $currentAppUrl = trim($m[1]);
+    }
+    if ($currentAppUrl === '' || stripos($currentAppUrl, 'localhost') !== false) {
+        $patches['APP_URL']   = $appUrl;
+        $patches['ASSET_URL'] = $assetUrl;
+    }
+
+    foreach ($patches as $key => $val) {
+        if (preg_match('/^' . preg_quote($key, '/') . '=/m', $envRaw)) {
+            $envRaw = preg_replace('/^' . preg_quote($key, '/') . '=.*/m', $key . '=' . $val, $envRaw);
+        } else {
+            $envRaw = rtrim($envRaw) . "\n" . $key . '=' . $val . "\n";
+        }
+    }
+
+    file_put_contents($envPath, $envRaw);
+    $msgs = array_map(fn($k, $v) => "$k=$v", array_keys($patches), array_values($patches));
+    addResult($results, 'Env patch', 'ok', implode(' | ', $msgs));
+}
+
+// ── 5. Run migrations ────────────────────────────────────────────────────
 [$out, $err] = runCmd("php $artisan migrate --force 2>&1", $root);
 $migStatus = (stripos($out . $err, 'error') !== false || stripos($out . $err, 'exception') !== false)
     ? 'error' : 'ok';
 addResult($results, 'Migrations', $migStatus, $out ?: $err);
 
-// ── 5. Set directory permissions ──────────────────────────────────────────
+// ── 6. Set directory permissions ──────────────────────────────────────────
 $writableDirs = [
     'storage',
     'storage/logs',
@@ -96,7 +138,7 @@ foreach ($writableDirs as $dir) {
     }
 }
 
-// ── 6. Storage symlink ────────────────────────────────────────────────────
+// ── 7. Storage symlink ────────────────────────────────────────────────────
 [$out, $err] = runCmd("php $artisan storage:link --force 2>&1", $root);
 addResult($results, 'Storage symlink', 'ok', $out ?: 'done');
 

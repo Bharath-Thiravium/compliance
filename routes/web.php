@@ -20,11 +20,23 @@ Route::get('/_ops/optimize-clear', function (Request $request) {
         abort(403);
     }
 
+    $output = [];
+
     Artisan::call('optimize:clear');
+    $output['optimize:clear'] = trim(Artisan::output());
+
+    Artisan::call('config:cache');
+    $output['config:cache'] = trim(Artisan::output());
+
+    Artisan::call('route:cache');
+    $output['route:cache'] = trim(Artisan::output());
+
+    Artisan::call('view:cache');
+    $output['view:cache'] = trim(Artisan::output());
 
     return response()->json([
-        'ok' => true,
-        'output' => Artisan::output(),
+        'ok'     => true,
+        'output' => $output,
     ]);
 });
 
