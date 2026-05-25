@@ -138,11 +138,16 @@ foreach ($writableDirs as $dir) {
     }
 }
 
-// ── 7. Storage symlink ────────────────────────────────────────────────────
-[$out, $err] = runCmd("php $artisan storage:link --force 2>&1", $root);
-addResult($results, 'Storage symlink', 'ok', $out ?: 'done');
+// ── 7. Storage symlink (skip if symlink/exec disabled — common on shared hosting) ──
+if (function_exists('symlink')) {
+    [$out, $err] = runCmd("php $artisan storage:link --force 2>&1", $root);
+    $slStatus = (stripos($out . $err, 'error') !== false || $err) ? 'warn' : 'ok';
+    addResult($results, 'Storage symlink', $slStatus, $out ?: $err);
+} else {
+    addResult($results, 'Storage symlink', 'skip', 'symlink() disabled on this host — not needed unless app serves user-uploaded files');
+}
 
-// ── 7. Cache config / routes / views ────────────────────────────────────
+// ── 8. Cache config / routes / views ────────────────────────────────────
 foreach (['config', 'route', 'view'] as $type) {
     [$out, $err] = runCmd("php $artisan {$type}:cache 2>&1", $root);
     $status = (stripos($out . $err, 'error') !== false) ? 'error' : 'ok';
