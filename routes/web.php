@@ -14,7 +14,7 @@ Route::post('/register', [AuthController::class, 'register'])->name('register.po
 // One-time ops endpoint for hosts without shell access.
 // Set OPS_TOKEN in the environment, hit /_ops/optimize-clear?token=... , then remove this route.
 Route::get('/_ops/optimize-clear', function (Request $request) {
-    $token = (string) env('OPS_TOKEN', '');
+    $token = (string) config('app.ops_token', '');
 
     if ($token === '' || ! hash_equals($token, (string) $request->query('token', ''))) {
         abort(403);
@@ -43,7 +43,7 @@ Route::get('/_ops/optimize-clear', function (Request $request) {
 // Mark already-run migrations as done so migrate --force stops re-attempting them.
 // Use when the table exists on the server but is missing from the migrations log.
 Route::get('/_ops/migrate', function (Request $request) {
-    $token = (string) env('OPS_TOKEN', '');
+    $token = (string) config('app.ops_token', '');
 
     if ($token === '' || ! hash_equals($token, (string) $request->query('token', ''))) {
         abort(403);
@@ -62,7 +62,7 @@ Route::get('/_ops/migrate', function (Request $request) {
 
 // Diagnostics for 419 / CSRF issues (remove after debugging).
 Route::get('/_ops/session-check', function (Request $request) {
-    $token = (string) env('OPS_TOKEN', '');
+    $token = (string) config('app.ops_token', '');
 
     if ($token === '' || ! hash_equals($token, (string) $request->query('token', ''))) {
         abort(403);
