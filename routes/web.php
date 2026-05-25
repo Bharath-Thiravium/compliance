@@ -40,6 +40,26 @@ Route::get('/_ops/optimize-clear', function (Request $request) {
     ]);
 });
 
+// Mark already-run migrations as done so migrate --force stops re-attempting them.
+// Use when the table exists on the server but is missing from the migrations log.
+Route::get('/_ops/migrate', function (Request $request) {
+    $token = (string) env('OPS_TOKEN', '');
+
+    if ($token === '' || ! hash_equals($token, (string) $request->query('token', ''))) {
+        abort(403);
+    }
+
+    $output = [];
+
+    Artisan::call('migrate', ['--force' => true]);
+    $output['migrate'] = trim(Artisan::output());
+
+    return response()->json([
+        'ok'     => true,
+        'output' => $output,
+    ]);
+});
+
 // Diagnostics for 419 / CSRF issues (remove after debugging).
 Route::get('/_ops/session-check', function (Request $request) {
     $token = (string) env('OPS_TOKEN', '');
