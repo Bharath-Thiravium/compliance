@@ -263,6 +263,13 @@ Route::get('/_ops/deploy', function (Request $request) {
     Artisan::call('config:cache');   $out['config:cache']   = trim(Artisan::output());
     Artisan::call('route:cache');    $out['route:cache']    = trim(Artisan::output());
     Artisan::call('view:cache');     $out['view:cache']     = trim(Artisan::output());
+    // Check if FormApiServices.php.bak is still being autoloaded
+    $bakFile = app_path('Services/Compliance/FormApis/FormApiServices.php');
+    $out['duplicate_file_exists'] = file_exists($bakFile);
+    if (file_exists($bakFile)) {
+        rename($bakFile, $bakFile . '.bak');
+        $out['duplicate_file_renamed'] = true;
+    }
     return response()->json(['ok' => true, 'output' => $out]);
 });
 

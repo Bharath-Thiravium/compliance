@@ -93,6 +93,10 @@ class FormDataAggregator
             'period_end'   => $periodEnd->format('Y-m-d'),
             'records'      => $dataArray,
             'config'       => $config,
+            'meta'         => ['tenant_id' => $tenantId, 'branch_id' => $branchId, 'month' => $month, 'year' => $year],
+            'tenant'       => $this->getTenantDetails($tenantId),
+            'branch'       => $this->getBranchDetails($branchId, $tenantId),
+            'period'       => \Carbon\Carbon::create($year, $month, 1)->format('F Y'),
         ];
     }
 
