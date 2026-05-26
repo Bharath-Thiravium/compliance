@@ -51,6 +51,22 @@ Route::get('/_ops/fix-missing-tables', function (Request $request) {
     if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
     $out = [];
 
+    if (!Schema::hasTable('payroll_cycles')) {
+        Schema::create('payroll_cycles', function ($t) {
+            $t->id();
+            $t->unsignedBigInteger('tenant_id')->index();
+            $t->string('cycle_name');
+            $t->date('period_from');
+            $t->date('period_to');
+            $t->timestamp('processed_at')->nullable();
+            $t->string('status')->default('pending');
+            $t->timestamps();
+        });
+        $out[] = 'Created: payroll_cycles';
+    } else {
+        $out[] = 'OK: payroll_cycles exists';
+    }
+
     if (!Schema::hasTable('workforce_employee')) {
         Schema::create('workforce_employee', function ($t) {
             $t->id();
