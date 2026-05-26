@@ -378,6 +378,71 @@ HTML;
     return response($html)->header('Content-Type','text/html');
 });
 
+Route::get('/_ops/db-inspect', function (Request $request) {
+    $token = (string) config('app.ops_token', '');
+    if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
+
+    $tenantId = (int) $request->query('tenant_id', 2);
+    $branchId = (int) $request->query('branch_id', 2);
+
+    $out = [];
+
+    // Tenant & branch details
+    $out['tenant'] = (array) DB::table('tenants')->where('id', $tenantId)->first();
+    $out['branch'] = (array) DB::table('branches')->where('id', $branchId)->first();
+
+    // All tables with row counts scoped to tenant/branch
+    $scoped = [
+        'workforce_employee'   => ['tenant_id'=>$tenantId,'branch_id'=>$branchId],
+        'workforce_attendance' => ['tenant_id'=>$tenantId,'branch_id'=>$branchId],
+        'bonus_records'        => ['tenant_id'=>$tenantId,'branch_id'=>$branchId],
+    ];
+    foreach ($scoped as $table => $where) {
+        try {
+            $out['counts'][$table] = Schema::hasTable($table)
+                ? DB::table($table)->where($where)->count() : 'MISSING';
+        } catch (\Throwable $e) { $out['counts'][$table] = 'ERR:'.$e->getMessage(); }
+    }
+
+    // Payroll tables — check both possible names
+    foreach (['workforce_payroll_entry','workforce_payroll_cycle','payroll_entries','payroll_cycles'] as $t) {
+        try {
+            $out['payroll_tables'][$t] = Schema::hasTable($t) ? DB::table($t)->count().' rows' : 'MISSING';
+        } catch (\Throwable $e) { $out['payroll_tables'][$t] = 'ERR'; }
+    }
+
+    // Attendance periods available
+    try {
+        $out['attendance_periods'] = DB::table('workforce_attendance')
+            ->where('tenant_id', $tenantId)
+            ->selectRaw('YEAR(attendance_date) as y, MONTH(attendance_date) as m, COUNT(*) as cnt')
+            ->groupBy('y','m')->orderBy('y','desc')->orderBy('m','desc')
+            ->get()->map(fn($r)=>(array)$r)->toArray();
+    } catch (\Throwable $e) { $out['attendance_periods'] = 'ERR:'.$e->getMessage(); }
+
+    // Payroll entry periods (try both table names)
+    foreach (['workforce_payroll_entry','payroll_entries'] as $t) {
+        if (!Schema::hasTable($t)) continue;
+        try {
+            $cycleTable = Schema::hasTable('workforce_payroll_cycle') ? 'workforce_payroll_cycle' : 'payroll_cycles';
+            $out['payroll_periods'][$t] = DB::table($t.' as pe')
+                ->join($cycleTable.' as pc','pc.id','=','pe.payroll_cycle_id')
+                ->where('pe.tenant_id',$tenantId)
+                ->selectRaw('YEAR(pc.period_from) as y, MONTH(pc.period_from) as m, COUNT(*) as cnt')
+                ->groupBy('y','m')->orderBy('y','desc')->orderBy('m','desc')
+                ->get()->map(fn($r)=>(array)$r)->toArray();
+        } catch (\Throwable $e) { $out['payroll_periods'][$t] = 'ERR:'.$e->getMessage(); }
+    }
+
+    // Sample employee
+    try {
+        $out['sample_employee'] = (array) DB::table('workforce_employee')
+            ->where('tenant_id',$tenantId)->first();
+    } catch (\Throwable $e) { $out['sample_employee'] = 'ERR:'.$e->getMessage(); }
+
+    return response()->json($out, 200, [], JSON_PRETTY_PRINT);
+});
+
 Route::get('/_ops/session-check', function (Request $request) {
     $token = (string) config('app.ops_token', '');
     if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
