@@ -149,7 +149,7 @@ Route::get('/_ops/verify', function (Request $request) {
     ]);
 });
 
-
+Route::get('/_ops/logs', function (Request $request) {
     $token = (string) config('app.ops_token', '');
     if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
 
