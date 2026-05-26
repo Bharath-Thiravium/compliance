@@ -33,9 +33,11 @@ abstract class BaseFormGenerator
      */
     final public function generate(array $rawData): array
     {
-        if (isset($rawData['records'])) {
-            $rawData['records'] = $this->normalizeRecords($rawData['records']);
+        $records = $rawData['records'] ?? [];
+        if ($records instanceof \Illuminate\Support\Collection) {
+            $records = $records->toArray();
         }
+        $rawData['records'] = $this->normalizeRecords(is_array($records) ? $records : [$records]);
 
         return $this->prepareData($rawData);
     }

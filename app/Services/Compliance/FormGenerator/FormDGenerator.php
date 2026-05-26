@@ -71,10 +71,14 @@ class FormDGenerator extends BaseFormGenerator
         }
     }
 
-    private function groupByEmployee(array $records): array
+    private function groupByEmployee(array|\Illuminate\Support\Collection $records): array
     {
+        if ($records instanceof \Illuminate\Support\Collection) {
+            $records = $records->toArray();
+        }
         $grouped = [];
         foreach ($records as $record) {
+            $record = is_object($record) ? (array) $record : $record;
             $code = $record['employee_code'] ?? '';
             if (!isset($grouped[$code])) {
                 $grouped[$code] = [];
