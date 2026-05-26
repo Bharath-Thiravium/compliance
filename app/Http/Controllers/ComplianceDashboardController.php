@@ -5,13 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\ComplianceExecutionBatch;
 use App\Models\ManualComplianceBatchItem;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\DB;
 
 class ComplianceDashboardController extends Controller
 {
-    public function dashboard(Request $request): View
+    public function dashboard(Request $request): View|RedirectResponse
     {
         $user = auth()->user();
 

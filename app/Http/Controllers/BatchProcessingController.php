@@ -88,7 +88,7 @@ class BatchProcessingController extends Controller
                 } else {
                     $nextForm->update(['status' => 'failed']);
                 }
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $nextForm->update(['status' => 'failed']);
                 Log::error("Form processing error: {$nextForm->form_code}", ['error' => $e->getMessage()]);
             }
@@ -111,7 +111,7 @@ class BatchProcessingController extends Controller
                     'file_path' => $f->file_path
                 ])->toArray()
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Batch processing error', ['batch_id' => $batch, 'error' => $e->getMessage()]);
             return response()->json([
                 'status' => 'error',
