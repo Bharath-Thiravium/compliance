@@ -356,6 +356,9 @@ class ComplianceOrchestrator
         ?string $errorMessage,
         string $mode
     ): void {
+        // batch_id=0 means preview/pdf mode — no real batch row exists, skip to avoid FK violation
+        if ($batchId === 0) return;
+
         try {
             DB::table('compliance_execution_logs')->insert([
                 'tenant_id' => $tenantId,

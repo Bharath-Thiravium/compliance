@@ -89,7 +89,7 @@ class ComplianceTestAnalyzer
             'compliance_forms_master', 'compliance_sections',
             'compliance_generation_logs', 'compliance_audit_logs',
             'compliance_form_audit_scores', 'compliance_manual_master',
-            'compliance_manual_batch_items', 'workforce_employees',
+            'compliance_manual_batch_items', 'workforce_employee',
             'workforce_attendance', 'payroll_entries', 'bonus_records',
         ];
 
