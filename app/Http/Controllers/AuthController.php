@@ -36,7 +36,7 @@ class AuthController extends Controller
             $request->session()->regenerate();
 
             $user = Auth::user();
-            $user->update(['last_login_at' => now()]);
+            try { $user->update(['last_login_at' => now()]); } catch (\Throwable) {}
 
             try {
                 AuditLog::create([
