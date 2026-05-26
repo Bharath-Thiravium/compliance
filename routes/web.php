@@ -126,7 +126,30 @@ Route::get('/_ops/fix-missing-tables', function (Request $request) {
     return response()->json(['ok' => true, 'output' => $output]);
 });
 
-Route::get('/_ops/logs', function (Request $request) {
+Route::get('/_ops/verify', function (Request $request) {
+    $token = (string) config('app.ops_token', '');
+    if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
+
+    // Quick sanity checks without running full diagnostics
+    return response()->json([
+        'ok'                    => true,
+        'timestamp'             => now()->toDateTimeString(),
+        'tables' => [
+            'workforce_employee' => \Illuminate\Support\Facades\Schema::hasTable('workforce_employee'),
+            'payroll_entries'    => \Illuminate\Support\Facades\Schema::hasTable('payroll_entries'),
+        ],
+        'storage_dirs' => [
+            'compliance_pdfs'             => is_dir(storage_path('app/compliance_pdfs')),
+            'compliance_inspection_packs' => is_dir(storage_path('app/compliance_inspection_packs')),
+        ],
+        'orchestrator_fix_live' => str_contains(
+            file_get_contents(app_path('Services/Compliance/ComplianceOrchestrator.php')),
+            'batch_id=0 means preview'
+        ),
+    ]);
+});
+
+
     $token = (string) config('app.ops_token', '');
     if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
 
