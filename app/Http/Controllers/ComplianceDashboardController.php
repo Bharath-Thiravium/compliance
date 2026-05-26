@@ -13,7 +13,12 @@ class ComplianceDashboardController extends Controller
 {
     public function dashboard(Request $request): View
     {
-        $user     = auth()->user();
+        $user = auth()->user();
+
+        if (! $user->tenant_id) {
+            return redirect()->route('compliance.dashboard');
+        }
+
         $branchId = $request->query('branch_id') !== null ? (int) $request->query('branch_id') : $user->branch_id;
 
         $batches = $this->batchQuery($user->tenant_id, $branchId)
