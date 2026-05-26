@@ -25,7 +25,16 @@ class BatchProcessingController extends Controller
             // Find next pending form
             $nextForm = ComplianceBatchForm::where('batch_id', $batch)
                 ->where('status', 'pending')
+                ->whereNotIn('form_code', function($q) {
+                    $q->select('form_code')->from('compliance_forms_master')->where('upload_only', 1);
+                })
                 ->first();
+
+            if (!$nextForm) {
+                $nextForm = ComplianceBatchForm::where('batch_id', $batch)
+                    ->where('status', 'pending')
+                    ->first();
+            }
 
             if (!$nextForm) {
                 // All done — fetch final form state for UI sync
@@ -66,6 +75,25 @@ class BatchProcessingController extends Controller
 
             // Mark as processing
             $nextForm->update(['status' => 'processing']);
+
+            // Skip auto-generation for upload_only (manual) forms
+            $formMaster = DB::table('compliance_forms_master')
+                ->where('form_code', $nextForm->form_code)
+                ->first();
+
+            if ($formMaster && $formMaster->upload_only) {
+                $nextForm->update(['status' => 'skipped']);
+                return response()->json([
+                    'status'       => 'processing',
+                    'batch_id'     => $batch,
+                    'current_form' => $nextForm->form_code,
+                    'skipped'      => true,
+                    'reason'       => 'manual_upload_only',
+                    'generated'    => ComplianceBatchForm::where('batch_id', $batch)->where('status', 'generated')->count(),
+                    'total'        => ComplianceBatchForm::where('batch_id', $batch)->count(),
+                    'progress'     => round((ComplianceBatchForm::where('batch_id', $batch)->whereIn('status', ['generated','skipped'])->count() / ComplianceBatchForm::where('batch_id', $batch)->count()) * 100),
+                ]);
+            }
 
             try {
                 $branchId = \App\Services\Compliance\ComplianceContextValidator::resolveBranchSafe(
