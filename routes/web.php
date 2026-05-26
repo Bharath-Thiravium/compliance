@@ -378,6 +378,13 @@ HTML;
     return response($html)->header('Content-Type','text/html');
 });
 
+Route::get('/_ops/forms-status', function (Request $request) {
+    $token = (string) config('app.ops_token', '');
+    if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
+    $rows = DB::table('compliance_forms_master')->select('form_code','form_name','is_active')->orderBy('form_code')->get();
+    return response()->json($rows->map(fn($r)=>(array)$r)->toArray(), 200, [], JSON_PRETTY_PRINT);
+});
+
 Route::get('/_ops/db-inspect', function (Request $request) {
     $token = (string) config('app.ops_token', '');
     if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
