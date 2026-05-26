@@ -76,20 +76,23 @@ class FormDataAggregator
             $data = $data->merge($records);
         });
 
+        // Convert all stdClass objects to plain arrays — critical for live server parity
+        $dataArray = $data->map(fn($row) => (array) $row)->values()->toArray();
+
         // Demo data fallback for empty results
-        if ($data->isEmpty() && config('app.demo_mode', false)) {
+        if (empty($dataArray) && config('app.demo_mode', false)) {
             return \App\Services\Compliance\DemoDataProvider::for($formCode, $tenantId, $branchId, $month, $year);
         }
 
         return [
-            'tenant_id' => $tenantId,
-            'branch_id' => $branchId,
+            'tenant_id'    => $tenantId,
+            'branch_id'    => $branchId,
             'period_month' => $month,
-            'period_year' => $year,
+            'period_year'  => $year,
             'period_start' => $periodStart->format('Y-m-d'),
-            'period_end' => $periodEnd->format('Y-m-d'),
-            'records' => $data,
-            'config' => $config,
+            'period_end'   => $periodEnd->format('Y-m-d'),
+            'records'      => $dataArray,
+            'config'       => $config,
         ];
     }
 
@@ -278,10 +281,10 @@ class FormDataAggregator
         ])->get();
 
         return [
-            'period_from' => $periodFrom,
-            'period_to' => $periodTo,
-            'total_deductions' => $entries->sum('fines') + $entries->sum('other_deductions'),
-            'entries' => $entries->toArray(),
+            'period_from'       => $periodFrom,
+            'period_to'         => $periodTo,
+            'total_deductions'  => $entries->sum('fines') + $entries->sum('other_deductions'),
+            'entries'           => $entries->map(fn($r) => (array) $r)->values()->toArray(),
         ];
     }
 
@@ -309,11 +312,11 @@ class FormDataAggregator
         ])->get();
 
         return [
-            'period_from' => $periodFrom,
-            'period_to' => $periodTo,
+            'period_from'            => $periodFrom,
+            'period_to'              => $periodTo,
             'total_contract_workers' => $entries->count(),
-            'total_wages' => $entries->sum('net_salary'),
-            'entries' => $entries->toArray(),
+            'total_wages'            => $entries->sum('net_salary'),
+            'entries'                => $entries->map(fn($r) => (array) $r)->values()->toArray(),
         ];
     }
 
@@ -339,10 +342,10 @@ class FormDataAggregator
         ])->get();
 
         return [
-            'period_from' => $periodFrom,
-            'period_to' => $periodTo,
+            'period_from'      => $periodFrom,
+            'period_to'        => $periodTo,
             'total_bonus_paid' => $entries->sum('bonus_amount'),
-            'entries' => $entries->toArray(),
+            'entries'          => $entries->map(fn($r) => (array) $r)->values()->toArray(),
         ];
     }
 
@@ -368,10 +371,10 @@ class FormDataAggregator
         ])->get();
 
         return [
-            'period_from' => $periodFrom,
-            'period_to' => $periodTo,
+            'period_from'   => $periodFrom,
+            'period_to'     => $periodTo,
             'total_records' => $entries->count(),
-            'entries' => $entries->toArray(),
+            'entries'       => $entries->map(fn($r) => (array) $r)->values()->toArray(),
         ];
     }
 }
