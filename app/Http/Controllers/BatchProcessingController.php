@@ -37,9 +37,6 @@ class BatchProcessingController extends Controller
             }
 
             if (!$nextForm) {
-                // All done — fetch final form state for UI sync
-                $auditResult = app(\App\Services\Compliance\Audit\ComplianceAuditService::class)->auditBatch($batch);
-
                 $forms     = ComplianceBatchForm::where('batch_id', $batch)->get();
                 $generated = $forms->where('status', 'generated')->count();
                 $failed    = $forms->where('status', 'failed')->count();
@@ -50,9 +47,9 @@ class BatchProcessingController extends Controller
                     'processed_at' => now(),
                 ]);
 
-                // Run audit silently in background — does NOT affect user flow
+                $auditResult = [];
                 try {
-                    app(\App\Services\Compliance\Audit\ComplianceAuditService::class)->auditBatch($batch);
+                    $auditResult = app(\App\Services\Compliance\Audit\ComplianceAuditService::class)->auditBatch($batch);
                 } catch (\Throwable) {}
 
                 return response()->json([
