@@ -363,8 +363,8 @@ class ComplianceTestAnalyzer
             $tenant = Tenant::first();
             if (!$tenant) { $warnings[] = 'No tenant in DB — skipping'; $this->record('Orchestrator Smoke Test', $errors, $warnings, $info); return; }
 
-            $branch = Branch::where('tenant_id', $tenant->id)->first();
-            if (!$branch) { $warnings[] = 'No branch found — skipping'; $this->record('Orchestrator Smoke Test', $errors, $warnings, $info); return; }
+            $branch = Branch::withoutGlobalScopes()->where('tenant_id', $tenant->id)->first();
+            if (!$branch) { $warnings[] = 'No branch found for tenant — skipping'; $this->record('Orchestrator Smoke Test', $errors, $warnings, $info); return; }
 
             $form = ComplianceFormsMaster::where('is_active', true)->first();
             if (!$form) { $warnings[] = 'No active forms in DB — skipping'; $this->record('Orchestrator Smoke Test', $errors, $warnings, $info); return; }

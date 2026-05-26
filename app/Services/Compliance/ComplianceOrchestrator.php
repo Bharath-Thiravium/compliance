@@ -383,12 +383,10 @@ class ComplianceOrchestrator
         $query = DB::table('compliance_execution_logs')
             ->where('batch_id', $batchId)
             ->orderBy('created_at', 'desc');
-
         if ($formCode) {
             $query->where('form_code', $formCode);
         }
-
-        return $query->get()->toArray();
+        return json_decode(json_encode($query->get()->toArray()), true);
     }
 
     public function getExecutionStats(int $batchId): array
@@ -396,19 +394,19 @@ class ComplianceOrchestrator
         $logs = DB::table('compliance_execution_logs')
             ->where('batch_id', $batchId)
             ->get();
-
+        $logsArray = collect(json_decode(json_encode($logs->toArray()), true));
         return [
-            'total_executions' => $logs->count(),
-            'successful' => $logs->where('status', 'success')->count(),
-            'failed' => $logs->where('status', 'failed')->count(),
-            'total_execution_time' => $logs->sum('execution_time'),
-            'total_records' => $logs->sum('records_generated'),
-            'average_time' => $logs->count() > 0 ? (int)($logs->sum('execution_time') / $logs->count()) : 0,
-            'by_mode' => $logs->groupBy('execution_mode')->map(fn($group) => [
-                'count' => $group->count(),
-                'successful' => $group->where('status', 'success')->count(),
-                'failed' => $group->where('status', 'failed')->count()
-            ])->toArray()
+            'total_executions'    => $logsArray->count(),
+            'successful'          => $logsArray->where('status', 'success')->count(),
+            'failed'              => $logsArray->where('status', 'failed')->count(),
+            'total_execution_time'=> $logsArray->sum('execution_time'),
+            'total_records'       => $logsArray->sum('records_generated'),
+            'average_time'        => $logsArray->count() > 0 ? (int)($logsArray->sum('execution_time') / $logsArray->count()) : 0,
+            'by_mode'             => $logsArray->groupBy('execution_mode')->map(fn($g) => [
+                'count'      => $g->count(),
+                'successful' => $g->where('status', 'success')->count(),
+                'failed'     => $g->where('status', 'failed')->count(),
+            ])->toArray(),
         ];
     }
 }

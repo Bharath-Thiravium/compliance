@@ -6,35 +6,31 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
 
-Route::get('/login',    [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login',   [AuthController::class, 'login'])->name('login.post');
-Route::post('/logout',  [AuthController::class, 'logout'])->name('logout');
-Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-Route::post('/register',[AuthController::class, 'register'])->name('register.post');
+Route::get('/login',     [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login',    [AuthController::class, 'login'])->name('login.post');
+Route::post('/logout',   [AuthController::class, 'logout'])->name('logout');
+Route::get('/register',  [AuthController::class, 'showRegister'])->name('register');
+Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
-// ── Ops helpers (token-protected, no shell access needed) ─────────────────────
+// ── Ops helpers (token-protected) ─────────────────────────────────────────────
 
 Route::get('/_ops/optimize-clear', function (Request $request) {
     $token = (string) config('app.ops_token', '');
     if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
-
-    $output = [];
-    Artisan::call('optimize:clear'); $output['optimize:clear'] = trim(Artisan::output());
-    Artisan::call('config:cache');   $output['config:cache']   = trim(Artisan::output());
-    Artisan::call('route:cache');    $output['route:cache']    = trim(Artisan::output());
-    Artisan::call('view:cache');     $output['view:cache']     = trim(Artisan::output());
-
-    return response()->json(['ok' => true, 'output' => $output]);
+    $out = [];
+    Artisan::call('optimize:clear'); $out['optimize:clear'] = trim(Artisan::output());
+    Artisan::call('config:cache');   $out['config:cache']   = trim(Artisan::output());
+    Artisan::call('route:cache');    $out['route:cache']    = trim(Artisan::output());
+    Artisan::call('view:cache');     $out['view:cache']     = trim(Artisan::output());
+    return response()->json(['ok' => true, 'output' => $out]);
 });
 
 Route::get('/_ops/migrate', function (Request $request) {
     $token = (string) config('app.ops_token', '');
     if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
-
-    $output = [];
+    $out = [];
     Artisan::call('migrate', ['--force' => true]);
-    $output['migrate'] = trim(Artisan::output());
-
+    $out['migrate'] = trim(Artisan::output());
     foreach ([
         storage_path('app/compliance_pdfs'),
         storage_path('app/compliance_inspection_packs'),
@@ -44,18 +40,15 @@ Route::get('/_ops/migrate', function (Request $request) {
         storage_path('framework/cache'),
         storage_path('framework/sessions'),
     ] as $dir) {
-        if (!is_dir($dir)) { mkdir($dir, 0755, true); $output['mkdir'][] = $dir; }
+        if (!is_dir($dir)) { mkdir($dir, 0755, true); $out['mkdir'][] = $dir; }
     }
-
-    return response()->json(['ok' => true, 'output' => $output]);
+    return response()->json(['ok' => true, 'output' => $out]);
 });
 
-// Recreates tables that are missing on production even though migrations log says they ran
 Route::get('/_ops/fix-missing-tables', function (Request $request) {
     $token = (string) config('app.ops_token', '');
     if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
-
-    $output = [];
+    $out = [];
 
     if (!Schema::hasTable('workforce_employee')) {
         Schema::create('workforce_employee', function ($t) {
@@ -74,9 +67,9 @@ Route::get('/_ops/fix-missing-tables', function (Request $request) {
             $t->timestamps();
             $t->softDeletes();
         });
-        $output[] = 'Created: workforce_employee';
+        $out[] = 'Created: workforce_employee';
     } else {
-        $output[] = 'OK: workforce_employee already exists';
+        $out[] = 'OK: workforce_employee exists';
     }
 
     if (!Schema::hasTable('payroll_entries')) {
@@ -110,33 +103,31 @@ Route::get('/_ops/fix-missing-tables', function (Request $request) {
             $t->timestamps();
             $t->softDeletes();
         });
-        $output[] = 'Created: payroll_entries';
+        $out[] = 'Created: payroll_entries';
     } else {
-        $output[] = 'OK: payroll_entries already exists';
+        $out[] = 'OK: payroll_entries exists';
     }
 
     foreach ([
         storage_path('app/compliance_pdfs'),
         storage_path('app/compliance_inspection_packs'),
     ] as $dir) {
-        if (!is_dir($dir)) { mkdir($dir, 0755, true); $output[] = "Created dir: $dir"; }
-        else $output[] = "OK dir: $dir";
+        if (!is_dir($dir)) { mkdir($dir, 0755, true); $out[] = "Created dir: $dir"; }
+        else $out[] = "OK dir: $dir";
     }
 
-    return response()->json(['ok' => true, 'output' => $output]);
+    return response()->json(['ok' => true, 'output' => $out]);
 });
 
 Route::get('/_ops/verify', function (Request $request) {
     $token = (string) config('app.ops_token', '');
     if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
-
-    // Quick sanity checks without running full diagnostics
     return response()->json([
-        'ok'                    => true,
-        'timestamp'             => now()->toDateTimeString(),
-        'tables' => [
-            'workforce_employee' => \Illuminate\Support\Facades\Schema::hasTable('workforce_employee'),
-            'payroll_entries'    => \Illuminate\Support\Facades\Schema::hasTable('payroll_entries'),
+        'ok'        => true,
+        'timestamp' => now()->toDateTimeString(),
+        'tables'    => [
+            'workforce_employee' => Schema::hasTable('workforce_employee'),
+            'payroll_entries'    => Schema::hasTable('payroll_entries'),
         ],
         'storage_dirs' => [
             'compliance_pdfs'             => is_dir(storage_path('app/compliance_pdfs')),
@@ -149,34 +140,28 @@ Route::get('/_ops/verify', function (Request $request) {
     ]);
 });
 
-
+Route::get('/_ops/logs', function (Request $request) {
     $token = (string) config('app.ops_token', '');
     if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
-
     $logFile = storage_path('logs/laravel.log');
     if (!file_exists($logFile)) return response()->json(['ok' => false, 'error' => 'Log file not found']);
-
     $lines = max(10, min((int) $request->query('lines', 100), 500));
     $file  = new \SplFileObject($logFile, 'r');
     $file->seek(PHP_INT_MAX);
     $file->seek(max(0, $file->key() - $lines));
-
-    $output = [];
-    while (!$file->eof()) { $output[] = rtrim($file->current()); $file->next(); }
-
-    return response(implode("\n", array_filter($output)), 200)
+    $out = [];
+    while (!$file->eof()) { $out[] = rtrim($file->current()); $file->next(); }
+    return response(implode("\n", array_filter($out)), 200)
         ->header('Content-Type', 'text/plain; charset=utf-8');
 });
 
 Route::get('/_ops/session-check', function (Request $request) {
     $token = (string) config('app.ops_token', '');
     if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
-
     $session = $request->session();
     $key = '__ops_smoke';
     $session->put($key, ($session->get($key) ?? 0) + 1);
     $session->save();
-
     return response()->json([
         'ok'      => true,
         'request' => ['url' => $request->fullUrl(), 'is_secure' => $request->isSecure(), 'host' => $request->getHost()],
