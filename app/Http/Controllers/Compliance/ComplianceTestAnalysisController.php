@@ -3,24 +3,22 @@
 namespace App\Http\Controllers\Compliance;
 
 use App\Http\Controllers\Controller;
-use App\Services\Compliance\Testing\ComplianceTestAnalyzer;
 use App\Services\Compliance\ComplianceOrchestrator;
-use Illuminate\Support\Facades\Auth;
+use App\Services\Compliance\Testing\ComplianceTestAnalyzer;
+use Illuminate\Http\Request;
 
 class ComplianceTestAnalysisController extends Controller
 {
-    public function testAnalysisReport(ComplianceOrchestrator $orchestrator)
+    public function testAnalysisReport(Request $request, ComplianceOrchestrator $orchestrator)
     {
-        if (!Auth::check()) {
-            return redirect('/login');
+        // Token-protect so it can't be hit by anyone on production
+        $token = (string) config('app.ops_token', '');
+        if ($token !== '' && !hash_equals($token, (string) $request->query('token', ''))) {
+            abort(403, 'Provide ?token=YOUR_OPS_TOKEN');
         }
 
-        $analyzer = new ComplianceTestAnalyzer($orchestrator);
-        $report = $analyzer->runFullAnalysis();
+        $report = (new ComplianceTestAnalyzer($orchestrator))->runFullAnalysis();
 
-        return view('compliance.dashboard.testanalysisreport', [
-            'report' => $report,
-            'user' => Auth::user()
-        ]);
+        return view('compliance.dashboard.testanalysisreport', compact('report'));
     }
 }

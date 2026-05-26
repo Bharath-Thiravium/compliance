@@ -2,452 +2,536 @@
 
 namespace App\Services\Compliance\Testing;
 
+use App\Models\Branch;
+use App\Models\ComplianceBatchForm;
+use App\Models\ComplianceExecutionBatch;
 use App\Models\ComplianceFormsMaster;
 use App\Models\Tenant;
-use App\Models\Branch;
 use App\Services\Compliance\ComplianceOrchestrator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\View;
-use Illuminate\Support\Facades\Storage;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
+use Throwable;
 
 class ComplianceTestAnalyzer
 {
     private array $results = [];
-    private array $errors = [];
-    private array $warnings = [];
-    private array $performanceMetrics = [];
-    private int $startTime;
 
     public function __construct(private ComplianceOrchestrator $orchestrator) {}
 
     public function runFullAnalysis(): array
     {
-        $this->startTime = microtime(true);
+        $start = microtime(true);
 
-        $this->testRoutes();
-        $this->testControllers();
-        $this->testOrchestrator();
-        $this->testGenerators();
-        $this->testBladeTemplates();
-        $this->testApiServices();
-        $this->testDatabase();
-        $this->testSecurity();
-        $this->testPdfGeneration();
-        $this->testInspectionPack();
-        $this->testPerformance();
+        $this->checkEnv();
+        $this->checkDatabase();
+        $this->checkMigrations();
+        $this->checkStoragePermissions();
+        $this->checkRoutes();
+        $this->checkControllers();
+        $this->checkModels();
+        $this->checkServices();
+        $this->checkBladeTemplates();
+        $this->checkLaravelLog();
+        $this->checkOrchestrator();
 
-        $executionTime = (int)((microtime(true) - $this->startTime) * 1000);
+        $passed   = count(array_filter($this->results, fn($r) => $r['status'] === 'pass'));
+        $warnings = count(array_filter($this->results, fn($r) => $r['status'] === 'warning'));
+        $errors   = count(array_filter($this->results, fn($r) => $r['status'] === 'error'));
+        $total    = count($this->results);
 
         return [
-            'status' => count($this->errors) === 0 ? 'success' : 'warning',
-            'health_score' => $this->calculateHealthScore(),
-            'execution_time' => $executionTime,
-            'results' => $this->results,
-            'errors' => $this->errors,
-            'warnings' => $this->warnings,
-            'performance_metrics' => $this->performanceMetrics,
-            'timestamp' => now()->toIso8601String()
+            'execution_time_ms' => round((microtime(true) - $start) * 1000),
+            'health_score'      => $total > 0 ? (int)(($passed * 100 + $warnings * 60) / $total) : 0,
+            'summary'           => compact('passed', 'warnings', 'errors', 'total'),
+            'checks'            => $this->results,
+            'timestamp'         => now()->toDateTimeString(),
         ];
     }
 
-    private function testRoutes(): void
+    // ── 1. Environment ────────────────────────────────────────────────────────
+
+    private function checkEnv(): void
     {
-        $routes = [
-            '/compliance/dashboard' => 'Dashboard',
-            '/compliance/preview/{formCode}' => 'Preview',
-            '/compliance/batch/{batch}/preview/{form}' => 'Batch Preview',
-            '/compliance/batch/{batch}/inspection-pack' => 'Inspection Pack',
-        ];
+        $issues = [];
+        $info   = [];
 
-        $passed = 0;
-        foreach ($routes as $route => $name) {
-            $passed++;
-        }
-
-        $this->results['routes'] = [
-            'status' => 'pass',
-            'total' => count($routes),
-            'passed' => $passed,
-            'details' => array_keys($routes)
-        ];
-    }
-
-    private function testControllers(): void
-    {
-        $controllers = [
-            'ComplianceExecutionController',
-            'CompliancePreviewController',
-            'ComplianceOrchestratorController',
-        ];
-
-        $found = 0;
-        foreach ($controllers as $controller) {
-            $path = app_path("Http/Controllers/Compliance/{$controller}.php");
-            if (!file_exists($path)) {
-                $path = app_path("Http/Controllers/{$controller}.php");
-            }
-            if (file_exists($path)) {
-                $found++;
+        $required = ['APP_KEY', 'APP_URL', 'DB_HOST', 'DB_DATABASE', 'DB_USERNAME'];
+        foreach ($required as $key) {
+            $val = env($key);
+            if (empty($val)) {
+                $issues[] = "$key is not set in .env";
+            } else {
+                $info[$key] = $key === 'APP_KEY' ? '(set)' : $val;
             }
         }
 
-        $this->results['controllers'] = [
-            'status' => $found === count($controllers) ? 'pass' : 'error',
-            'total' => count($controllers),
-            'found' => $found,
-            'details' => $controllers
-        ];
-
-        if ($found < count($controllers)) {
-            $this->errors[] = "Missing controllers: " . implode(', ', array_slice($controllers, $found));
+        if (config('app.env') === 'local') {
+            $issues[] = 'APP_ENV=local on production — should be production';
         }
+        if (config('app.debug') === true) {
+            $issues[] = 'APP_DEBUG=true on production — exposes stack traces to users';
+        }
+
+        $appUrl = config('app.url');
+        if (!str_starts_with($appUrl, 'https://')) {
+            $issues[] = "APP_URL ($appUrl) does not use HTTPS";
+        }
+
+        $this->record('Environment', $issues, [], $info);
     }
 
-    private function testOrchestrator(): void
+    // ── 2. Database connectivity + critical tables ────────────────────────────
+
+    private function checkDatabase(): void
     {
+        $issues   = [];
+        $warnings = [];
+        $info     = [];
+
         try {
-            $tenant = Tenant::first();
-            if (!$tenant) {
-                $this->warnings[] = "No test tenant available";
-                $this->results['orchestrator'] = ['status' => 'warning', 'message' => 'No test data'];
-                return;
-            }
-
-            $branch = Branch::where('tenant_id', $tenant->id)->exists();
-            if (!$branch) {
-                $this->warnings[] = "No branch for tenant {$tenant->id}";
-                $this->results['orchestrator'] = ['status' => 'warning', 'message' => 'No branch data'];
-                return;
-            }
-
-            $branchRecord = Branch::where('tenant_id', $tenant->id)->first();
-            $result = $this->orchestrator->execute(
-                $tenant->id,
-                $branchRecord->id,
-                now()->month,
-                now()->year,
-                'FORM_B',
-                'preview'
-            );
-
-            $this->results['orchestrator'] = [
-                'status' => $result['status'] === 'success' ? 'pass' : 'error',
-                'execution_time' => $result['execution_time'] ?? 0,
-                'mode' => 'preview',
-                'form_code' => 'FORM_B'
-            ];
-
-            if ($result['status'] !== 'success') {
-                $this->errors[] = "Orchestrator preview failed: " . ($result['error'] ?? 'Unknown error');
-            }
-        } catch (\Exception $e) {
-            $this->errors[] = "Orchestrator test failed: " . $e->getMessage();
-            $this->results['orchestrator'] = ['status' => 'error', 'message' => $e->getMessage()];
+            DB::connection()->getPdo();
+            $info['connection'] = 'OK (' . config('database.default') . ')';
+        } catch (Throwable $e) {
+            $this->record('Database', ["Cannot connect to DB: " . $e->getMessage()]);
+            return;
         }
-    }
 
-    private function testGenerators(): void
-    {
-        $generatorPath = app_path('Services/Compliance/FormGenerator');
-        $generators = File::files($generatorPath);
-
-        $utilityClasses = [
-            'BaseFormGenerator.php',
-            'FormGeneratorFactory.php',
-            'BladeMappingEngine.php',
-            'FormDataAggregator.php',
-            'FormValidationService.php'
+        $criticalTables = [
+            'users', 'tenants', 'branches',
+            'compliance_execution_batches', 'compliance_batch_forms',
+            'compliance_forms_master', 'compliance_sections',
+            'compliance_generation_logs', 'compliance_audit_logs',
+            'compliance_form_audit_scores', 'compliance_manual_master',
+            'compliance_manual_batch_items', 'workforce_employees',
+            'workforce_attendance', 'payroll_entries',
         ];
 
-        $valid = 0;
-        $issues = [];
-
-        foreach ($generators as $file) {
-            if (in_array($file->getFilename(), $utilityClasses)) {
-                continue;
-            }
-
-            $content = File::get($file->getPathname());
-            if (strpos($content, 'prepareData') !== false) {
-                $valid++;
-            } else {
-                $issues[] = $file->getFilename();
-            }
-        }
-
-        $this->results['generators'] = [
-            'status' => count($issues) === 0 ? 'pass' : 'warning',
-            'total' => count($generators) - 2,
-            'valid' => $valid,
-            'issues' => $issues
-        ];
-
-        if (count($issues) > 0) {
-            $this->warnings[] = "Generators missing prepareData: " . implode(', ', $issues);
-        }
-    }
-
-    private function testBladeTemplates(): void
-    {
-        $templatePath = resource_path('views/compliance/forms');
-        $templates = File::files($templatePath);
-
-        $valid = 0;
-        $issues = [];
-
-        foreach ($templates as $file) {
-            if ($file->getExtension() !== 'php') continue;
-
-            $content = File::get($file->getPathname());
-            
-            // Check for safe Blade syntax with fallbacks
-            $hasSafeVariables = preg_match('/\{\{\s*\$\w+\s*\?\?/', $content) > 0;
-            $hasSafeArrayAccess = preg_match('/\{\{\s*\$\w+\[[\'"]\w+[\'"]\]\s*\?\?/', $content) > 0;
-            $hasControlStructures = strpos($content, '@if') !== false || strpos($content, '@forelse') !== false || strpos($content, '@foreach') !== false;
-            
-            // Template is valid if it has safe syntax OR control structures
-            if ($hasSafeVariables || $hasSafeArrayAccess || $hasControlStructures) {
-                $valid++;
-            } else {
-                $issues[] = $file->getFilename();
-            }
-        }
-
-        $this->results['blade_templates'] = [
-            'status' => count($issues) === 0 ? 'pass' : 'pass',
-            'total' => count($templates),
-            'valid' => $valid,
-            'issues' => array_slice($issues, 0, 5)
-        ];
-    }
-
-    private function testApiServices(): void
-    {
-        $apiPath = app_path('Services/Compliance/FormApis');
-        $services = File::files($apiPath);
-
-        $valid = 0;
-        $issues = [];
-
-        foreach ($services as $file) {
-            if ($file->getFilename() === 'BaseFormApiService.php' || $file->getFilename() === 'FormApiServiceFactory.php') {
-                continue;
-            }
-
-            $content = File::get($file->getPathname());
-            $hasTenantFilter = strpos($content, 'tenant_id') !== false;
-            $hasBranchFilter = strpos($content, 'branch_id') !== false;
-
-            if ($hasTenantFilter && $hasBranchFilter) {
-                $valid++;
-            } else {
-                $issues[] = $file->getFilename();
-            }
-        }
-
-        $this->results['api_services'] = [
-            'status' => count($issues) === 0 ? 'pass' : 'warning',
-            'total' => count($services) - 2,
-            'valid' => $valid,
-            'issues' => $issues
-        ];
-
-        if (count($issues) > 0) {
-            $this->warnings[] = "API services missing tenant/branch filtering: " . implode(', ', $issues);
-        }
-    }
-
-    private function testDatabase(): void
-    {
-        $issues = [];
-
-        $tables = ['tenants', 'branches', 'compliance_execution_batches', 'compliance_forms_master'];
-        foreach ($tables as $table) {
-            if (!DB::connection()->getSchemaBuilder()->hasTable($table)) {
+        foreach ($criticalTables as $table) {
+            if (!Schema::hasTable($table)) {
                 $issues[] = "Missing table: $table";
             }
         }
 
+        // Critical columns
         $columnChecks = [
-            'tenants' => ['id', 'name', 'subscription_type'],
-            'branches' => ['id', 'tenant_id', 'branch_name'],
-            'compliance_execution_batches' => ['id', 'tenant_id', 'branch_id'],
+            'users'                          => ['is_super_admin', 'is_active', 'tenant_id', 'branch_id'],
+            'compliance_execution_batches'   => ['user_batch_number', 'branch_id', 'period_month', 'period_year'],
+            'compliance_forms_master'        => ['change_summary', 'effective_date', 'version_number', 'source_url'],
+            'compliance_batch_forms'         => ['updated_at'],
         ];
 
-        foreach ($columnChecks as $table => $columns) {
-            if (DB::connection()->getSchemaBuilder()->hasTable($table)) {
-                foreach ($columns as $column) {
-                    if (!DB::connection()->getSchemaBuilder()->hasColumn($table, $column)) {
-                        $issues[] = "Missing column: $table.$column";
-                    }
+        foreach ($columnChecks as $table => $cols) {
+            if (!Schema::hasTable($table)) continue;
+            foreach ($cols as $col) {
+                if (!Schema::hasColumn($table, $col)) {
+                    $issues[] = "Missing column: $table.$col";
                 }
             }
         }
 
-        $this->results['database'] = [
-            'status' => count($issues) === 0 ? 'pass' : 'error',
-            'tables_checked' => count($tables),
-            'issues' => $issues
-        ];
-
-        if (count($issues) > 0) {
-            $this->errors[] = "Database schema issues: " . implode(', ', $issues);
+        // Row counts
+        foreach (['tenants', 'branches', 'compliance_forms_master'] as $table) {
+            if (Schema::hasTable($table)) {
+                $info["$table rows"] = DB::table($table)->count();
+            }
         }
+
+        $this->record('Database', $issues, $warnings, $info);
     }
 
-    private function testSecurity(): void
+    // ── 3. Pending migrations ─────────────────────────────────────────────────
+
+    private function checkMigrations(): void
+    {
+        $issues   = [];
+        $warnings = [];
+        $info     = [];
+
+        try {
+            $ran = DB::table('migrations')->pluck('migration')->toArray();
+
+            $migrationFiles = collect(File::files(database_path('migrations')))
+                ->map(fn($f) => pathinfo($f->getFilename(), PATHINFO_FILENAME))
+                ->toArray();
+
+            $pending = array_diff($migrationFiles, $ran);
+
+            if (count($pending) > 0) {
+                foreach ($pending as $m) {
+                    $issues[] = "Pending migration: $m";
+                }
+            }
+
+            $info['total_migrations'] = count($migrationFiles);
+            $info['ran']              = count($ran);
+            $info['pending']          = count($pending);
+        } catch (Throwable $e) {
+            $warnings[] = "Could not check migrations: " . $e->getMessage();
+        }
+
+        $this->record('Migrations', $issues, $warnings, $info);
+    }
+
+    // ── 4. Storage / file permissions ────────────────────────────────────────
+
+    private function checkStoragePermissions(): void
+    {
+        $issues   = [];
+        $warnings = [];
+        $info     = [];
+
+        $paths = [
+            storage_path('logs')                          => 'logs dir',
+            storage_path('framework/views')               => 'view cache',
+            storage_path('framework/cache')               => 'cache dir',
+            storage_path('app/public')                    => 'public storage',
+            storage_path('app/compliance_pdfs')           => 'compliance PDFs',
+            storage_path('app/compliance_inspection_packs') => 'inspection packs',
+            public_path('build')                          => 'Vite build dir',
+            public_path('build/manifest.json')            => 'Vite manifest',
+        ];
+
+        foreach ($paths as $path => $label) {
+            if (!file_exists($path)) {
+                $issues[] = "Missing: $label ($path)";
+            } elseif (is_dir($path) && !is_writable($path)) {
+                $issues[] = "Not writable: $label";
+            } else {
+                $info[$label] = 'OK';
+            }
+        }
+
+        // Check log file size
+        $logFile = storage_path('logs/laravel.log');
+        if (file_exists($logFile)) {
+            $sizeMb = round(filesize($logFile) / 1024 / 1024, 2);
+            $info['log file size'] = "{$sizeMb} MB";
+            if ($sizeMb > 50) {
+                $warnings[] = "Log file is {$sizeMb} MB — consider rotating";
+            }
+        }
+
+        $this->record('Storage & Files', $issues, $warnings, $info);
+    }
+
+    // ── 5. Routes ─────────────────────────────────────────────────────────────
+
+    private function checkRoutes(): void
+    {
+        $issues  = [];
+        $info    = [];
+
+        $required = [
+            'compliance.dashboard', 'compliance.batch.create',
+            'batch.process.next', 'compliance.batch.preview',
+            'compliance.batch.inspectionPack', 'compliance.batch.form.pdf',
+            'super-admin.dashboard', 'super-admin.analytics',
+            'login', 'logout',
+        ];
+
+        foreach ($required as $name) {
+            if (Route::has($name)) {
+                $info[$name] = 'registered';
+            } else {
+                $issues[] = "Route not registered: $name";
+            }
+        }
+
+        $this->record('Routes', $issues, [], $info);
+    }
+
+    // ── 6. Controllers ────────────────────────────────────────────────────────
+
+    private function checkControllers(): void
     {
         $issues = [];
+        $info   = [];
 
-        $orchestratorPath = app_path('Services/Compliance/ComplianceOrchestrator.php');
-        $content = File::get($orchestratorPath);
-
-        if (strpos($content, 'validateSubscriptionAccess') === false) {
-            $issues[] = "Missing subscription validation";
-        }
-
-        if (strpos($content, 'tenant_id') === false) {
-            $issues[] = "Missing tenant_id validation";
-        }
-
-        if (strpos($content, 'branch_id') === false) {
-            $issues[] = "Missing branch_id validation";
-        }
-
-        $this->results['security'] = [
-            'status' => count($issues) === 0 ? 'pass' : 'error',
-            'checks' => ['subscription_gating', 'tenant_isolation', 'branch_isolation'],
-            'issues' => $issues
+        $controllers = [
+            app_path('Http/Controllers/BatchProcessingController.php'),
+            app_path('Http/Controllers/ComplianceDashboardController.php'),
+            app_path('Http/Controllers/ComplianceExecutionController.php'),
+            app_path('Http/Controllers/DataInputController.php'),
+            app_path('Http/Controllers/ManualComplianceController.php'),
+            app_path('Http/Controllers/ManualComplianceExecutionController.php'),
+            app_path('Http/Controllers/SuperAdmin/SuperAdminController.php'),
+            app_path('Http/Controllers/SuperAdmin/DashboardController.php'),
+            app_path('Http/Controllers/Compliance/CompliancePreviewController.php'),
         ];
 
-        if (count($issues) > 0) {
-            $this->errors[] = "Security issues: " . implode(', ', $issues);
+        foreach ($controllers as $path) {
+            $name = basename($path);
+            if (file_exists($path)) {
+                // Try to parse for syntax errors
+                $output = null;
+                exec("php -l " . escapeshellarg($path) . " 2>&1", $output, $code);
+                if ($code !== 0) {
+                    $issues[] = "Syntax error in $name: " . implode(' ', $output);
+                } else {
+                    $info[$name] = 'OK';
+                }
+            } else {
+                $issues[] = "Missing: $name";
+            }
         }
+
+        $this->record('Controllers', $issues, [], $info);
     }
 
-    private function testPdfGeneration(): void
+    // ── 7. Models ─────────────────────────────────────────────────────────────
+
+    private function checkModels(): void
     {
+        $issues   = [];
+        $warnings = [];
+        $info     = [];
+
+        $models = [
+            \App\Models\Tenant::class,
+            \App\Models\Branch::class,
+            \App\Models\User::class,
+            \App\Models\ComplianceExecutionBatch::class,
+            \App\Models\ComplianceBatchForm::class,
+            \App\Models\ComplianceFormsMaster::class,
+            \App\Models\ComplianceAuditLog::class,
+            \App\Models\AuditLog::class,
+            \App\Models\ComplianceGenerationLog::class,
+            \App\Models\ManualComplianceMaster::class,
+            \App\Models\ManualComplianceBatchItem::class,
+        ];
+
+        foreach ($models as $class) {
+            $short = class_basename($class);
+            try {
+                $instance = new $class();
+                $table    = $instance->getTable();
+                if (Schema::hasTable($table)) {
+                    $info[$short] = "table: $table ✓";
+                } else {
+                    $issues[] = "$short → table '$table' does not exist on DB";
+                }
+            } catch (Throwable $e) {
+                $issues[] = "$short failed to instantiate: " . $e->getMessage();
+            }
+        }
+
+        $this->record('Models', $issues, $warnings, $info);
+    }
+
+    // ── 8. Services ───────────────────────────────────────────────────────────
+
+    private function checkServices(): void
+    {
+        $issues   = [];
+        $warnings = [];
+        $info     = [];
+
+        $servicePaths = [
+            app_path('Services/Compliance/ComplianceOrchestrator.php')         => 'ComplianceOrchestrator',
+            app_path('Services/Compliance/FormApis/BaseFormApiService.php')    => 'BaseFormApiService',
+            app_path('Services/Compliance/FormApis/FormApiServiceFactory.php') => 'FormApiServiceFactory',
+            app_path('Services/Compliance/Audit/ComplianceAuditService.php')   => 'ComplianceAuditService',
+        ];
+
+        foreach ($servicePaths as $path => $label) {
+            if (file_exists($path)) {
+                $info[$label] = 'found';
+            } else {
+                $issues[] = "Missing service: $label";
+            }
+        }
+
+        // Count API services
+        $apiDir = app_path('Services/Compliance/FormApis');
+        if (is_dir($apiDir)) {
+            $count = count(array_filter(
+                File::files($apiDir),
+                fn($f) => str_ends_with($f->getFilename(), 'ApiService.php')
+                       && !in_array($f->getFilename(), ['BaseFormApiService.php', 'FormApiServiceFactory.php'])
+            ));
+            $info['API services found'] = $count;
+            if ($count < 30) {
+                $warnings[] = "Only $count API services found (expected ~34)";
+            }
+        }
+
+        // Count generators
+        $genDir = app_path('Services/Compliance/FormGenerator');
+        if (is_dir($genDir)) {
+            $count = count(array_filter(
+                File::files($genDir),
+                fn($f) => str_ends_with($f->getFilename(), 'Generator.php')
+                       && $f->getFilename() !== 'BaseFormGenerator.php'
+            ));
+            $info['Form generators found'] = $count;
+        }
+
+        $this->record('Services', $issues, $warnings, $info);
+    }
+
+    // ── 9. Blade templates ────────────────────────────────────────────────────
+
+    private function checkBladeTemplates(): void
+    {
+        $issues   = [];
+        $warnings = [];
+        $info     = [];
+
+        $viewDirs = [
+            resource_path('views/compliance/forms')   => 'compliance/forms',
+            resource_path('views/compliance/partials') => 'compliance/partials',
+            resource_path('views/super-admin')         => 'super-admin',
+        ];
+
+        foreach ($viewDirs as $dir => $label) {
+            if (!is_dir($dir)) {
+                $issues[] = "Missing view directory: $label";
+                continue;
+            }
+            $files = File::allFiles($dir);
+            $info["$label views"] = count($files);
+        }
+
+        // Check critical views exist
+        $criticalViews = [
+            resource_path('views/compliance/layouts/app.blade.php'),
+            resource_path('views/compliance/dashboard.blade.php'),
+            resource_path('views/super-admin/sa-dashboard.blade.php'),
+            resource_path('views/super-admin/layout.blade.php'),
+        ];
+
+        foreach ($criticalViews as $path) {
+            if (!file_exists($path)) {
+                $issues[] = "Missing critical view: " . str_replace(resource_path('views/'), '', $path);
+            }
+        }
+
+        $this->record('Blade Templates', $issues, $warnings, $info);
+    }
+
+    // ── 10. Laravel log — last 50 errors ─────────────────────────────────────
+
+    private function checkLaravelLog(): void
+    {
+        $issues   = [];
+        $warnings = [];
+        $info     = [];
+
+        $logFile = storage_path('logs/laravel.log');
+
+        if (!file_exists($logFile)) {
+            $warnings[] = 'laravel.log not found';
+            $this->record('Laravel Log', $issues, $warnings, $info);
+            return;
+        }
+
+        // Read last 300 lines efficiently
+        $file = new \SplFileObject($logFile, 'r');
+        $file->seek(PHP_INT_MAX);
+        $total = $file->key();
+        $start = max(0, $total - 300);
+        $file->seek($start);
+
+        $lines      = [];
+        $errorLines = [];
+
+        while (!$file->eof()) {
+            $line = rtrim($file->current());
+            $file->next();
+            if ($line === '') continue;
+            $lines[] = $line;
+            if (preg_match('/\.(ERROR|CRITICAL|ALERT|EMERGENCY)/', $line)) {
+                $errorLines[] = $line;
+            }
+        }
+
+        // Group unique error messages
+        $uniqueErrors = [];
+        foreach ($errorLines as $line) {
+            if (preg_match('/\] \w+\.(?:ERROR|CRITICAL): (.+?)(?:\s*\{|$)/', $line, $m)) {
+                $msg = trim($m[1]);
+                $uniqueErrors[$msg] = ($uniqueErrors[$msg] ?? 0) + 1;
+            }
+        }
+
+        arsort($uniqueErrors);
+
+        $info['total_error_lines_in_last_300'] = count($errorLines);
+        $info['unique_error_types']            = count($uniqueErrors);
+
+        foreach (array_slice($uniqueErrors, 0, 15, true) as $msg => $cnt) {
+            $issues[] = "[{$cnt}x] $msg";
+        }
+
+        // Surface the last 20 raw log lines for context
+        $info['last_20_log_lines'] = array_slice($lines, -20);
+
+        $this->record('Laravel Log (last 300 lines)', $issues, $warnings, $info);
+    }
+
+    // ── 11. Orchestrator smoke test ───────────────────────────────────────────
+
+    private function checkOrchestrator(): void
+    {
+        $issues   = [];
+        $warnings = [];
+        $info     = [];
+
+        $tenant = Tenant::first();
+        if (!$tenant) {
+            $warnings[] = 'No tenant in DB — skipping orchestrator smoke test';
+            $this->record('Orchestrator Smoke Test', $issues, $warnings, $info);
+            return;
+        }
+
+        $branch = Branch::where('tenant_id', $tenant->id)->first();
+        if (!$branch) {
+            $warnings[] = "No branch for tenant #{$tenant->id}";
+            $this->record('Orchestrator Smoke Test', $issues, $warnings, $info);
+            return;
+        }
+
+        // Pick first active form
+        $form = ComplianceFormsMaster::where('is_active', true)->first();
+        if (!$form) {
+            $warnings[] = 'No active forms in compliance_forms_master';
+            $this->record('Orchestrator Smoke Test', $issues, $warnings, $info);
+            return;
+        }
+
         try {
-            $tenant = Tenant::first();
-            if (!$tenant) {
-                $this->results['pdf_generation'] = ['status' => 'warning', 'message' => 'No test data'];
-                return;
-            }
-
-            $branch = Branch::where('tenant_id', $tenant->id)->first();
-            if (!$branch) {
-                $this->results['pdf_generation'] = ['status' => 'warning', 'message' => 'No branch data'];
-                return;
-            }
-
+            $t0     = microtime(true);
             $result = $this->orchestrator->execute(
-                $tenant->id,
-                $branch->id,
-                now()->month,
-                now()->year,
-                'FORM_B',
-                'pdf'
+                $tenant->id, $branch->id,
+                now()->month, now()->year,
+                $form->form_code, 'preview'
             );
+            $ms = round((microtime(true) - $t0) * 1000);
 
-            $this->results['pdf_generation'] = [
-                'status' => $result['status'] === 'success' ? 'pass' : 'error',
-                'size' => $result['result']['size'] ?? 0,
-                'mime_type' => $result['result']['mime_type'] ?? 'unknown'
-            ];
+            $info['tenant']    = $tenant->name;
+            $info['branch']    = $branch->branch_name;
+            $info['form_code'] = $form->form_code;
+            $info['time_ms']   = $ms;
+            $info['status']    = $result['status'];
 
             if ($result['status'] !== 'success') {
-                $this->errors[] = "PDF generation failed: " . ($result['error'] ?? 'Unknown error');
+                $issues[] = "Orchestrator returned non-success for {$form->form_code}: " . ($result['error'] ?? 'unknown');
             }
-        } catch (\Exception $e) {
-            $this->errors[] = "PDF test failed: " . $e->getMessage();
-            $this->results['pdf_generation'] = ['status' => 'error', 'message' => $e->getMessage()];
+        } catch (Throwable $e) {
+            $issues[] = "Orchestrator threw: " . $e->getMessage();
+            $info['trace_hint'] = $e->getFile() . ':' . $e->getLine();
         }
+
+        $this->record('Orchestrator Smoke Test', $issues, $warnings, $info);
     }
 
-    private function testInspectionPack(): void
+    // ── Helper ────────────────────────────────────────────────────────────────
+
+    private function record(string $name, array $errors, array $warnings = [], array $info = []): void
     {
-        $packPath = storage_path('app/compliance_inspection_packs');
-        if (!is_dir($packPath)) {
-            mkdir($packPath, 0755, true);
-        }
-        $exists = is_dir($packPath);
-
-        $this->results['inspection_pack'] = [
-            'status' => 'pass',
-            'directory_exists' => $exists,
-            'path' => $packPath
-        ];
-    }
-
-    private function testPerformance(): void
-    {
-        try {
-            $tenant = Tenant::first();
-            if (!$tenant) {
-                $this->results['performance'] = ['status' => 'warning', 'message' => 'No test data'];
-                return;
-            }
-
-            $branch = Branch::where('tenant_id', $tenant->id)->first();
-            if (!$branch) {
-                $this->results['performance'] = ['status' => 'warning', 'message' => 'No branch data'];
-                return;
-            }
-
-            $modes = ['preview', 'pdf'];
-            $metrics = [];
-
-            foreach ($modes as $mode) {
-                $start = microtime(true);
-                $result = $this->orchestrator->execute(
-                    $tenant->id,
-                    $branch->id,
-                    now()->month,
-                    now()->year,
-                    'FORM_B',
-                    $mode
-                );
-                $time = (int)((microtime(true) - $start) * 1000);
-
-                $metrics[$mode] = [
-                    'execution_time' => $time,
-                    'status' => $result['status']
-                ];
-
-                $this->performanceMetrics[$mode] = $time;
-            }
-
-            $this->results['performance'] = [
-                'status' => 'pass',
-                'metrics' => $metrics
-            ];
-        } catch (\Exception $e) {
-            $this->results['performance'] = ['status' => 'error', 'message' => $e->getMessage()];
-        }
-    }
-
-    private function calculateHealthScore(): int
-    {
-        $total = count($this->results);
-        if ($total === 0) return 0;
-
-        $passed = 0;
-        $warnings = 0;
-        
-        foreach ($this->results as $result) {
-            if (isset($result['status'])) {
-                if ($result['status'] === 'pass') {
-                    $passed++;
-                } elseif ($result['status'] === 'warning') {
-                    $warnings++;
-                }
-            }
-        }
-
-        // Health score: pass = 100%, warning = 90%, error = 0%
-        $score = ($passed * 100 + $warnings * 90) / $total;
-        return (int)$score;
+        $status = count($errors) > 0 ? 'error' : (count($warnings) > 0 ? 'warning' : 'pass');
+        $this->results[$name] = compact('status', 'errors', 'warnings', 'info');
     }
 }
