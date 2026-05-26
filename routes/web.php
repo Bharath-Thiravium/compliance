@@ -259,22 +259,10 @@ Route::get('/_ops/deploy', function (Request $request) {
     $token = (string) config('app.ops_token', '');
     if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
     $out = [];
-
-    // git pull
-    $gitDir = base_path();
-    $pull = shell_exec("cd {$gitDir} && git pull origin main 2>&1");
-    $out['git_pull'] = $pull ?? 'shell_exec disabled';
-
-    // composer dump-autoload
-    $composer = shell_exec("cd {$gitDir} && composer dump-autoload --optimize --no-dev 2>&1");
-    $out['composer'] = $composer ?? 'shell_exec disabled';
-
-    // artisan caches
     Artisan::call('optimize:clear'); $out['optimize:clear'] = trim(Artisan::output());
     Artisan::call('config:cache');   $out['config:cache']   = trim(Artisan::output());
     Artisan::call('route:cache');    $out['route:cache']    = trim(Artisan::output());
     Artisan::call('view:cache');     $out['view:cache']     = trim(Artisan::output());
-
     return response()->json(['ok' => true, 'output' => $out]);
 });
 
