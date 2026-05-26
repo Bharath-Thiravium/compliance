@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 Route::get('/login',     [AuthController::class, 'showLogin'])->name('login');
@@ -122,6 +123,7 @@ Route::get('/_ops/fix-missing-tables', function (Request $request) {
 Route::get('/_ops/verify', function (Request $request) {
     $token = (string) config('app.ops_token', '');
     if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
+    $orchPath = app_path('Services/Compliance/ComplianceOrchestrator.php');
     return response()->json([
         'ok'        => true,
         'timestamp' => now()->toDateTimeString(),
@@ -133,10 +135,92 @@ Route::get('/_ops/verify', function (Request $request) {
             'compliance_pdfs'             => is_dir(storage_path('app/compliance_pdfs')),
             'compliance_inspection_packs' => is_dir(storage_path('app/compliance_inspection_packs')),
         ],
-        'orchestrator_fix_live' => str_contains(
-            file_get_contents(app_path('Services/Compliance/ComplianceOrchestrator.php')),
-            'batch_id=0 means preview'
+        'orchestrator_fix_live' => file_exists($orchPath) && str_contains(
+            file_get_contents($orchPath), 'batch_id=0 means preview'
         ),
+    ]);
+});
+
+Route::get('/_ops/diff', function (Request $request) {
+    $token = (string) config('app.ops_token', '');
+    if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
+
+    $env = [
+        'APP_ENV'        => config('app.env'),
+        'APP_DEBUG'      => config('app.debug') ? 'true' : 'false',
+        'APP_URL'        => config('app.url'),
+        'APP_KEY_SET'    => config('app.key') ? 'yes' : 'NO',
+        'DB_HOST'        => config('database.connections.mysql.host'),
+        'DB_DATABASE'    => config('database.connections.mysql.database'),
+        'PHP_VERSION'    => PHP_VERSION,
+        'LARAVEL'        => app()->version(),
+        'CACHE_DRIVER'   => config('cache.default'),
+        'SESSION_DRIVER' => config('session.driver'),
+        'QUEUE_CONN'     => config('queue.default'),
+    ];
+
+    $tableNames = [
+        'users','tenants','branches','compliance_execution_batches',
+        'compliance_batch_forms','compliance_forms_master','compliance_sections',
+        'compliance_generation_logs','compliance_audit_logs',
+        'compliance_form_audit_scores','compliance_manual_master',
+        'compliance_manual_batch_items','workforce_employee',
+        'workforce_attendance','payroll_entries','bonus_records',
+        'payroll_cycles','migrations',
+    ];
+    $dbTables = [];
+    foreach ($tableNames as $t) {
+        try {
+            $dbTables[$t] = Schema::hasTable($t) ? DB::table($t)->count() : 'MISSING';
+        } catch (\Throwable $e) {
+            $dbTables[$t] = 'ERROR: ' . $e->getMessage();
+        }
+    }
+
+    $migFiles = count(glob(database_path('migrations/*.php')) ?: []);
+    $migRan   = 0;
+    try { $migRan = DB::table('migrations')->count(); } catch (\Throwable) {}
+
+    $apiList   = array_values(array_map('basename', array_filter(
+        glob(app_path('Services/Compliance/FormApis/*ApiService.php')) ?: [],
+        fn($f) => !in_array(basename($f), ['BaseFormApiService.php', 'FormApiServiceFactory.php'])
+    )));
+    $genList   = array_values(array_map('basename', array_filter(
+        glob(app_path('Services/Compliance/FormGenerator/*Generator.php')) ?: [],
+        fn($f) => basename($f) !== 'BaseFormGenerator.php'
+    )));
+    $bladeList = array_values(array_map('basename',
+        glob(resource_path('views/compliance/forms/*.blade.php')) ?: []
+    ));
+    sort($apiList); sort($genList); sort($bladeList);
+
+    $keyFiles = [
+        'ComplianceOrchestrator'    => app_path('Services/Compliance/ComplianceOrchestrator.php'),
+        'BatchProcessingController' => app_path('Http/Controllers/BatchProcessingController.php'),
+        'ComplianceTestAnalyzer'    => app_path('Services/Compliance/Testing/ComplianceTestAnalyzer.php'),
+        'web.php'                   => base_path('routes/web.php'),
+        'AppServiceProvider'        => app_path('Providers/AppServiceProvider.php'),
+        'dashboard.blade.php'       => resource_path('views/compliance/dashboard.blade.php'),
+    ];
+    $fileSizes = [];
+    foreach ($keyFiles as $name => $path) {
+        $fileSizes[$name] = file_exists($path) ? filesize($path) . ' bytes' : 'MISSING';
+    }
+
+    $orchPath = app_path('Services/Compliance/ComplianceOrchestrator.php');
+
+    return response()->json([
+        'server'           => 'production',
+        'timestamp'        => now()->toDateTimeString(),
+        'env'              => $env,
+        'db_tables'        => $dbTables,
+        'migrations'       => ['files' => $migFiles, 'ran' => $migRan, 'pending' => $migFiles - $migRan],
+        'file_counts'      => ['api_services' => count($apiList), 'generators' => count($genList), 'blade_templates' => count($bladeList)],
+        'api_services'     => $apiList,
+        'generators'       => $genList,
+        'blade_templates'  => $bladeList,
+        'key_file_sizes'   => $fileSizes,
+        'orchestrator_fix' => file_exists($orchPath) && str_contains(file_get_contents($orchPath), 'batch_id=0 means preview'),
     ]);
 });
 
