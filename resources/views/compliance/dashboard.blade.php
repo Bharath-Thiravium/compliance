@@ -88,6 +88,12 @@
                             break;
                         }
 
+                        if (data.status === 'error') {
+                            this.processing = false;
+                            alert('Processing failed: ' + (data.message || 'Unknown error'));
+                            break;
+                        }
+
                         if (data.status === 'processing') {
                             this.updateProgress(data);
                             await new Promise(resolve => setTimeout(resolve, 500));

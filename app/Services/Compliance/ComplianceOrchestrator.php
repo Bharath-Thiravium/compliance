@@ -84,7 +84,7 @@ class ComplianceOrchestrator
                 'records_generated' => count($formData['rows'] ?? []),
                 'result' => $result
             ];
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $executionTime = (int)((microtime(true) - $startTime) * 1000);
             $this->logExecution($tenantId, $branchId, $batchId ?? 0, $formCode, 'failed', $executionTime, 0, $e->getMessage(), $mode);
 

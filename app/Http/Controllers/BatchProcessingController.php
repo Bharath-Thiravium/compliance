@@ -68,10 +68,15 @@ class BatchProcessingController extends Controller
             $nextForm->update(['status' => 'processing']);
 
             try {
+                $branchId = \App\Services\Compliance\ComplianceContextValidator::resolveBranchSafe(
+                    $batchModel->tenant_id,
+                    $batchModel->branch_id
+                );
+
                 // Process the form
                 $result = $this->orchestrator->execute(
                     $batchModel->tenant_id,
-                    $batchModel->branch_id,
+                    $branchId,
                     $batchModel->period_month,
                     $batchModel->period_year,
                     $nextForm->form_code,
