@@ -52,9 +52,15 @@ class ComplianceTestAnalyzer
     {
         $errors = []; $warnings = []; $info = [];
         try {
-            foreach (['APP_KEY', 'APP_URL', 'DB_HOST', 'DB_DATABASE', 'DB_USERNAME'] as $k) {
-                $v = env($k);
-                if (empty($v)) $errors[] = "$k is not set in .env";
+            // Use config() not env() — env() returns null when config is cached
+            foreach ([
+                'APP_KEY'      => config('app.key'),
+                'APP_URL'      => config('app.url'),
+                'DB_HOST'      => config('database.connections.mysql.host'),
+                'DB_DATABASE'  => config('database.connections.mysql.database'),
+                'DB_USERNAME'  => config('database.connections.mysql.username'),
+            ] as $k => $v) {
+                if (empty($v)) $errors[] = "$k is not set";
                 else $info[$k] = $k === 'APP_KEY' ? '(set ✓)' : $v;
             }
             if (config('app.env') === 'local')   $errors[]   = 'APP_ENV=local — should be production';
