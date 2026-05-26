@@ -64,8 +64,5 @@ Route::prefix('super-admin')
         Route::get('/change-password',       [PasswordController::class, 'showChangeForm'])->name('change-password');
         Route::post('/change-password',      [PasswordController::class, 'updatePassword'])->name('change-password.update');
 
-        // All Users' Batches
-        Route::get('/batches',               [BatchesController::class, 'index'])->name('batches.index');
-        Route::get('/batches/{id}',          [BatchesController::class, 'show'])->name('batches.show');
 
     });
