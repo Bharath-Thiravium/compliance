@@ -12,7 +12,7 @@ class FrequencyEngine
      */
     public function getApplicableForms(int $month, ?int $tenantId = null): Collection
     {
-        $forms = ComplianceFormsMaster::where('is_active', true)->get();
+        $forms = ComplianceFormsMaster::where('is_active', true)->where('upload_only', 0)->get();
         
         return $forms->filter(fn($form) => $this->isApplicable($form->frequency, $month));
     }
