@@ -387,58 +387,34 @@ Route::get('/_ops/db-inspect', function (Request $request) {
 
     $out = [];
 
-    // Tenant & branch details
-    $out['tenant'] = (array) DB::table('tenants')->where('id', $tenantId)->first();
-    $out['branch'] = (array) DB::table('branches')->where('id', $branchId)->first();
+    // All tenants and branches
+    $out['all_tenants'] = DB::table('tenants')->select('id','name','establishment_name')->get()->map(fn($r)=>(array)$r)->toArray();
+    $out['all_branches'] = DB::table('branches')->select('id','tenant_id','branch_name')->get()->map(fn($r)=>(array)$r)->toArray();
 
-    // All tables with row counts scoped to tenant/branch
-    $scoped = [
-        'workforce_employee'   => ['tenant_id'=>$tenantId,'branch_id'=>$branchId],
-        'workforce_attendance' => ['tenant_id'=>$tenantId,'branch_id'=>$branchId],
-        'bonus_records'        => ['tenant_id'=>$tenantId,'branch_id'=>$branchId],
-    ];
-    foreach ($scoped as $table => $where) {
+    // Data distribution across ALL tenants
+    foreach (['workforce_employee','workforce_attendance','workforce_payroll_entry'] as $t) {
+        if (!Schema::hasTable($t)) { $out['data_by_tenant'][$t] = 'MISSING'; continue; }
         try {
-            $out['counts'][$table] = Schema::hasTable($table)
-                ? DB::table($table)->where($where)->count() : 'MISSING';
-        } catch (\Throwable $e) { $out['counts'][$table] = 'ERR:'.$e->getMessage(); }
-    }
-
-    // Payroll tables — check both possible names
-    foreach (['workforce_payroll_entry','workforce_payroll_cycle','payroll_entries','payroll_cycles'] as $t) {
-        try {
-            $out['payroll_tables'][$t] = Schema::hasTable($t) ? DB::table($t)->count().' rows' : 'MISSING';
-        } catch (\Throwable $e) { $out['payroll_tables'][$t] = 'ERR'; }
-    }
-
-    // Attendance periods available
-    try {
-        $out['attendance_periods'] = DB::table('workforce_attendance')
-            ->where('tenant_id', $tenantId)
-            ->selectRaw('YEAR(attendance_date) as y, MONTH(attendance_date) as m, COUNT(*) as cnt')
-            ->groupBy('y','m')->orderBy('y','desc')->orderBy('m','desc')
-            ->get()->map(fn($r)=>(array)$r)->toArray();
-    } catch (\Throwable $e) { $out['attendance_periods'] = 'ERR:'.$e->getMessage(); }
-
-    // Payroll entry periods (try both table names)
-    foreach (['workforce_payroll_entry','payroll_entries'] as $t) {
-        if (!Schema::hasTable($t)) continue;
-        try {
-            $cycleTable = Schema::hasTable('workforce_payroll_cycle') ? 'workforce_payroll_cycle' : 'payroll_cycles';
-            $out['payroll_periods'][$t] = DB::table($t.' as pe')
-                ->join($cycleTable.' as pc','pc.id','=','pe.payroll_cycle_id')
-                ->where('pe.tenant_id',$tenantId)
-                ->selectRaw('YEAR(pc.period_from) as y, MONTH(pc.period_from) as m, COUNT(*) as cnt')
-                ->groupBy('y','m')->orderBy('y','desc')->orderBy('m','desc')
+            $out['data_by_tenant'][$t] = DB::table($t)
+                ->selectRaw('tenant_id, branch_id, COUNT(*) as cnt')
+                ->groupBy('tenant_id','branch_id')
                 ->get()->map(fn($r)=>(array)$r)->toArray();
-        } catch (\Throwable $e) { $out['payroll_periods'][$t] = 'ERR:'.$e->getMessage(); }
+        } catch (\Throwable $e) { $out['data_by_tenant'][$t] = 'ERR:'.$e->getMessage(); }
     }
 
-    // Sample employee
+    // Payroll cycle periods
+    foreach (['workforce_payroll_cycle','payroll_cycles'] as $t) {
+        if (!Schema::hasTable($t)) continue;
+        $out['cycles'][$t] = DB::table($t)->get()->map(fn($r)=>(array)$r)->toArray();
+    }
+
+    // Attendance periods for ALL tenants
     try {
-        $out['sample_employee'] = (array) DB::table('workforce_employee')
-            ->where('tenant_id',$tenantId)->first();
-    } catch (\Throwable $e) { $out['sample_employee'] = 'ERR:'.$e->getMessage(); }
+        $out['attendance_periods_all'] = DB::table('workforce_attendance')
+            ->selectRaw('tenant_id, branch_id, YEAR(attendance_date) as y, MONTH(attendance_date) as m, COUNT(*) as cnt')
+            ->groupBy('tenant_id','branch_id','y','m')
+            ->get()->map(fn($r)=>(array)$r)->toArray();
+    } catch (\Throwable $e) { $out['attendance_periods_all'] = 'ERR:'.$e->getMessage(); }
 
     return response()->json($out, 200, [], JSON_PRETTY_PRINT);
 });
