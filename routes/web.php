@@ -433,16 +433,6 @@ Route::get('/_ops/db-inspect', function (Request $request) {
     return response()->json($out, 200, [], JSON_PRETTY_PRINT);
 });
 
-Route::get('/_ops/make-super-admin', function (\Illuminate\Http\Request $request) {
-    $token = (string) config('app.ops_token', '');
-    if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
-    $email = (string) $request->query('email', '');
-    if (!$email) return response()->json(['error' => 'email param required'], 400);
-    $updated = DB::table('users')->where('email', $email)->update(['is_super_admin' => 1]);
-    $user = DB::table('users')->where('email', $email)->first();
-    return response()->json(['ok' => $updated > 0, 'user' => $user ? ['id'=>$user->id,'email'=>$user->email,'is_super_admin'=>$user->is_super_admin] : null]);
-});
-
 Route::get('/_ops/routes-check', function (\Illuminate\Http\Request $request) {
     $token = (string) config('app.ops_token', '');
     if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
