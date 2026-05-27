@@ -433,6 +433,17 @@ Route::get('/_ops/db-inspect', function (Request $request) {
     return response()->json($out, 200, [], JSON_PRETTY_PRINT);
 });
 
+Route::get('/_ops/routes-check', function (\Illuminate\Http\Request $request) {
+    $token = (string) config('app.ops_token', '');
+    if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
+    $check = ['csv.template.employees','csv.template.payroll','csv.template.attendance','data.upload-multi.form','data.upload-csv'];
+    $out = [];
+    foreach ($check as $name) {
+        try { $out[$name] = route($name); } catch (\Throwable $e) { $out[$name] = 'MISSING: '.$e->getMessage(); }
+    }
+    return response()->json($out, 200, [], JSON_PRETTY_PRINT);
+});
+
 Route::get('/_ops/session-check', function (Request $request) {
     $token = (string) config('app.ops_token', '');
     if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
