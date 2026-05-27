@@ -492,20 +492,20 @@
                                 <div class="mb-3">
                                     <label class="form-label"><strong>Employees Data</strong></label>
                                     <textarea class="form-control" name="employees_data" rows="4"
-                                        placeholder="Name, Designation, Salary (one per line)&#10;e.g. John Doe, Operator, 18000"></textarea>
-                                    <small class="text-muted">Format: Name, Designation, Salary (one per line)</small>
+                                        placeholder="Name, Designation, Salary (one per line)&#10;e.g. John Doe, Operator, 18000&#10;or EMP001, John Doe, Operator, 18000"></textarea>
+                                    <small class="text-muted">Format: Name, Designation, Salary or Employee Code, Name, Designation, Salary</small>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label"><strong>Attendance Data</strong></label>
                                     <textarea class="form-control" name="attendance_data" rows="4"
-                                        placeholder="Employee Name, Days Present, Days Absent (one per line)&#10;e.g. John Doe, 26, 0"></textarea>
-                                    <small class="text-muted">Format: Employee Name, Days Present, Days Absent (one per line)</small>
+                                        placeholder="Employee Name/Code, Days Present, Days Absent (one per line)&#10;e.g. John Doe, 26, 0&#10;or EMP001, 26, 0"></textarea>
+                                    <small class="text-muted">Format: Employee Name or Code, Days Present, Days Absent</small>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label"><strong>Payroll Data</strong></label>
                                     <textarea class="form-control" name="payroll_data" rows="4"
-                                        placeholder="Employee Name, Basic, HRA, Deductions, Net Pay (one per line)&#10;e.g. John Doe, 18000, 2000, 1800, 18200"></textarea>
-                                    <small class="text-muted">Format: Employee Name, Basic, HRA, Deductions, Net Pay (one per line)</small>
+                                        placeholder="Employee Name/Code, Basic, HRA, Deductions, Net Pay (one per line)&#10;e.g. John Doe, 18000, 2000, 1800, 18200&#10;or EMP001, 18000, 2000, 1800, 18200"></textarea>
+                                    <small class="text-muted">Format: Employee Name or Code, Basic, HRA, Deductions, Net Pay</small>
                                 </div>
                             </form>
                         </div>

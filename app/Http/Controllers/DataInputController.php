@@ -33,20 +33,390 @@ class DataInputController extends Controller
                 'attendance_data'=> 'nullable|string',
             ]);
 
-            // Store in session only — no DB writes
-            session(["manual_batch_data_{$batchId}" => [
-                'employees'  => $validated['employees_data']  ?? '',
-                'attendance' => $validated['attendance_data'] ?? '',
-                'payroll'    => $validated['payroll_data']    ?? '',
-            ]]);
+            $branchId = $this->resolveBatchBranchId($batch);
+            $employees = $this->parseManualEmployees($validated['employees_data'] ?? '');
+            $attendance = $this->parseManualAttendance($validated['attendance_data'] ?? '');
+            $payroll = $this->parseManualPayroll($validated['payroll_data'] ?? '');
 
-            Log::info("Manual data stored in session for batch {$batchId}");
+            $counts = DB::transaction(function () use ($batch, $branchId, $employees, $attendance, $payroll) {
+                $employeeMaps = $this->upsertManualEmployees($employees, $batch->tenant_id, $branchId);
+                $cycleId = $this->resolveManualPayrollCycle($batch);
 
-            return response()->json(['status' => 'success', 'message' => 'Data saved successfully']);
+                $this->replaceManualPayroll($payroll, $employeeMaps, $batch->tenant_id, $branchId, $cycleId);
+                $this->replaceManualAttendance($attendance, $employeeMaps, $batch->tenant_id, $branchId, $batch);
+
+                ComplianceBatchForm::where('batch_id', $batch->id)->update([
+                    'status' => 'pending',
+                    'file_path' => 'storage/forms/pending/placeholder.pdf',
+                    'updated_at' => now(),
+                ]);
+
+                $batch->update([
+                    'branch_id' => $branchId,
+                    'status' => 'pending',
+                    'updated_at' => now(),
+                ]);
+
+                return [
+                    'employees' => count($employeeMaps['ids']),
+                    'payroll' => count($payroll),
+                    'attendance' => count($attendance),
+                ];
+            });
+
+            Log::info('Manual data persisted for batch', [
+                'batch_id' => $batchId,
+                'tenant_id' => $batch->tenant_id,
+                'branch_id' => $branchId,
+                'counts' => $counts,
+            ]);
+
+            try {
+                $generationResult = $this->maybeGenerateForms($batch->fresh());
+            } catch (\Throwable $generationError) {
+                Log::error('Manual data generation trigger failed', [
+                    'batch_id' => $batchId,
+                    'error' => $generationError->getMessage(),
+                ]);
+                $generationResult = ['triggered' => false, 'reason' => $generationError->getMessage()];
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Manual data saved for this tenant, branch, and period',
+                'counts' => $counts,
+                'generation' => $generationResult,
+            ]);
         } catch (\Exception $e) {
             Log::error('Manual data save error', ['batch_id' => $batchId, 'error' => $e->getMessage()]);
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
+    }
+
+    private function resolveBatchBranchId(ComplianceExecutionBatch $batch): int
+    {
+        if ($batch->branch_id) {
+            $exists = DB::table('branches')
+                ->where('tenant_id', $batch->tenant_id)
+                ->where('id', $batch->branch_id)
+                ->exists();
+
+            if ($exists) {
+                return (int) $batch->branch_id;
+            }
+        }
+
+        $userBranchId = Auth::user()->branch_id ?? null;
+        if ($userBranchId) {
+            $exists = DB::table('branches')
+                ->where('tenant_id', $batch->tenant_id)
+                ->where('id', $userBranchId)
+                ->exists();
+
+            if ($exists) {
+                return (int) $userBranchId;
+            }
+        }
+
+        $branchId = DB::table('branches')
+            ->where('tenant_id', $batch->tenant_id)
+            ->orderBy('id')
+            ->value('id');
+
+        if (! $branchId) {
+            $branchId = DB::table('branches')->insertGetId([
+                'tenant_id' => $batch->tenant_id,
+                'branch_name' => 'Main Branch',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        return (int) $branchId;
+    }
+
+    private function parseManualEmployees(string $input): array
+    {
+        $rows = [];
+        foreach ($this->manualLines($input) as $index => $line) {
+            $cols = $this->manualColumns($line);
+            if (count($cols) < 3) {
+                throw new \InvalidArgumentException('Employees manual data format: use name, designation, salary or employee_code, name, designation, salary.');
+            }
+
+            $hasCode = count($cols) >= 4;
+            $name = $hasCode ? $cols[1] : $cols[0];
+            $rows[] = [
+                'employee_code' => $hasCode ? $cols[0] : $this->manualEmployeeCode($name),
+                'name' => $name,
+                'designation' => $hasCode ? ($cols[2] ?? null) : ($cols[1] ?? null),
+                'basic_salary' => $hasCode ? ($cols[3] ?? 0) : ($cols[2] ?? 0),
+                'date_of_joining' => now()->toDateString(),
+                'status' => 'active',
+                '_line' => $index + 1,
+            ];
+        }
+
+        if (empty($rows)) {
+            throw new \InvalidArgumentException('Employees manual data is required.');
+        }
+
+        return $rows;
+    }
+
+    private function parseManualAttendance(string $input): array
+    {
+        $rows = [];
+        foreach ($this->manualLines($input) as $index => $line) {
+            $cols = $this->manualColumns($line);
+            if (count($cols) < 3) {
+                throw new \InvalidArgumentException('Attendance manual data format: use employee_code/name, present_days, absent_days.');
+            }
+
+            $present = CsvNormalizer::normalizeInt($cols[1] ?? null);
+            $absent = CsvNormalizer::normalizeInt($cols[2] ?? null);
+            $rows[] = [
+                'employee_ref' => $cols[0],
+                'present_days' => $present,
+                'absent_days' => $absent,
+                'working_days' => $present + $absent,
+                '_line' => $index + 1,
+            ];
+        }
+
+        if (empty($rows)) {
+            throw new \InvalidArgumentException('Attendance manual data is required.');
+        }
+
+        return $rows;
+    }
+
+    private function parseManualPayroll(string $input): array
+    {
+        $rows = [];
+        foreach ($this->manualLines($input) as $index => $line) {
+            $cols = $this->manualColumns($line);
+            if (count($cols) < 5) {
+                throw new \InvalidArgumentException('Payroll manual data format: use employee_code/name, basic, hra, deductions, net_pay.');
+            }
+
+            $basic = CsvNormalizer::normalizeFloat($cols[1] ?? null);
+            $hra = CsvNormalizer::normalizeFloat($cols[2] ?? null);
+            $deductions = CsvNormalizer::normalizeFloat($cols[3] ?? null);
+            $net = CsvNormalizer::normalizeFloat($cols[4] ?? null);
+            $gross = max($basic + $hra, $net + $deductions);
+
+            $rows[] = [
+                'employee_ref' => $cols[0],
+                'basic_earned' => $basic,
+                'hra_earned' => $hra,
+                'gross_salary' => $gross,
+                'total_deductions' => $deductions,
+                'net_salary' => $net,
+                '_line' => $index + 1,
+            ];
+        }
+
+        if (empty($rows)) {
+            throw new \InvalidArgumentException('Payroll manual data is required.');
+        }
+
+        return $rows;
+    }
+
+    private function manualLines(string $input): array
+    {
+        return array_values(array_filter(
+            preg_split('/\r\n|\r|\n/', trim($input)) ?: [],
+            fn (string $line): bool => trim($line) !== ''
+        ));
+    }
+
+    private function manualColumns(string $line): array
+    {
+        return array_map('trim', str_getcsv($line));
+    }
+
+    private function manualEmployeeCode(string $name): string
+    {
+        return 'MAN' . strtoupper(substr(hash('crc32b', strtolower(trim($name))), 0, 6));
+    }
+
+    private function upsertManualEmployees(array $rows, int $tenantId, int $branchId): array
+    {
+        $ids = [];
+        $refs = [];
+
+        foreach ($rows as $row) {
+            $code = trim($row['employee_code']);
+            $payload = [
+                'tenant_id' => $tenantId,
+                'branch_id' => $branchId,
+                'employee_code' => $code,
+                'name' => $row['name'],
+                'designation' => $row['designation'] ?? null,
+                'date_of_joining' => $this->parseDate($row['date_of_joining'] ?? null) ?? now()->toDateString(),
+                'basic_salary' => CsvNormalizer::normalizeFloat((string) ($row['basic_salary'] ?? 0)),
+                'status' => $row['status'] ?? 'active',
+                'updated_at' => now(),
+            ];
+
+            $existingId = DB::table('workforce_employee')
+                ->where('tenant_id', $tenantId)
+                ->where('employee_code', $code)
+                ->value('id');
+
+            if ($existingId) {
+                DB::table('workforce_employee')->where('id', $existingId)->update(
+                    array_diff_key($payload, ['tenant_id' => 1, 'employee_code' => 1])
+                );
+                $id = (int) $existingId;
+            } else {
+                $id = DB::table('workforce_employee')->insertGetId($payload + ['created_at' => now()]);
+            }
+
+            $ids[$code] = $id;
+            $refs[$this->manualRefKey($code)] = $id;
+            $refs[$this->manualRefKey($row['name'])] = $id;
+        }
+
+        return ['ids' => $ids, 'refs' => $refs];
+    }
+
+    private function resolveManualPayrollCycle(ComplianceExecutionBatch $batch): int
+    {
+        $periodFrom = $batch->period_from?->toDateString()
+            ?? \Carbon\Carbon::create($batch->period_year, $batch->period_month, 1)->startOfMonth()->toDateString();
+        $periodTo = $batch->period_to?->toDateString()
+            ?? \Carbon\Carbon::parse($periodFrom)->endOfMonth()->toDateString();
+
+        $cycleId = DB::table('workforce_payroll_cycle')
+            ->where('tenant_id', $batch->tenant_id)
+            ->whereDate('period_from', $periodFrom)
+            ->whereDate('period_to', $periodTo)
+            ->value('id');
+
+        if ($cycleId) {
+            return (int) $cycleId;
+        }
+
+        return DB::table('workforce_payroll_cycle')->insertGetId([
+            'tenant_id' => $batch->tenant_id,
+            'cycle_name' => 'Manual Entry ' . \Carbon\Carbon::parse($periodFrom)->format('M Y'),
+            'period_from' => $periodFrom,
+            'period_to' => $periodTo,
+            'status' => 'processed',
+            'processed_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    private function replaceManualPayroll(array $rows, array $employeeMaps, int $tenantId, int $branchId, int $cycleId): void
+    {
+        $employeeIds = array_values($employeeMaps['ids']);
+        DB::table('workforce_payroll_entry')
+            ->where('tenant_id', $tenantId)
+            ->where('branch_id', $branchId)
+            ->where('payroll_cycle_id', $cycleId)
+            ->whereIn('employee_id', $employeeIds)
+            ->delete();
+
+        foreach ($rows as $row) {
+            $employeeId = $this->resolveManualEmployeeId($row['employee_ref'], $employeeMaps, 'payroll', $row['_line']);
+            DB::table('workforce_payroll_entry')->insert([
+                'tenant_id' => $tenantId,
+                'branch_id' => $branchId,
+                'payroll_cycle_id' => $cycleId,
+                'employee_id' => $employeeId,
+                'total_days_worked' => 26,
+                'paid_leave_days' => 0,
+                'unpaid_leave_days' => 0,
+                'overtime_hours' => 0,
+                'basic_earned' => $row['basic_earned'],
+                'da_earned' => 0,
+                'hra_earned' => $row['hra_earned'],
+                'other_allowances' => max(0, $row['gross_salary'] - $row['basic_earned'] - $row['hra_earned']),
+                'overtime_wages' => 0,
+                'gross_salary' => $row['gross_salary'],
+                'pf_employee' => 0,
+                'esi_employee' => 0,
+                'professional_tax' => 0,
+                'fines' => 0,
+                'advances' => 0,
+                'other_deductions' => $row['total_deductions'],
+                'total_deductions' => $row['total_deductions'],
+                'net_salary' => $row['net_salary'],
+                'payment_date' => null,
+                'payment_mode' => 'Manual Entry',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+    }
+
+    private function replaceManualAttendance(array $rows, array $employeeMaps, int $tenantId, int $branchId, ComplianceExecutionBatch $batch): void
+    {
+        $periodStart = $batch->period_from
+            ? \Carbon\Carbon::parse($batch->period_from)->startOfMonth()
+            : \Carbon\Carbon::create($batch->period_year, $batch->period_month, 1)->startOfMonth();
+        $periodEnd = $batch->period_to
+            ? \Carbon\Carbon::parse($batch->period_to)->endOfDay()
+            : $periodStart->copy()->endOfMonth();
+        $employeeIds = array_values($employeeMaps['ids']);
+
+        DB::table('workforce_attendance')
+            ->where('tenant_id', $tenantId)
+            ->where('branch_id', $branchId)
+            ->whereBetween('attendance_date', [$periodStart->toDateString(), $periodEnd->toDateString()])
+            ->whereIn('employee_id', $employeeIds)
+            ->delete();
+
+        foreach ($rows as $row) {
+            $employeeId = $this->resolveManualEmployeeId($row['employee_ref'], $employeeMaps, 'attendance', $row['_line']);
+            $absentDays = $row['absent_days'];
+            $absentFilled = 0;
+            $daysInMonth = $periodStart->daysInMonth;
+
+            for ($day = 1; $day <= $daysInMonth; $day++) {
+                $date = $periodStart->copy()->day($day);
+                if ($date->dayOfWeek === 0) {
+                    continue;
+                }
+
+                $remainingDays = $daysInMonth - $day + 1;
+                $isAbsent = ($absentFilled < $absentDays) && ($remainingDays <= ($absentDays - $absentFilled));
+                if ($isAbsent) {
+                    $absentFilled++;
+                }
+
+                DB::table('workforce_attendance')->insert([
+                    'tenant_id' => $tenantId,
+                    'branch_id' => $branchId,
+                    'employee_id' => $employeeId,
+                    'attendance_date' => $date->toDateString(),
+                    'status' => $isAbsent ? 'absent' : 'present',
+                    'overtime_hours' => 0,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+    }
+
+    private function resolveManualEmployeeId(string $ref, array $employeeMaps, string $dataset, int $line): int
+    {
+        $key = $this->manualRefKey($ref);
+        if (isset($employeeMaps['refs'][$key])) {
+            return (int) $employeeMaps['refs'][$key];
+        }
+
+        throw new \InvalidArgumentException("Manual {$dataset} line {$line}: employee not found in Employees data: {$ref}");
+    }
+
+    private function manualRefKey(string $value): string
+    {
+        return strtolower(trim(preg_replace('/\s+/', ' ', $value)));
     }
 
     public function uploadPdfForm(Request $request, int $batchId, string $formCode)
