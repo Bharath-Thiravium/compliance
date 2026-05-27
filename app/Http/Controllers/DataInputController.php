@@ -695,18 +695,25 @@ class DataInputController extends Controller
             ], 422);
         }
 
+        $branchId = $this->resolveBatchBranchId($batch);
+        if ((int) ($batch->branch_id ?? 0) !== $branchId) {
+            $batch->update(['branch_id' => $branchId, 'updated_at' => now()]);
+            $batch->branch_id = $branchId;
+        }
+
         Log::info('CSV upload started', [
             'batch_id'     => $batchId,
             'dataset_type' => $datasetType,
             'filename'     => $file->getClientOriginalName(),
             'row_count'    => count($rows),
             'tenant_id'    => $batch->tenant_id,
+            'branch_id'    => $branchId,
         ]);
 
         // ── 7. Transaction — all inserts or nothing ───────────────────────────
         try {
             $recordsInserted = DB::transaction(function () use (
-                $batch, $datasetType, $rows
+                $batch, $branchId, $datasetType, $rows
             ) {
                 $inserted = 0;
 
@@ -750,7 +757,7 @@ class DataInputController extends Controller
                         } else {
                             DB::table('workforce_employee')->insert(array_merge($employeeFields, [
                                 'tenant_id'       => $batch->tenant_id,
-                                'branch_id'       => $batch->branch_id,
+                                'branch_id'       => $branchId,
                                 'employee_code'   => $row['employee_code'],
                                 'date_of_joining' => $this->parseDate($row['date_of_joining'] ?? null) ?? now()->toDateString(),
                                 'status'          => 'active',
@@ -814,11 +821,14 @@ class DataInputController extends Controller
                             );
                         }
 
-                        DB::table('workforce_payroll_entry')->insertOrIgnore([
-                            'tenant_id'         => $batch->tenant_id,
-                            'branch_id'         => $batch->branch_id,
-                            'payroll_cycle_id'  => $cycleId,
-                            'employee_id'       => $employeeId,
+                        DB::table('workforce_payroll_entry')->updateOrInsert(
+                            [
+                                'tenant_id'        => $batch->tenant_id,
+                                'branch_id'        => $branchId,
+                                'payroll_cycle_id' => $cycleId,
+                                'employee_id'      => $employeeId,
+                            ],
+                            [
                             'total_days_worked' => CsvNormalizer::normalizeInt($row['total_days_worked'] ?? null, 26),
                             'paid_leave_days'   => CsvNormalizer::normalizeInt($row['paid_leave_days']   ?? null),
                             'unpaid_leave_days' => CsvNormalizer::normalizeInt($row['unpaid_leave_days'] ?? null),
@@ -841,7 +851,9 @@ class DataInputController extends Controller
                             'payment_mode'      => $row['payment_mode'] ?? 'Bank Transfer',
                             'created_at'        => now(),
                             'updated_at'        => now(),
-                        ]);
+                            'deleted_at'         => null,
+                            ]
+                        );
                         $inserted++;
                     }
 
@@ -894,7 +906,7 @@ class DataInputController extends Controller
                                     'attendance_date' => $explicitDate,
                                 ],
                                 [
-                                    'branch_id'      => $batch->branch_id,
+                                    'branch_id'      => $branchId,
                                     'status'         => ($row['attendance_status'] ?? $row['status'] ?? 'present'),
                                     'overtime_hours' => $otHours,
                                     'remarks'        => "CSV import: {$presentDays}/{$workingDays} days present",
@@ -931,7 +943,7 @@ class DataInputController extends Controller
                                     'attendance_date' => $date,
                                 ],
                                 [
-                                    'branch_id'      => $batch->branch_id,
+                                    'branch_id'      => $branchId,
                                     'status'         => $isAbsent ? 'absent' : 'present',
                                     'overtime_hours' => ($day === 1) ? $otHours : 0,
                                     'deleted_at'     => null,

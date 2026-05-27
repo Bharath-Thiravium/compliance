@@ -454,11 +454,14 @@ class ComplianceDataUploadController extends Controller
                 throw new \InvalidArgumentException("net_salary exceeds gross_salary for employee {$code}");
             }
 
-            DB::table('workforce_payroll_entry')->insertOrIgnore([
-                'tenant_id'         => $tenantId,
-                'branch_id'         => $branchId,
-                'payroll_cycle_id'  => $cycleId,
-                'employee_id'       => $empMap[$code],
+            DB::table('workforce_payroll_entry')->updateOrInsert(
+                [
+                    'tenant_id'        => $tenantId,
+                    'branch_id'        => $branchId,
+                    'payroll_cycle_id' => $cycleId,
+                    'employee_id'      => $empMap[$code],
+                ],
+                [
                 'total_days_worked' => $workingDays,
                 'paid_leave_days'   => (int) ($row['paid_leave_days'] ?? 0),
                 'unpaid_leave_days' => $absent,
@@ -481,7 +484,9 @@ class ComplianceDataUploadController extends Controller
                 'payment_mode'      => $row['payment_mode'] ?? 'Bank Transfer',
                 'created_at'        => now(),
                 'updated_at'        => now(),
-            ]);
+                'deleted_at'         => null,
+                ]
+            );
 
             $count++;
         }
