@@ -461,6 +461,35 @@ Route::get('/_ops/session-check', function (Request $request) {
 
 // ── Application routes ────────────────────────────────────────────────────────
 
+Route::get('/_ops/super-admin-check', function (Request $request) {
+    $token = (string) config('app.ops_token', '');
+    if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
+
+    $authUser = Auth::user();
+    $superAdmins = DB::table('users')
+        ->select('id', 'email', 'tenant_id', 'is_super_admin', 'is_active')
+        ->where('is_super_admin', 1)
+        ->orWhere('email', 'superadmin@compliance.com')
+        ->orderBy('id')
+        ->get();
+
+    return response()->json([
+        'ok' => true,
+        'authenticated' => (bool) $authUser,
+        'current_user' => $authUser ? [
+            'id' => $authUser->id,
+            'email' => $authUser->email,
+            'tenant_id' => $authUser->tenant_id,
+            'is_super_admin' => (bool) $authUser->is_super_admin,
+            'is_active' => (bool) ($authUser->is_active ?? true),
+        ] : null,
+        'super_admin_users' => $superAdmins,
+        'migration_ran' => DB::table('migrations')
+            ->where('migration', '2026_05_27_053508_ensure_super_admin_user_exists')
+            ->exists(),
+    ], 200, [], JSON_PRETTY_PRINT);
+});
+
 require __DIR__.'/compliance.php';
 require __DIR__.'/batch-processing.php';
 require __DIR__.'/data-input.php';
