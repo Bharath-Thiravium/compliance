@@ -72,7 +72,7 @@ class ComplianceDataUploadController extends Controller
 
         $user     = Auth::user();
         $tenantId = $user->tenant_id;
-        $branchId = $user->branch_id;
+        $branchId = $this->resolveUploadBranchId($tenantId, $user->branch_id, $user->id);
 
         // Wrap everything — including CSV parsing — in one try/catch so that
         // any InvalidArgumentException from parseCsv returns JSON, not a 500.
@@ -83,6 +83,7 @@ class ComplianceDataUploadController extends Controller
 
             Log::info('CSV parsed', [
                 'tenant_id'  => $tenantId,
+                'branch_id'  => $branchId,
                 'employees'  => count($employees),
                 'payroll'    => count($payrollRows),
                 'attendance' => count($attendRows),
@@ -133,6 +134,45 @@ class ComplianceDataUploadController extends Controller
                 'message' => $e->getMessage(),
             ], 422);
         }
+    }
+
+    private function resolveUploadBranchId(int $tenantId, ?int $branchId, int $userId): int
+    {
+        if ($branchId) {
+            $exists = DB::table('branches')
+                ->where('tenant_id', $tenantId)
+                ->where('id', $branchId)
+                ->exists();
+
+            if ($exists) {
+                return $branchId;
+            }
+        }
+
+        $resolved = DB::table('branches')
+            ->where('tenant_id', $tenantId)
+            ->orderBy('id')
+            ->value('id');
+
+        if (! $resolved) {
+            $resolved = DB::table('branches')->insertGetId([
+                'tenant_id'   => $tenantId,
+                'branch_name' => 'Main Branch',
+                'created_at'  => now(),
+                'updated_at'  => now(),
+            ]);
+        }
+
+        DB::table('users')
+            ->where('id', $userId)
+            ->where('tenant_id', $tenantId)
+            ->whereNull('branch_id')
+            ->update([
+                'branch_id'  => $resolved,
+                'updated_at' => now(),
+            ]);
+
+        return (int) $resolved;
     }
 
     // ── Employee Payload Builder ──────────────────────────────────────────────
