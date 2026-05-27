@@ -67,7 +67,7 @@
 
                             <div class="sample-box">
                                 <span class="sample-title">📥 Sample CSV Format</span>
-                                <a href="/compliance/csv-template/employees"
+                                <a href="{{ route('csv.template.employees') }}"
                                    class="sample-btn" download>⬇ Download Template</a>
                             </div>
 
@@ -99,7 +99,7 @@
 
                             <div class="sample-box">
                                 <span class="sample-title">📥 Sample CSV Format</span>
-                                <a href="/compliance/csv-template/payroll"
+                                <a href="{{ route('csv.template.payroll') }}"
                                    class="sample-btn" download>⬇ Download Template</a>
                             </div>
 
@@ -131,7 +131,7 @@
 
                             <div class="sample-box">
                                 <span class="sample-title">📥 Sample CSV Format</span>
-                                <a href="/compliance/csv-template/attendance"
+                                <a href="{{ route('csv.template.attendance') }}"
                                    class="sample-btn" download>⬇ Download Template</a>
                             </div>
 
