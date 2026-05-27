@@ -29,7 +29,15 @@ $kernel->bootstrap();
 $tokenFile = __DIR__.'/_ops_token.txt';
 $fileToken = is_file($tokenFile) ? trim((string) file_get_contents($tokenFile)) : '';
 $envToken = (string) config('app.ops_token', '');
-$expected = $fileToken !== '' ? $fileToken : $envToken;
+$rawEnvToken = '';
+$envPath = $root.'/.env';
+if (is_file($envPath)) {
+    $envRaw = (string) file_get_contents($envPath);
+    if (preg_match('/^\s*(OPS_TOKEN|ops_token)\s*=\s*(.*)\s*$/mi', $envRaw, $match)) {
+        $rawEnvToken = trim($match[2], " \t\n\r\0\x0B\"'");
+    }
+}
+$expected = $fileToken !== '' ? $fileToken : ($envToken !== '' ? $envToken : $rawEnvToken);
 $provided = isset($_GET['token']) ? (string) $_GET['token'] : '';
 
 function renderPage(array $rows, int $statusCode = 200): void
