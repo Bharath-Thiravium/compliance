@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('tenant_id')->index();
             $table->unsignedBigInteger('branch_id')->nullable()->index();
-            $table->string('employee_code')->unique();
+            $table->string('employee_code');
             $table->string('name');
             $table->string('pf_number')->nullable();
             $table->string('esi_number')->nullable();
@@ -23,6 +23,8 @@ return new class extends Migration
             $table->string('status')->default('active');
             $table->timestamps();
             $table->softDeletes();
+
+            $table->unique(['tenant_id', 'employee_code'], 'workforce_employee_tenant_employee_code_unique');
 
             $table->foreign('tenant_id')->references('id')->on('tenants')->onDelete('cascade');
             $table->foreign('branch_id')->references('id')->on('branches')->onDelete('set null');

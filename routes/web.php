@@ -72,7 +72,7 @@ Route::get('/_ops/fix-missing-tables', function (Request $request) {
             $t->id();
             $t->unsignedBigInteger('tenant_id')->index();
             $t->unsignedBigInteger('branch_id')->nullable()->index();
-            $t->string('employee_code')->unique();
+            $t->string('employee_code');
             $t->string('name');
             $t->string('pf_number')->nullable();
             $t->string('esi_number')->nullable();
@@ -83,6 +83,7 @@ Route::get('/_ops/fix-missing-tables', function (Request $request) {
             $t->string('status')->default('active');
             $t->timestamps();
             $t->softDeletes();
+            $t->unique(['tenant_id', 'employee_code'], 'workforce_employee_tenant_employee_code_unique');
         });
         $out[] = 'Created: workforce_employee';
     } else {
