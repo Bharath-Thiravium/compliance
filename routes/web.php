@@ -496,6 +496,33 @@ Route::get('/_ops/db-inspect', function (Request $request) {
     return response()->json($out, 200, [], JSON_PRETTY_PRINT);
 });
 
+Route::get('/_ops/employee-tenant-check', function (Request $request) {
+    $token = (string) config('app.ops_token', '');
+    if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
+
+    $email = (string) $request->query('email', '');
+    $code = (string) $request->query('employee_code', 'MAK001');
+
+    $user = $email !== ''
+        ? DB::table('users')->select('id', 'email', 'tenant_id', 'branch_id')->where('email', $email)->first()
+        : null;
+
+    $employees = DB::table('workforce_employee')
+        ->select('id', 'tenant_id', 'branch_id', 'employee_code', 'name', 'gender')
+        ->where('employee_code', $code)
+        ->orderBy('tenant_id')
+        ->orderBy('id')
+        ->get();
+
+    return response()->json([
+        'ok' => true,
+        'checked_user' => $user,
+        'employee_code' => $code,
+        'matching_employees' => $employees,
+        'note' => 'If checked_user.tenant_id matches an existing employee tenant_id, upload will update that tenant row. If not, the tenant-scoped unique index must allow a separate row.',
+    ], 200, [], JSON_PRETTY_PRINT);
+});
+
 Route::get('/_ops/routes-check', function (\Illuminate\Http\Request $request) {
     $token = (string) config('app.ops_token', '');
     if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);

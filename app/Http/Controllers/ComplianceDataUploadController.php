@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\Compliance\CsvNormalizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -185,26 +186,26 @@ class ComplianceDataUploadController extends Controller
             'employee_code'     => $row['employee_code'],
             'name'              => $row['name'],
             'father_name'       => $row['father_name']       ?? null,
-            'gender'            => $row['gender']            ?? null,
+            'gender'            => CsvNormalizer::normalizeGender($row['gender'] ?? null),
             'date_of_birth'     => $this->parseDate($row['date_of_birth'] ?? null),
             'marital_status'    => $row['marital_status']    ?? null,
             'nationality'       => $row['nationality']       ?? null,
-            'mobile'            => $row['mobile']            ?? null,
+            'mobile'            => CsvNormalizer::normalizeMobile($row['mobile'] ?? null),
             'email'             => $row['email']             ?? null,
             'permanent_address' => $row['permanent_address'] ?? null,
             'designation'       => $row['designation']       ?? null,
             'department'        => $row['department']        ?? null,
             'skill_type'        => $row['skill_type']        ?? null,
             'date_of_joining'   => $this->parseDate($row['date_of_joining'] ?? null) ?? now()->toDateString(),
-            'pf_number'         => $row['pf_number']         ?? null,
-            'esi_number'        => $row['esi_number']        ?? null,
-            'uan_number'        => $row['uan_number']        ?? $row['pf_number'] ?? null,
+            'pf_number'         => CsvNormalizer::normalizePF($row['pf_number'] ?? null),
+            'esi_number'        => CsvNormalizer::normalizeESI($row['esi_number'] ?? null),
+            'uan_number'        => CsvNormalizer::normalizeUAN($row['uan_number'] ?? $row['pf_number'] ?? null),
             'pan'               => $row['pan']               ?? null,
             'aadhaar'           => $row['aadhaar']           ?? null,
             'bank_account'      => $row['bank_account']      ?? null,
             'bank_name'         => $row['bank_name']         ?? null,
             'ifsc'              => $row['ifsc']              ?? null,
-            'basic_salary'      => (float) ($row['basic_salary'] ?? 0),
+            'basic_salary'      => CsvNormalizer::normalizeFloat($row['basic_salary'] ?? null),
             'status'            => 'active',
             'updated_at'        => now(),
         ];
