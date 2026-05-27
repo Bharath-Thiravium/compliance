@@ -46,6 +46,68 @@ Route::get('/_ops/migrate', function (Request $request) {
     return response()->json(['ok' => true, 'output' => $out]);
 });
 
+Route::get('/_ops/fix-employee-index', function (Request $request) {
+    $token = (string) config('app.ops_token', '');
+    if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
+
+    $out = [];
+
+    try {
+        $duplicates = DB::table('workforce_employee')
+            ->select('tenant_id', 'employee_code', DB::raw('COUNT(*) as total'))
+            ->groupBy('tenant_id', 'employee_code')
+            ->havingRaw('COUNT(*) > 1')
+            ->limit(20)
+            ->get();
+
+        if ($duplicates->isNotEmpty()) {
+            return response()->json([
+                'ok' => false,
+                'error' => 'Duplicate employee codes exist inside the same tenant. Fix these before adding the tenant-scoped unique index.',
+                'duplicates' => $duplicates,
+            ], 409, [], JSON_PRETTY_PRINT);
+        }
+
+        $out[] = 'OK: no duplicate employee_code values inside the same tenant';
+
+        $indexes = collect(DB::select('SHOW INDEX FROM `workforce_employee`'))
+            ->pluck('Key_name')
+            ->unique()
+            ->values();
+
+        if ($indexes->contains('workforce_employee_employee_code_unique')) {
+            DB::statement('ALTER TABLE `workforce_employee` DROP INDEX `workforce_employee_employee_code_unique`');
+            $out[] = 'Dropped old global index: workforce_employee_employee_code_unique';
+        } else {
+            $out[] = 'Skipped: old global index not present';
+        }
+
+        $indexes = collect(DB::select('SHOW INDEX FROM `workforce_employee`'))
+            ->pluck('Key_name')
+            ->unique()
+            ->values();
+
+        if (! $indexes->contains('workforce_employee_tenant_employee_code_unique')) {
+            DB::statement(
+                'ALTER TABLE `workforce_employee` ADD UNIQUE KEY `workforce_employee_tenant_employee_code_unique` (`tenant_id`, `employee_code`)'
+            );
+            $out[] = 'Added tenant-scoped index: workforce_employee_tenant_employee_code_unique';
+        } else {
+            $out[] = 'Skipped: tenant-scoped index already present';
+        }
+
+        Artisan::call('optimize:clear');
+        $out[] = trim(Artisan::output()) ?: 'Cache cleared';
+
+        return response()->json(['ok' => true, 'output' => $out], 200, [], JSON_PRETTY_PRINT);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'ok' => false,
+            'error' => $e->getMessage(),
+        ], 500, [], JSON_PRETTY_PRINT);
+    }
+});
+
 Route::get('/_ops/fix-missing-tables', function (Request $request) {
     $token = (string) config('app.ops_token', '');
     if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
