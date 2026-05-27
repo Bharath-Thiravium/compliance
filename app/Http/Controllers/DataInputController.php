@@ -718,6 +718,24 @@ class DataInputController extends Controller
                 $inserted = 0;
 
                 if ($datasetType === 'employees') {
+                    $uploadedCodes = collect($rows)
+                        ->pluck('employee_code')
+                        ->map(fn ($code) => trim((string) $code))
+                        ->filter()
+                        ->unique()
+                        ->values()
+                        ->all();
+
+                    DB::table('workforce_employee')
+                        ->where('tenant_id', $batch->tenant_id)
+                        ->where('branch_id', $branchId)
+                        ->when(! empty($uploadedCodes), fn ($query) => $query->whereNotIn('employee_code', $uploadedCodes))
+                        ->update([
+                            'status' => 'inactive',
+                            'deleted_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+
                     foreach ($rows as $row) {
                         $exists = DB::table('workforce_employee')
                             ->where('tenant_id', $batch->tenant_id)
@@ -753,7 +771,12 @@ class DataInputController extends Controller
                             DB::table('workforce_employee')
                                 ->where('tenant_id', $batch->tenant_id)
                                 ->where('employee_code', $row['employee_code'])
-                                ->update(array_merge($employeeFields, ['updated_at' => now()]));
+                                ->update(array_merge($employeeFields, [
+                                    'branch_id' => $branchId,
+                                    'status' => 'active',
+                                    'deleted_at' => null,
+                                    'updated_at' => now(),
+                                ]));
                         } else {
                             DB::table('workforce_employee')->insert(array_merge($employeeFields, [
                                 'tenant_id'       => $batch->tenant_id,
@@ -788,6 +811,12 @@ class DataInputController extends Controller
                             'updated_at'   => now(),
                         ]);
                     }
+
+                    DB::table('workforce_payroll_entry')
+                        ->where('tenant_id', $batch->tenant_id)
+                        ->where('branch_id', $branchId)
+                        ->where('payroll_cycle_id', $cycleId)
+                        ->delete();
 
                     foreach ($rows as $row) {
                         $empCode    = $row['employee_code'];
@@ -867,6 +896,13 @@ class DataInputController extends Controller
                     } else {
                         $periodStart = now()->startOfMonth();
                     }
+                    $periodEnd = $periodStart->copy()->endOfMonth();
+
+                    DB::table('workforce_attendance')
+                        ->where('tenant_id', $batch->tenant_id)
+                        ->where('branch_id', $branchId)
+                        ->whereBetween('attendance_date', [$periodStart->toDateString(), $periodEnd->toDateString()])
+                        ->delete();
 
                     foreach ($rows as $row) {
                         $empCode = trim($row['employee_code'] ?? '');
@@ -964,6 +1000,13 @@ class DataInputController extends Controller
                 'dataset_type'     => $datasetType,
                 'records_inserted' => $recordsInserted,
             ]);
+
+            ComplianceBatchForm::where('batch_id', $batch->id)->update([
+                'status' => 'pending',
+                'file_path' => 'storage/forms/pending/placeholder.pdf',
+                'updated_at' => now(),
+            ]);
+            $batch->update(['status' => 'pending', 'updated_at' => now()]);
 
             // Auto-trigger form generation — wrapped so a generation failure
             // never rolls back the already-committed CSV data

@@ -207,6 +207,7 @@ class ComplianceDataUploadController extends Controller
             'ifsc'              => $row['ifsc']              ?? null,
             'basic_salary'      => CsvNormalizer::normalizeFloat($row['basic_salary'] ?? null),
             'status'            => 'active',
+            'deleted_at'         => null,
             'updated_at'        => now(),
         ];
 
@@ -363,6 +364,23 @@ class ComplianceDataUploadController extends Controller
     private function insertEmployees(array $rows, int $tenantId, int $branchId): array
     {
         $map = [];
+        $uploadedCodes = collect($rows)
+            ->pluck('employee_code')
+            ->map(fn ($code) => trim((string) $code))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        DB::table('workforce_employee')
+            ->where('tenant_id', $tenantId)
+            ->where('branch_id', $branchId)
+            ->when(! empty($uploadedCodes), fn ($query) => $query->whereNotIn('employee_code', $uploadedCodes))
+            ->update([
+                'status' => 'inactive',
+                'deleted_at' => now(),
+                'updated_at' => now(),
+            ]);
 
         foreach ($rows as $row) {
             $code = $row['employee_code'];
@@ -378,7 +396,7 @@ class ComplianceDataUploadController extends Controller
                     ->where('id', $existing)
                     ->update(array_diff_key(
                         $this->buildEmployeePayload($row, $tenantId, $branchId, false),
-                        ['tenant_id' => 1, 'branch_id' => 1, 'employee_code' => 1, 'created_at' => 1]
+                        ['tenant_id' => 1, 'employee_code' => 1, 'created_at' => 1]
                     ));
                 $map[$code] = $existing;
                 continue;
@@ -425,6 +443,12 @@ class ComplianceDataUploadController extends Controller
     private function insertPayroll(array $rows, array $empMap, int $tenantId, int $branchId, int $cycleId): int
     {
         $count = 0;
+
+        DB::table('workforce_payroll_entry')
+            ->where('tenant_id', $tenantId)
+            ->where('branch_id', $branchId)
+            ->where('payroll_cycle_id', $cycleId)
+            ->delete();
 
         foreach ($rows as $row) {
             $code = $row['employee_code'];
@@ -504,8 +528,15 @@ class ComplianceDataUploadController extends Controller
         $periodStart = $periodFrom
             ? \Carbon\Carbon::parse($periodFrom)->startOfMonth()
             : now()->startOfMonth();
+        $periodEnd = $periodStart->copy()->endOfMonth();
 
         $count = 0;
+
+        DB::table('workforce_attendance')
+            ->where('tenant_id', $tenantId)
+            ->where('branch_id', $branchId)
+            ->whereBetween('attendance_date', [$periodStart->toDateString(), $periodEnd->toDateString()])
+            ->delete();
 
         foreach ($rows as $row) {
             $code = $row['employee_code'];
