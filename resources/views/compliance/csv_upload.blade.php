@@ -101,6 +101,17 @@
             Each supplementary dataset is uploaded independently. Employees must be uploaded first — these datasets reference employee codes already in the system.
         </p>
 
+        {{-- ── Upload All Button ─────────────────────────────────────────── --}}
+        <div id="uploadAllResult" class="alert mb-3" style="display:none;"></div>
+        <div class="flex-start gap-2 mb-3">
+            <button type="button" id="uploadAllSuppBtn" class="btn btn-primary">
+                ⬆️ Upload All Selected Files
+            </button>
+            <span id="uploadAllSpinner" style="display:none;">
+                <span class="spinner"></span>&nbsp;Processing…
+            </span>
+        </div>
+
         <div class="grid-row">
 
             @php
@@ -130,9 +141,10 @@
                             <span style="color:#1d39c4;">{{ $ds['forms'] }}</span>
                         </div>
 
-                        <div class="form-group" style="margin-bottom:8px;">
+                        <div class="form-group" style="margin-bottom:10px;">
+                            <label class="form-label" style="font-size:13px;">{{ $ds['type'] }}.csv</label>
                             <input type="file" accept=".csv,.txt"
-                                   class="supp-file-input"
+                                   class="csv-input supp-file-input"
                                    id="supp-file-{{ $ds['type'] }}"
                                    data-type="{{ $ds['type'] }}">
                         </div>
@@ -262,6 +274,71 @@ document.getElementById('coreUploadForm').addEventListener('submit', async funct
         btn.disabled          = false;
         spinner.style.display = 'none';
     }
+});
+
+// ── Upload All Supplementary ────────────────────────────────────────────────
+document.getElementById('uploadAllSuppBtn').addEventListener('click', async function () {
+    const inputs  = [...document.querySelectorAll('.supp-file-input')].filter(i => i.files.length);
+
+    if (!inputs.length) {
+        showBanner('uploadAllResult', 'error', '⚠️ Please select at least one supplementary file first.');
+        return;
+    }
+
+    this.disabled = true;
+    document.getElementById('uploadAllSpinner').style.display = 'inline-flex';
+    document.getElementById('uploadAllResult').style.display  = 'none';
+
+    let passed = 0, failed = 0;
+
+    for (const input of inputs) {
+        const type     = input.dataset.type;
+        const statusEl = document.getElementById('supp-status-' + type);
+        const card     = document.getElementById('supp-card-' + type);
+        const uploadBtn= card.querySelector('.supp-upload-btn');
+
+        statusEl.innerHTML = `<span class="badge badge-info">⏳ Uploading…</span>`;
+        if (uploadBtn) { uploadBtn.disabled = true; uploadBtn.textContent = '⏳…'; }
+
+        const fd = new FormData();
+        fd.append('file', input.files[0]);
+        fd.append('type', type);
+
+        try {
+            const resp    = await fetch('{{ route("data.upload-supplementary") }}', {
+                method : 'POST',
+                headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+                body   : fd,
+            });
+            const rawText = await resp.text();
+            let json;
+            try   { json = JSON.parse(rawText.replace(/^\uFEFF/, '')); }
+            catch (_) { json = { status: 'error', message: `Server error (${resp.status})` }; }
+
+            if (json.status === 'success') {
+                statusEl.innerHTML = `<span class="badge badge-success">✅ ${json.records_inserted} records</span>`;
+                card.classList.add('ready');
+                passed++;
+            } else {
+                statusEl.innerHTML = `<span class="badge badge-danger">❌ ${escHtml(json.message)}</span>`;
+                failed++;
+            }
+        } catch (err) {
+            statusEl.innerHTML = `<span class="badge badge-danger">❌ ${escHtml(err.message)}</span>`;
+            failed++;
+        } finally {
+            if (uploadBtn) { uploadBtn.disabled = false; uploadBtn.textContent = '⬆ Upload'; }
+        }
+    }
+
+    document.getElementById('uploadAllSpinner').style.display = 'none';
+    this.disabled = false;
+    showBanner('uploadAllResult',
+        failed === 0 ? 'success' : 'error',
+        failed === 0
+            ? `<strong>✅ All ${passed} file(s) uploaded successfully.</strong>`
+            : `<strong>⚠️ ${passed} succeeded, ${failed} failed.</strong> Check individual cards above.`
+    );
 });
 
 // ── Supplementary upload (one at a time) ─────────────────────────────────────
