@@ -13,6 +13,8 @@ class FormXVIApiService extends BaseFormApiService
 
         $rows = DB::table('workforce_attendance as wa')
             ->join('workforce_employee as we', 'we.id', '=', 'wa.employee_id')
+            ->where('wa.tenant_id', $tenantId)
+            ->where('wa.branch_id', $branchId)
             ->where('we.tenant_id', $tenantId)
             ->where('we.branch_id', $branchId)
             ->whereNull('we.deleted_at')
@@ -35,7 +37,8 @@ class FormXVIApiService extends BaseFormApiService
             ->toArray();
 
         return [
-            'records' => $rows,
+            'records'      => $rows,
+            'record_count' => count($rows),
             'meta' => [
                 'tenant_id' => $tenantId,
                 'branch_id' => $branchId,

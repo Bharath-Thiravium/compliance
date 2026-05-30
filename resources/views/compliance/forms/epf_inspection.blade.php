@@ -141,16 +141,16 @@
         @if(isset($header['branch']))
         <tr>
             <td class="est-label">Address:</td>
-            <td>{{ $header['branch']['address'] ?? 'N/A' }}</td>
+            <td>{{ $header['branch']['address'] ?? '' }}</td>
         </tr>
         <tr>
             <td class="est-label">Code No:</td>
-            <td>{{ $header['branch']['pf_code'] ?? 'N/A' }}</td>
+            <td>{{ $header['branch']['pf_code'] ?? '' }}</td>
         </tr>
         @endif
         <tr>
             <td class="est-label">Period:</td>
-            <td>{{ $header['period'] ?? 'N/A' }}</td>
+            <td>{{ $header['period'] ?? '' }}</td>
         </tr>
     </table>
 
@@ -172,10 +172,10 @@
                 @foreach($rows as $index => $row)
                 <tr>
                     <td class="text-center">{{ $index + 1 }}</td>
-                    <td class="text-center">{{ $row['inspection_date'] ?? 'N/A' }}</td>
-                    <td>{{ $row['authority'] ?? 'N/A' }}</td>
-                    <td>{{ $row['reference'] ?? 'N/A' }}</td>
-                    <td>{{ $row['remarks'] ?? 'N/A' }}</td>
+                    <td class="text-center">{{ $row['inspection_date'] ?? '' }}</td>
+                    <td>{{ $row['authority'] ?? '' }}</td>
+                    <td>{{ $row['reference'] ?? '' }}</td>
+                    <td>{{ $row['remarks'] ?? '' }}</td>
                     <td></td>
                 </tr>
                 @endforeach

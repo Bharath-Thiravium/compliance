@@ -221,19 +221,28 @@
                     @foreach($rows as $index => $row)
                         <tr>
                             <td class="col-1">{{ $index + 1 }}</td>
-                            <td class="col-2">{{ $row['name'] ?? 'NIL' }}</td>
-                            <td class="col-3">{{ $row['father_name'] ?? 'NIL' }}</td>
-                            <td class="col-4">{{ $row['sex'] ?? 'NIL' }}</td>
-                            <td class="col-5">{{ $row['designation'] ?? 'NIL' }}</td>
-                            <td class="col-6">{{ $row['overtime_dates'] ?? 'NIL' }}</td>
-                            <td class="col-7">{{ $row['total_overtime'] ?? 'NIL' }}</td>
-                            <td class="col-8">{{ $row['normal_rate'] ?? 'NIL' }}</td>
-                            <td class="col-9">{{ $row['overtime_rate'] ?? 'NIL' }}</td>
-                            <td class="col-10">{{ $row['overtime_earnings'] ?? 'NIL' }}</td>
-                            <td class="col-11">{{ $row['payment_date'] ?? 'NIL' }}</td>
+                            <td class="col-2">{{ $row['name'] ?? '' }}</td>
+                            <td class="col-3">{{ $row['father_name'] ?? '' }}</td>
+                            <td class="col-4">{{ $row['sex'] ?? '' }}</td>
+                            <td class="col-5">{{ $row['designation'] ?? '' }}</td>
+                            <td class="col-6">{{ $row['overtime_dates'] ?? '' }}</td>
+                            <td class="col-7">{{ $row['total_overtime'] ?? '' }}</td>
+                            <td class="col-8">{{ $row['normal_rate'] ?? '' }}</td>
+                            <td class="col-9">{{ $row['overtime_rate'] ?? '' }}</td>
+                            <td class="col-10">{{ $row['overtime_earnings'] ?? '' }}</td>
+                            <td class="col-11">{{ $row['payment_date'] ?? '' }}</td>
                             <td class="col-12">{{ $row['remarks'] ?? '' }}</td>
                         </tr>
                     @endforeach
+                    <tr style="font-weight:bold;">
+                        <td colspan="6" style="text-align:right; padding-right:4px;">Total</td>
+                        <td class="col-7" style="text-align:right;">{{ $totals['total_overtime'] ?? '' }}</td>
+                        <td class="col-8"></td>
+                        <td class="col-9"></td>
+                        <td class="col-10" style="text-align:right;">{{ isset($totals['overtime_earnings']) ? number_format($totals['overtime_earnings'], 2) : '' }}</td>
+                        <td class="col-11"></td>
+                        <td class="col-12"></td>
+                    </tr>
                 @else
                     <tr>
                         <td colspan="12" style="height: 18px;"></td>
@@ -246,7 +255,7 @@
         </table>
 
         <div class="footer-section">
-            <div class="footer-left">*Applicable only in case of damage/loss/fine</div>
+            <div class="footer-left"></div>
         </div>
         <div class="signature-section">
             <div class="signature-label">Seal Signature of The Contractor</div>

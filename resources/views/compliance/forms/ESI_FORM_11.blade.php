@@ -168,27 +168,27 @@
     <table class="info-table">
         <tr>
             <td>Name of the Company</td>
-            <td>: {{ $company_name ?? 'N/A' }}</td>
+            <td>: {{ $company_name ?? '' }}</td>
         </tr>
         <tr>
             <td>Name of the Contractor</td>
-            <td>: {{ $contractor_name ?? 'N/A' }}</td>
+            <td>: {{ $contractor_name ?? '' }}</td>
         </tr>
         <tr>
             <td>Total number of workers employed</td>
-            <td>: {{ $total_workers ?? 'N/A' }}</td>
+            <td>: {{ $total_workers ?? '' }}</td>
         </tr>
         <tr>
             <td>Work location</td>
-            <td>: {{ $work_location ?? 'N/A' }}</td>
+            <td>: {{ $work_location ?? '' }}</td>
         </tr>
         <tr>
             <td>Name of the Principal Employer</td>
-            <td>: {{ $principal_employer ?? 'N/A' }}</td>
+            <td>: {{ $principal_employer ?? '' }}</td>
         </tr>
         <tr>
             <td>Month</td>
-            <td>: {{ $month_year ?? 'N/A' }}</td>
+            <td>: {{ $month_year ?? '' }}</td>
         </tr>
     </table>
 

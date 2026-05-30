@@ -159,14 +159,14 @@
         <div class="section-title">EMPLOYEE IDENTIFICATION</div>
         <div class="field-row">
             <div class="field-label">Name of Employer</div>
-            <div class="field-value">{{ $data['employer_name'] ?? 'NIL' }}</div>
+            <div class="field-value">{{ $data['employer_name'] ?? '' }}</div>
         </div>
         <div class="two-column-row">
             <div class="two-column-cell">
-                <strong>Code No.</strong><br>{{ $data['code_no'] ?? 'NIL' }}
+                <strong>Code No.</strong><br>{{ $data['code_no'] ?? '' }}
             </div>
             <div class="two-column-cell">
-                <strong>Branch Office</strong><br>{{ $data['branch_office'] ?? 'NIL' }}
+                <strong>Branch Office</strong><br>{{ $data['branch_office'] ?? '' }}
             </div>
         </div>
 
@@ -174,26 +174,26 @@
         <div class="section-title">MAIN DETAILS</div>
         <div class="field-row">
             <div class="field-label">Nature of Industry / Business</div>
-            <div class="field-value">{{ $data['industry_nature'] ?? 'NIL' }}</div>
+            <div class="field-value">{{ $data['industry_nature'] ?? '' }}</div>
         </div>
         <div class="field-row">
             <div class="field-label">Name & Address of Insured Person</div>
-            <div class="field-value">{{ $data['insured_name'] ?? 'NIL' }}</div>
+            <div class="field-value">{{ $data['insured_name'] ?? '' }}</div>
         </div>
         <div class="two-column-row">
             <div class="two-column-cell">
-                <strong>Insurance No</strong><br>{{ $data['insurance_no'] ?? 'NIL' }}
+                <strong>Insurance No</strong><br>{{ $data['insurance_no'] ?? '' }}
             </div>
             <div class="two-column-cell">
-                <strong>Sex</strong><br>{{ $data['sex'] ?? 'NIL' }}
+                <strong>Sex</strong><br>{{ $data['sex'] ?? '' }}
             </div>
         </div>
         <div class="two-column-row">
             <div class="two-column-cell">
-                <strong>Age (Last Birthday)</strong><br>{{ $data['age'] ?? 'NIL' }}
+                <strong>Age (Last Birthday)</strong><br>{{ $data['age'] ?? '' }}
             </div>
             <div class="two-column-cell">
-                <strong>Occupation</strong><br>{{ $data['occupation'] ?? 'NIL' }}
+                <strong>Occupation</strong><br>{{ $data['occupation'] ?? '' }}
             </div>
         </div>
 
@@ -201,38 +201,38 @@
         <div class="section-title">ACCIDENT LOCATION DETAILS</div>
         <div class="field-row">
             <div class="field-label">Address of premises where accident happened</div>
-            <div class="field-value">{{ $data['accident_address'] ?? 'NIL' }}</div>
+            <div class="field-value">{{ $data['accident_address'] ?? '' }}</div>
         </div>
         <div class="two-column-row">
             <div class="two-column-cell">
-                <strong>Department</strong><br>{{ $data['department'] ?? 'NIL' }}
+                <strong>Department</strong><br>{{ $data['department'] ?? '' }}
             </div>
             <div class="two-column-cell">
-                <strong>Shift Hour</strong><br>{{ $data['shift_hour'] ?? 'NIL' }}
+                <strong>Shift Hour</strong><br>{{ $data['shift_hour'] ?? '' }}
             </div>
         </div>
         <div class="field-row">
             <div class="field-label">Exact place of accident</div>
-            <div class="field-value">{{ $data['exact_place'] ?? 'NIL' }}</div>
+            <div class="field-value">{{ $data['exact_place'] ?? '' }}</div>
         </div>
 
         <!-- Injury Information -->
         <div class="section-title">INJURY INFORMATION</div>
         <div class="field-row">
             <div class="field-label">Nature and extent of injury</div>
-            <div class="field-value">{{ $data['injury_nature'] ?? 'NIL' }}</div>
+            <div class="field-value">{{ $data['injury_nature'] ?? '' }}</div>
         </div>
         <div class="field-row">
             <div class="field-label">Location of injury</div>
-            <div class="field-value">{{ $data['injury_location'] ?? 'NIL' }}</div>
+            <div class="field-value">{{ $data['injury_location'] ?? '' }}</div>
         </div>
         <div class="field-row">
             <div class="field-label">Dispensary / ESI Hospital / Insurance No</div>
-            <div class="field-value">{{ $data['hospital_info'] ?? 'NIL' }}</div>
+            <div class="field-value">{{ $data['hospital_info'] ?? '' }}</div>
         </div>
         <div class="field-row">
             <div class="field-label">Brief description of accident</div>
-            <div class="field-value" style="min-height: 40px;">{{ $data['accident_description'] ?? 'NIL' }}</div>
+            <div class="field-value" style="min-height: 40px;">{{ $data['accident_description'] ?? '' }}</div>
         </div>
 
         <!-- Accident Consequence -->
@@ -250,7 +250,7 @@
         </div>
         <div class="field-row">
             <div class="field-label">Date of Death</div>
-            <div class="field-value">{{ $data['death_date'] ?? 'NIL' }}</div>
+            <div class="field-value">{{ $data['death_date'] ?? '' }}</div>
         </div>
 
         <!-- Disability / Benefit -->
@@ -283,13 +283,13 @@
         <div class="witness-row">
             <div class="witness-label">1.</div>
             <div class="witness-value">
-                <strong>Name and address of witness</strong><br>{{ $data['witness_1'] ?? 'NIL' }}
+                <strong>Name and address of witness</strong><br>{{ $data['witness_1'] ?? '' }}
             </div>
         </div>
         <div class="witness-row">
             <div class="witness-label">2.</div>
             <div class="witness-value">
-                <strong>Name and address of witness</strong><br>{{ $data['witness_2'] ?? 'NIL' }}
+                <strong>Name and address of witness</strong><br>{{ $data['witness_2'] ?? '' }}
             </div>
         </div>
 
@@ -297,7 +297,7 @@
         <div class="section-title">CAUSE OF ACCIDENT</div>
         <div class="field-row">
             <div class="field-label">Machine involved</div>
-            <div class="field-value">{{ $data['machine_involved'] ?? 'NIL' }}</div>
+            <div class="field-value">{{ $data['machine_involved'] ?? '' }}</div>
         </div>
         <div class="field-row">
             <div class="field-label">State whether machinery fenced</div>
@@ -312,7 +312,7 @@
         </div>
         <div class="field-row">
             <div class="field-label">State what injured person was doing</div>
-            <div class="field-value" style="min-height: 30px;">{{ $data['person_doing'] ?? 'NIL' }}</div>
+            <div class="field-value" style="min-height: 30px;">{{ $data['person_doing'] ?? '' }}</div>
         </div>
 
         <!-- Transport Accident -->
@@ -359,14 +359,14 @@
 
         <div class="field-row">
             <div class="field-label">Date of despatch of accident report</div>
-            <div class="field-value">{{ $data['despatch_date'] ?? 'NIL' }}</div>
+            <div class="field-value">{{ $data['despatch_date'] ?? '' }}</div>
         </div>
         <div class="two-column-row">
             <div class="two-column-cell">
                 <strong>Signature</strong><br><br><br>
             </div>
             <div class="two-column-cell">
-                <strong>Designation</strong><br>{{ $data['designation'] ?? 'NIL' }}
+                <strong>Designation</strong><br>{{ $data['designation'] ?? '' }}
             </div>
         </div>
 
@@ -374,11 +374,11 @@
         <div class="footer-row">
             <div class="footer-cell">
                 <div class="footer-label">Diary No & Date</div>
-                <div style="margin-top: 20px;">{{ $data['diary_no'] ?? 'NIL' }}</div>
+                <div style="margin-top: 20px;">{{ $data['diary_no'] ?? '' }}</div>
             </div>
             <div class="footer-cell">
                 <div class="footer-label">Branch Office Manager</div>
-                <div style="margin-top: 20px;">{{ $data['branch_manager'] ?? 'NIL' }}</div>
+                <div style="margin-top: 20px;">{{ $data['branch_manager'] ?? '' }}</div>
             </div>
         </div>
     </div>

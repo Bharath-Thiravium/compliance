@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Compliance;
 
 use App\Http\Controllers\Controller;
-use App\Models\ComplianceFormsMaster;
 use App\Models\ComplianceExecutionBatch;
 use App\Services\Compliance\ComplianceOrchestrator;
 use Illuminate\Http\Request;
@@ -56,39 +55,16 @@ class CompliancePreviewController extends Controller
                 abort(400, $result['error']);
             }
 
-            // Get form metadata
-            $formMaster = ComplianceFormsMaster::where('form_code', $formCode)->first();
-            if (!$formMaster) {
-                abort(404, "Form {$formCode} not found");
-            }
-
-            // Detect blade template
-            $blade = "compliance.forms." . strtolower($formCode);
-            if (!view()->exists($blade)) {
-                abort(404, "Blade template not found for form: {$formCode}");
-            }
-
             Log::info('Compliance Preview', [
-                'form' => $formCode,
-                'batch_id' => $batchId,
-                'rows' => count($result['result']['rows'] ?? []),
+                'form'      => $formCode,
+                'batch_id'  => $batchId,
+                'rows'      => $result['result']['rows_count'] ?? 0,
                 'tenant_id' => $tenantId,
                 'branch_id' => $branchId,
             ]);
 
-            return view($blade, [
-                'form_title' => $formMaster->form_name,
-                'form_code' => $formCode,
-                'header' => $result['result']['header'] ?? [],
-                'rows' => $result['result']['rows'] ?? [],
-                'totals' => $result['result']['totals'] ?? [],
-                'is_nil' => $result['result']['is_nil'] ?? false,
-                'batch_id' => $batchId,
-                'period_month' => $month,
-                'period_year' => $year,
-                'tenant_id' => $tenantId,
-                'branch_id' => $branchId,
-            ]);
+            // Return the HTML already rendered by the orchestrator
+            return response($result['result']['html'])->header('Content-Type', 'text/html');
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             abort(404, 'Batch or form not found');
         } catch (\Exception $e) {

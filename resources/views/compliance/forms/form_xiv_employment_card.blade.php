@@ -115,24 +115,24 @@
                 <div class="field-row">
                     <span class="field-label">Name and address of Contractor</span>
                     <span class="dot-line"></span>
-                    <div style="margin-top: 2px; font-size: 10px;">{{ $contractor_name ?? 'NIL' }}</div>
+                    <div style="margin-top: 2px; font-size: 10px;">{{ $contractor_name ?? '' }}</div>
                 </div>
                 <div class="field-row">
                     <span class="field-label">Nature of work and location of work</span>
                     <span class="dot-line"></span>
-                    <div style="margin-top: 2px; font-size: 10px;">{{ $work_nature ?? 'NIL' }} - {{ $work_location ?? 'NIL' }}</div>
+                    <div style="margin-top: 2px; font-size: 10px;">{{ $work_nature ?? '' }}{{ !empty($work_location) ? ' - ' . $work_location : '' }}</div>
                 </div>
             </div>
             <div class="column">
                 <div class="field-row">
                     <span class="field-label">Name and address of Establishment in under which contract is carried on</span>
                     <span class="dot-line"></span>
-                    <div style="margin-top: 2px; font-size: 10px;">{{ $establishment_name ?? 'NIL' }}</div>
+                    <div style="margin-top: 2px; font-size: 10px;">{{ $establishment_name ?? '' }}</div>
                 </div>
                 <div class="field-row">
                     <span class="field-label">Name and address of Principal Employer</span>
                     <span class="dot-line"></span>
-                    <div style="margin-top: 2px; font-size: 10px;">{{ $principal_employer ?? 'NIL' }}</div>
+                    <div style="margin-top: 2px; font-size: 10px;">{{ $principal_employer ?? '' }}</div>
                 </div>
             </div>
         </div>
@@ -142,49 +142,49 @@
                 <span class="detail-number">1.</span>
                 <span class="detail-label">Name of workmen</span>
                 <span class="detail-dot-line"></span>
-                <div style="margin-top: 2px; font-size: 10px; margin-left: 3%;">{{ $name ?? 'NIL' }}</div>
+                <div style="margin-top: 2px; font-size: 10px; margin-left: 3%;">{{ $name ?? '' }}</div>
             </div>
 
             <div class="detail-row">
                 <span class="detail-number">2.</span>
                 <span class="detail-label">Sl. No. in the register of workmen employed</span>
                 <span class="detail-dot-line"></span>
-                <div style="margin-top: 2px; font-size: 10px; margin-left: 3%;">{{ $employee_code ?? 'NIL' }}</div>
+                <div style="margin-top: 2px; font-size: 10px; margin-left: 3%;">{{ $employee_code ?? '' }}</div>
             </div>
 
             <div class="detail-row">
                 <span class="detail-number">3.</span>
                 <span class="detail-label">Nature of employment / Designation</span>
                 <span class="detail-dot-line"></span>
-                <div style="margin-top: 2px; font-size: 10px; margin-left: 3%;">{{ $designation ?? 'NIL' }}</div>
+                <div style="margin-top: 2px; font-size: 10px; margin-left: 3%;">{{ $designation ?? '' }}</div>
             </div>
 
             <div class="detail-row">
                 <span class="detail-number">4.</span>
                 <span class="detail-label">Wages rate (with particular of unit, in case of piece-work)</span>
                 <span class="detail-dot-line"></span>
-                <div style="margin-top: 2px; font-size: 10px; margin-left: 3%;">{{ isset($daily_rate) ? number_format($daily_rate, 2) : 'NIL' }}</div>
+                <div style="margin-top: 2px; font-size: 10px; margin-left: 3%;">{{ isset($daily_rate) && $daily_rate ? number_format($daily_rate, 2) : '' }}</div>
             </div>
 
             <div class="detail-row">
                 <span class="detail-number">5.</span>
                 <span class="detail-label">Wage period</span>
                 <span class="detail-dot-line"></span>
-                <div style="margin-top: 2px; font-size: 10px; margin-left: 3%;">{{ $wage_period ?? 'NIL' }}</div>
+                <div style="margin-top: 2px; font-size: 10px; margin-left: 3%;">{{ $wage_period ?? '' }}</div>
             </div>
 
             <div class="detail-row">
                 <span class="detail-number">6.</span>
                 <span class="detail-label">Tenure of employment</span>
                 <span class="detail-dot-line"></span>
-                <div style="margin-top: 2px; font-size: 10px; margin-left: 3%;">{{ $tenure ?? 'NIL' }}</div>
+                <div style="margin-top: 2px; font-size: 10px; margin-left: 3%;">{{ $tenure ?? '' }}</div>
             </div>
 
             <div class="detail-row">
                 <span class="detail-number">7.</span>
                 <span class="detail-label">Remarks</span>
                 <span class="detail-dot-line"></span>
-                <div style="margin-top: 2px; font-size: 10px; margin-left: 3%;">{{ $remarks ?? 'NIL' }}</div>
+                <div style="margin-top: 2px; font-size: 10px; margin-left: 3%;">{{ $remarks ?? '' }}</div>
             </div>
         </div>
 

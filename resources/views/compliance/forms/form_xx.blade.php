@@ -36,9 +36,8 @@
         .form-table td.name-cell {
             text-align: left;
             padding-left: 3px;
-            white-space: nowrap;
-            overflow: visible;
-            font-size: 4.5px;
+            word-break: break-word;
+            font-size: 6.5px;
         }
 
         .form-table tr.col-nums th { height: auto; font-size: 7px; padding: 1px 0; }
@@ -115,24 +114,26 @@
             <tr>
                 <td>{{ $i + 1 }}</td>
                 <td class="name-cell">{{ $row['employee_name'] ?? '' }}</td>
-                <td>{{ $row['father_name'] ?? '-' }}</td>
-                <td>{{ $row['designation'] ?? '-' }}</td>
-                <td>{{ $row['damage_particulars'] ?? '-' }}</td>
-                <td>{{ $row['damage_date'] ?? '-' }}</td>
-                <td>{{ $row['showed_cause'] ?? '-' }}</td>
-                <td>{{ $row['witness_name'] ?? '-' }}</td>
-                <td class="right">{{ $row['deduction_amount'] ?? '-' }}</td>
-                <td>{{ $row['instalments'] ?? '-' }}</td>
-                <td>{{ $row['first_month'] ?? '-' }}</td>
-                <td>{{ $row['last_month'] ?? '-' }}</td>
-                <td>{{ $row['remarks'] ?? '-' }}</td>
+                <td>{{ $row['father_name'] ?? '' }}</td>
+                <td>{{ $row['designation'] ?? '' }}</td>
+                <td>{{ $row['damage_particulars'] ?? '' }}</td>
+                <td>{{ $row['damage_date'] ?? '' }}</td>
+                <td>{{ $row['showed_cause'] ?? '' }}</td>
+                <td>{{ $row['witness_name'] ?? '' }}</td>
+                <td class="right">{{ $row['deduction_amount'] ?? '' }}</td>
+                <td>{{ $row['instalments'] ?? '' }}</td>
+                <td>{{ $row['first_month'] ?? '' }}</td>
+                <td>{{ $row['last_month'] ?? '' }}</td>
+                <td>{{ $row['remarks'] ?? '' }}</td>
             </tr>
             @empty
-            <tr class="nil-row"><td colspan="13">NIL - No deductions for damage or loss for the month of {{ strtoupper($header['period'] ?? '') }}</td></tr>
+            <tr class="nil-row"><td colspan="13">NIL</td></tr>
             @endforelse
-            @if(!empty($is_nil))
-            <tr class="nil-row">
-                <td colspan="13">Nil for the month of {{ strtoupper($header['period'] ?? '') }}</td>
+            @if(!empty($rows))
+            <tr style="font-weight:bold;">
+                <td colspan="8" style="text-align:right; padding-right:4px;">Total</td>
+                <td class="right">{{ isset($totals['deduction_amount']) ? number_format($totals['deduction_amount'], 2) : '' }}</td>
+                <td colspan="4"></td>
             </tr>
             @endif
             <tr class="footnote">

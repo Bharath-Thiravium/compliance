@@ -59,8 +59,13 @@ class ComplianceAuditService
                 return ['status' => 'error', 'message' => 'Generator not found'];
             }
 
-            $aggregator = app(\App\Services\Compliance\FormGenerator\FormDataAggregator::class);
-            $rawData = $aggregator->aggregate($formCode, $tenantId, $branchId, $month, $year);
+            $apiService = \App\Services\Compliance\FormApis\FormApiServiceFactory::make($formCode);
+            if ($apiService) {
+                $rawData = $apiService->fetch($tenantId, $branchId, $month, $year);
+            } else {
+                $aggregator = app(\App\Services\Compliance\FormGenerator\FormDataAggregator::class);
+                $rawData = $aggregator->aggregate($formCode, $tenantId, $branchId, $month, $year);
+            }
 
             $reflection = new \ReflectionClass($generator);
             $prepareMethod = $reflection->getMethod('prepareData');

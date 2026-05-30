@@ -46,6 +46,7 @@ class FormBApiService extends BaseFormApiService
             ")
             ->orderBy('e.employee_code')
             ->get()
+            ->unique('employee_code')
             ->map(fn($row) => (array) $row)
             ->toArray();
 

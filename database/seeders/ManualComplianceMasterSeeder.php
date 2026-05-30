@@ -15,14 +15,17 @@ class ManualComplianceMasterSeeder extends Seeder
 
         $now = now();
 
-        $records = array_map(fn($r) => array_merge($r, [
-            'due_month'          => null,
-            'requires_document'  => true,
-            'is_event_based'     => false,
-            'is_automatable'     => false,
-            'created_at'         => $now,
-            'updated_at'         => $now,
-        ]), $this->records());
+        // Defaults come first so individual record fields (is_automatable, is_event_based, etc.) override them
+        $defaults = [
+            'due_month'         => null,
+            'requires_document' => true,
+            'is_event_based'    => false,
+            'is_automatable'    => false,
+            'created_at'        => $now,
+            'updated_at'        => $now,
+        ];
+
+        $records = array_map(fn($r) => array_merge($defaults, $r), $this->records());
 
         DB::table('compliance_manual_master')->insert($records);
     }

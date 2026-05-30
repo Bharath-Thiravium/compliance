@@ -10,11 +10,6 @@ class FORMDERGenerator extends BaseFormGenerator
     protected function prepareData(array $rawData): array
     {
         $records = $rawData['records'] ?? [];
-
-        if (is_object($records)) {
-            $records = $records->toArray();
-        }
-
         $tenant = $rawData['tenant'] ?? [];
         $branch = $rawData['branch'] ?? [];
         $month  = $rawData['meta']['month'] ?? 1;
@@ -105,6 +100,7 @@ class FORMDERGenerator extends BaseFormGenerator
             'month'             => \Carbon\Carbon::create($year, $month, 1)->format('F'),
             'year'              => $year,
             'rows'              => $rows,
+            'totals'            => [],
             'is_nil'            => count($rows) === 0,
         ];
     }

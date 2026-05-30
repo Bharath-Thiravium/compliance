@@ -17,52 +17,52 @@ class ESIForm12Generator extends BaseFormGenerator
             $record = $this->normalizeRecord($record);
             
             $rows[] = [
-                'employer_name' => $tenant['name'] ?? 'NIL',
-                'code_no' => $branch['esi_code'] ?? 'NIL',
-                'branch_office' => $branch['name'] ?? 'NIL',
-                'industry_nature' => 'NIL',
-                
-                'insured_name' => $record['employee_name'] ?? 'NIL',
-                'insurance_no' => $record['insurance_no'] ?? 'NIL',
-                'sex' => $record['gender'] ?? 'NIL',
-                'age' => 'NIL',
-                'occupation' => $record['occupation'] ?? 'NIL',
-                
-                'accident_address' => $branch['address'] ?? 'NIL',
-                'department' => $record['department'] ?? 'NIL',
-                'shift_hour' => 'NIL',
-                
-                'exact_place' => 'NIL',
-                
-                'injury_nature' => $record['severity'] ?? 'NIL',
-                'injury_location' => 'NIL',
-                'hospital_info' => 'NIL',
-                
-                'accident_description' => $record['description'] ?? 'NIL',
-                
-                'death' => 'no',
-                'death_date' => 'NIL',
-                
-                'wages_payable' => 'yes',
-                'contravention' => 'no',
-                
-                'witness_1' => 'NIL',
-                'witness_2' => 'NIL',
-                
-                'machine_involved' => 'NIL',
-                'machinery_fenced' => 'no',
-                
-                'person_doing' => 'NIL',
-                
-                'employer_vehicle' => 'no',
-                'employer_permission' => 'no',
-                'transport_operated' => 'no',
-                
-                'despatch_date' => now()->format('d-m-Y'),
-                
-                'designation' => 'Manager',
-                'diary_no' => 'AUTO',
-                'branch_manager' => 'Manager',
+                'employer_name'       => trim($tenant['name'] ?? ''),
+                'code_no'             => trim($branch['esi_code'] ?? ''),
+                'branch_office'       => trim($branch['name'] ?? ''),
+                'industry_nature'     => '',
+
+                'insured_name'        => trim($record['employee_name'] ?? ''),
+                'insurance_no'        => trim($record['insurance_no'] ?? ''),
+                'sex'                 => trim($record['gender'] ?? ''),
+                'age'                 => trim($record['age'] ?? ''),
+                'occupation'          => trim($record['occupation'] ?? ''),
+
+                'accident_address'    => trim($branch['address'] ?? ''),
+                'department'          => trim($record['department'] ?? ''),
+                'shift_hour'          => trim($record['shift_hour'] ?? ''),
+
+                'exact_place'         => trim($record['exact_place'] ?? ''),
+
+                'injury_nature'       => trim($record['severity'] ?? $record['injury_nature'] ?? ''),
+                'injury_location'     => trim($record['injury_location'] ?? ''),
+                'hospital_info'       => trim($record['hospital_info'] ?? ''),
+
+                'accident_description' => trim($record['description'] ?? ''),
+
+                'death'               => $record['death'] ?? 'no',
+                'death_date'          => trim($record['death_date'] ?? ''),
+
+                'wages_payable'       => $record['wages_payable'] ?? 'no',
+                'contravention'       => $record['contravention'] ?? 'no',
+
+                'witness_1'           => trim($record['witness_1'] ?? ''),
+                'witness_2'           => trim($record['witness_2'] ?? ''),
+
+                'machine_involved'    => trim($record['machine_involved'] ?? ''),
+                'machinery_fenced'    => $record['machinery_fenced'] ?? 'no',
+
+                'person_doing'        => trim($record['person_doing'] ?? ''),
+
+                'employer_vehicle'    => $record['employer_vehicle'] ?? 'no',
+                'employer_permission' => $record['employer_permission'] ?? 'no',
+                'transport_operated'  => $record['transport_operated'] ?? 'no',
+
+                'despatch_date'       => trim($record['despatch_date'] ?? ''),
+
+                'designation'         => trim($record['designation'] ?? ''),
+                'diary_no'            => trim($record['diary_no'] ?? ''),
+                'branch_manager'      => trim($record['branch_manager'] ?? ''),
             ];
         }
 
@@ -74,15 +74,15 @@ class ESIForm12Generator extends BaseFormGenerator
                 'form_title' => 'ESI FORM 12 - Accident Report',
                 'period' => $this->formatPeriod($month, $year),
                 'branch' => $branch,
-                'tenant' => is_array($tenant) ? ($tenant['name'] ?? 'N/A') : $tenant,
+                'tenant' => is_array($tenant) ? ($tenant['name'] ?? '') : $tenant,
                 'tenant_details' => $tenant,
-                'establishment_name' => $branch['name'] ?? 'N/A',
-                'esi_code' => $branch['esi_code'] ?? 'N/A',
-                'factory_name' => $branch['name'] ?? 'N/A',
-                'address' => $branch['address'] ?? 'N/A',
-                'owner_name' => $tenant['name'] ?? 'N/A',
-                'place' => $branch['address'] ?? 'N/A',
-                'district' => $branch['district'] ?? 'N/A',
+                'establishment_name' => $branch['name'] ?? '',
+                'esi_code' => $branch['esi_code'] ?? '',
+                'factory_name' => $branch['name'] ?? '',
+                'address' => $branch['address'] ?? '',
+                'owner_name' => $tenant['name'] ?? '',
+                'place' => $branch['address'] ?? '',
+                'district' => $branch['district'] ?? '',
             ],
             'rows' => $rows,
             'totals' => [],

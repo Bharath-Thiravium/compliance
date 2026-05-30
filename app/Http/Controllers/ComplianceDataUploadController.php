@@ -15,50 +15,6 @@ class ComplianceDataUploadController extends Controller
         return view('compliance.csv_upload');
     }
 
-    public function downloadTemplate(string $type = 'employees')
-    {
-        $templates = [
-            'employees' => [
-                'filename' => 'sample_employees.csv',
-                'content'  => implode("\n", [
-                    'employee_code,name,father_name,date_of_birth,gender,mobile,designation,department,date_of_joining,uan,esic_ip,pf_number,pan,bank_account,bank_name,ifsc,basic_salary,permanent_address,status',
-                    'EMP001,Arumugam S,Subramaniam A,1985-06-15,Male,9876543210,Supervisor,Production,2020-01-10,100123456789,1234567890,PF001234,ABCDE1234F,12345678901234,State Bank of India,SBIN0001234,18000,12 Main Road Chennai TN 600001,active',
-                    'EMP002,Balamurugan K,Krishnan B,1990-03-22,Male,9876543211,Technician,Maintenance,2021-04-01,100123456790,1234567891,PF001235,FGHIJ5678K,12345678901235,Indian Bank,IDIB000M123,15000,45 Anna Nagar Chennai TN 600040,active',
-                    'EMP003,Kavitha R,Rajan P,1992-11-08,Female,9876543212,Clerk,Administration,2022-07-15,100123456791,1234567892,PF001236,KLMNO9012L,12345678901236,Canara Bank,CNRB0001234,12000,78 T Nagar Chennai TN 600017,active',
-                ]),
-            ],
-            'payroll' => [
-                'filename' => 'sample_payroll.csv',
-                'content'  => implode("\n", [
-                    'employee_code,gross_salary,basic_salary,hra,conveyance,other_allowance,overtime,bonus,deductions,pf,esi,professional_tax,net_salary,salary_month,salary_year',
-                    'EMP001,18000,9000,3600,1600,3800,0,0,1956,1080,135,200,16044,1,2025',
-                    'EMP002,15000,7500,3000,1600,2900,500,0,1631,900,113,200,13869,1,2025',
-                    'EMP003,12000,6000,2400,1600,2000,0,0,1304,720,90,200,10696,1,2025',
-                ]),
-            ],
-            'attendance' => [
-                'filename' => 'sample_attendance.csv',
-                'content'  => implode("\n", [
-                    'employee_code,working_days,present_days,absent_days,weekly_off,paid_leave,ot_hours,attendance_month,attendance_year',
-                    'EMP001,26,26,0,4,0,0,1,2025',
-                    'EMP002,26,25,1,4,0,4,1,2025',
-                    'EMP003,26,24,2,4,1,0,1,2025',
-                ]),
-            ],
-        ];
-
-        if (! isset($templates[$type])) {
-            abort(404);
-        }
-
-        $tpl = $templates[$type];
-
-        return response($tpl['content'], 200, [
-            'Content-Type'        => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="' . $tpl['filename'] . '"',
-        ]);
-    }
-
     public function upload(Request $request)
     {
         // Validate file presence and period — always returns JSON on failure
@@ -181,34 +137,41 @@ class ComplianceDataUploadController extends Controller
     private function buildEmployeePayload(array $row, int $tenantId, int $branchId, bool $withTimestamps = true): array
     {
         $payload = [
-            'tenant_id'         => $tenantId,
-            'branch_id'         => $branchId,
-            'employee_code'     => $row['employee_code'],
-            'name'              => $row['name'],
-            'father_name'       => $row['father_name']       ?? null,
-            'gender'            => CsvNormalizer::normalizeGender($row['gender'] ?? null),
-            'date_of_birth'     => $this->parseDate($row['date_of_birth'] ?? null),
-            'marital_status'    => $row['marital_status']    ?? null,
-            'nationality'       => $row['nationality']       ?? null,
-            'mobile'            => CsvNormalizer::normalizeMobile($row['mobile'] ?? null),
-            'email'             => $row['email']             ?? null,
-            'permanent_address' => $row['permanent_address'] ?? null,
-            'designation'       => $row['designation']       ?? null,
-            'department'        => $row['department']        ?? null,
-            'skill_type'        => $row['skill_type']        ?? null,
-            'date_of_joining'   => $this->parseDate($row['date_of_joining'] ?? null) ?? now()->toDateString(),
-            'pf_number'         => CsvNormalizer::normalizePF($row['pf_number'] ?? null),
-            'esi_number'        => CsvNormalizer::normalizeESI($row['esi_number'] ?? null),
-            'uan_number'        => CsvNormalizer::normalizeUAN($row['uan_number'] ?? $row['pf_number'] ?? null),
-            'pan'               => $row['pan']               ?? null,
-            'aadhaar'           => $row['aadhaar']           ?? null,
-            'bank_account'      => $row['bank_account']      ?? null,
-            'bank_name'         => $row['bank_name']         ?? null,
-            'ifsc'              => $row['ifsc']              ?? null,
-            'basic_salary'      => CsvNormalizer::normalizeFloat($row['basic_salary'] ?? null),
-            'status'            => 'active',
-            'deleted_at'         => null,
-            'updated_at'        => now(),
+            'tenant_id'           => $tenantId,
+            'branch_id'           => $branchId,
+            'employee_code'       => $row['employee_code'],
+            'name'                => $row['name'],
+            'father_name'         => $row['father_name']         ?? null,
+            'gender'              => CsvNormalizer::normalizeGender($row['gender'] ?? null),
+            'date_of_birth'       => $this->parseDate($row['date_of_birth'] ?? null),
+            'marital_status'      => $row['marital_status']      ?? null,
+            'nationality'         => $row['nationality']         ?? null,
+            'mobile'              => CsvNormalizer::normalizeMobile($row['mobile'] ?? null),
+            'email'               => $row['email']               ?? null,
+            'permanent_address'   => $row['permanent_address']   ?? null,
+            'local_address'       => $row['local_address']       ?? null,
+            'designation'         => $row['designation']         ?? null,
+            'department'          => $row['department']          ?? null,
+            'skill_type'          => $row['skill_type']          ?? null,
+            'employment_type'     => CsvNormalizer::normalizeEmploymentType($row['employment_type'] ?? null),
+            'education_level'     => $row['education_level']     ?? null,
+            'identification_mark' => $row['identification_mark'] ?? null,
+            'work_nature'         => $row['work_nature']         ?? null,
+            'shift_name'          => $row['shift_name']          ?? null,
+            'date_of_joining'     => $this->parseDate($row['date_of_joining'] ?? null) ?? now()->toDateString(),
+            'date_of_exit'        => $this->parseDate($row['date_of_exit'] ?? null),
+            'pf_number'           => CsvNormalizer::normalizePF($row['pf_number'] ?? null),
+            'esi_number'          => CsvNormalizer::normalizeESI($row['esi_number'] ?? null),
+            'uan_number'          => CsvNormalizer::normalizeUAN($row['uan_number'] ?? null),
+            'pan'                 => CsvNormalizer::normalizePAN($row['pan'] ?? null),
+            'aadhaar'             => CsvNormalizer::normalizeAadhaar($row['aadhaar'] ?? null),
+            'bank_account'        => $row['bank_account']        ?? null,
+            'bank_name'           => $row['bank_name']           ?? null,
+            'ifsc'                => CsvNormalizer::normalizeIFSC($row['ifsc'] ?? null),
+            'basic_salary'        => CsvNormalizer::normalizeFloat($row['basic_salary'] ?? null),
+            'status'              => CsvNormalizer::normalizeStatus($row['status'] ?? null),
+            'deleted_at'          => null,
+            'updated_at'          => now(),
         ];
 
         if ($withTimestamps) {
@@ -486,29 +449,45 @@ class ComplianceDataUploadController extends Controller
                     'employee_id'      => $empMap[$code],
                 ],
                 [
-                'total_days_worked' => $workingDays,
-                'paid_leave_days'   => (int) ($row['paid_leave_days'] ?? 0),
-                'unpaid_leave_days' => $absent,
-                'overtime_hours'    => $otHours,
-                'basic_earned'      => $basic,
-                'da_earned'         => (float) ($row['da_earned']           ?? 0),
-                'hra_earned'        => (float) ($row['hra_earned']          ?? 0),
-                'other_allowances'  => (float) ($row['other_allowances']    ?? 0),
-                'overtime_wages'    => $otWages,
-                'gross_salary'      => $gross,
-                'pf_employee'       => $pf,
-                'esi_employee'      => $esi,
-                'professional_tax'  => $pt,
-                'fines'             => (float) ($row['fines']              ?? 0),
-                'advances'          => (float) ($row['advances']           ?? 0),
-                'other_deductions'  => (float) ($row['other_deductions']   ?? 0),
-                'total_deductions'  => $totalDeduct,
-                'net_salary'        => $net,
-                'payment_date'      => $row['payment_date'] ?? null,
-                'payment_mode'      => $row['payment_mode'] ?? 'Bank Transfer',
-                'created_at'        => now(),
-                'updated_at'        => now(),
-                'deleted_at'         => null,
+                'total_days_worked'    => $workingDays,
+                'paid_leave_days'      => (int) ($row['paid_leave_days']   ?? 0),
+                'unpaid_leave_days'    => $absent,
+                'overtime_hours'       => $otHours,
+                'basic_earned'         => $basic,
+                'da_earned'            => (float) ($row['da_earned']           ?? 0),
+                'hra_earned'           => (float) ($row['hra_earned']          ?? 0),
+                'other_allowances'     => (float) ($row['other_allowances']    ?? 0),
+                'overtime_wages'       => $otWages,
+                'bonus_amount'         => (float) ($row['bonus_amount']        ?? 0),
+                'gross_salary'         => $gross,
+                'pf_employee'          => $pf,
+                'pf_employer'          => (float) ($row['pf_employer']         ?? 0),
+                'esi_employee'         => $esi,
+                'esi_employer'         => (float) ($row['esi_employer']        ?? 0),
+                'professional_tax'     => $pt,
+                'lwf'                  => (float) ($row['lwf']                 ?? 0),
+                'fines'                => (float) ($row['fines']               ?? 0),
+                'fine_reason'          => $row['fine_reason']                  ?? null,
+                'fine_date'            => $this->parseDate($row['fine_date']   ?? null),
+                'advances'             => (float) ($row['advances']            ?? 0),
+                'advance_reason'       => $row['advance_reason']               ?? null,
+                'advance_installment'  => (float) ($row['advance_installment'] ?? 0),
+                'other_deductions'     => (float) ($row['other_deductions']    ?? 0),
+                'deduction_reason'     => $row['deduction_reason']             ?? null,
+                'damage_particulars'   => $row['damage_particulars']           ?? null,
+                'showed_cause'         => CsvNormalizer::normalizeBool($row['showed_cause'] ?? null),
+                'heard_by'             => $row['heard_by']                     ?? null,
+                'witness_name'         => $row['witness_name']                 ?? null,
+                'total_deductions'     => $totalDeduct,
+                'net_salary'           => $net,
+                'payment_date'         => $row['payment_date']                 ?? null,
+                'payment_mode'         => $row['payment_mode']                 ?? 'Bank Transfer',
+                'transaction_reference'=> $row['transaction_reference']        ?? null,
+                'salary_month'         => (int) ($row['salary_month']          ?? 0) ?: null,
+                'salary_year'          => (int) ($row['salary_year']           ?? 0) ?: null,
+                'created_at'           => now(),
+                'updated_at'           => now(),
+                'deleted_at'           => null,
                 ]
             );
 
@@ -560,8 +539,16 @@ class ComplianceDataUploadController extends Controller
                     ],
                     [
                         'branch_id'      => $branchId,
-                        'status'         => ($row['attendance_status'] ?? 'present'),
+                        'status'         => CsvNormalizer::normalizeAttendanceStatus($row['attendance_status'] ?? $row['status'] ?? null),
+                        'shift_name'     => $row['shift_name']    ?? null,
+                        'in_time'        => CsvNormalizer::normalizeTime($row['in_time']    ?? null),
+                        'out_time'       => CsvNormalizer::normalizeTime($row['out_time']   ?? null),
+                        'working_hours'  => CsvNormalizer::normalizeFloat($row['working_hours'] ?? null),
                         'overtime_hours' => $otHours,
+                        'leave_type'     => $row['leave_type']    ?? null,
+                        'weekly_off'     => CsvNormalizer::normalizeBool($row['weekly_off']    ?? null),
+                        'holiday_flag'   => CsvNormalizer::normalizeBool($row['holiday_flag']  ?? null),
+                        'remarks'        => $row['remarks']        ?? null,
                         'deleted_at'     => null,
                         'updated_at'     => now(),
                         'created_at'     => now(),
@@ -571,19 +558,33 @@ class ComplianceDataUploadController extends Controller
                 continue;
             }
 
-            // Summary mode: expand into per-day rows for the correct pay-period month
-            $daysInMonth  = $periodStart->daysInMonth;
-            $absentFilled = 0;
+            // Summary mode: expand into one row per working day of the month.
+            // Absent days are distributed evenly across the month (not bunched at end).
+            $daysInMonth = $periodStart->daysInMonth;
 
+            // Build list of working days (non-Sunday) for the month
+            $workingDates = [];
             for ($day = 1; $day <= $daysInMonth; $day++) {
-                $date      = $periodStart->copy()->day($day)->toDateString();
-                $dayOfWeek = $periodStart->copy()->day($day)->dayOfWeek;
-                if ($dayOfWeek === 0) continue; // skip Sundays
+                $d = $periodStart->copy()->day($day);
+                if ($d->dayOfWeek !== 0) { // 0 = Sunday
+                    $workingDates[] = $d->toDateString();
+                }
+            }
 
-                $remainingDays = $daysInMonth - $day + 1;
-                $isAbsent = ($absentFilled < $absentDays) && ($remainingDays <= ($absentDays - $absentFilled));
-                if ($isAbsent) $absentFilled++;
+            // Distribute absent days evenly: mark every Nth day absent
+            $totalWorking = count($workingDates);
+            $absentSet    = [];
+            if ($absentDays > 0 && $totalWorking > 0) {
+                $step = max(1, (int) floor($totalWorking / $absentDays));
+                $placed = 0;
+                for ($i = 0; $i < $totalWorking && $placed < $absentDays; $i += $step) {
+                    $absentSet[$workingDates[$i]] = true;
+                    $placed++;
+                }
+            }
 
+            foreach ($workingDates as $idx => $date) {
+                $isAbsent = isset($absentSet[$date]);
                 DB::table('workforce_attendance')->updateOrInsert(
                     [
                         'tenant_id'       => $tenantId,
@@ -593,7 +594,7 @@ class ComplianceDataUploadController extends Controller
                     [
                         'branch_id'      => $branchId,
                         'status'         => $isAbsent ? 'absent' : 'present',
-                        'overtime_hours' => ($day === 1) ? $otHours : 0,
+                        'overtime_hours' => ($idx === 0) ? $otHours : 0,
                         'deleted_at'     => null,
                         'updated_at'     => now(),
                         'created_at'     => now(),
@@ -604,5 +605,54 @@ class ComplianceDataUploadController extends Controller
         }
 
         return $count;
+    }
+
+    // ── Supplementary Upload (bonus/fines/advances/deductions/incidents/hazard_register/contractors) ──
+
+    public function uploadSupplementary(Request $request)
+    {
+        $valid = ['bonus','fines','advances','deductions','incidents','hazard_register','contractors'];
+
+        try {
+            $request->validate([
+                'type' => 'required|string|in:' . implode(',', $valid),
+                'file' => 'required|file|max:10240',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => implode(' ', array_merge(...array_values($e->errors()))),
+            ], 422);
+        }
+
+        $user     = Auth::user();
+        $tenantId = $user->tenant_id;
+        $branchId = $this->resolveUploadBranchId($tenantId, $user->branch_id, $user->id);
+        $type     = $request->input('type');
+
+        try {
+            $result = app(\App\Services\Compliance\SupplementaryCsvUploadService::class)
+                ->upload($request->file('file'), $type, $tenantId, $branchId);
+
+            Log::info('Supplementary CSV uploaded (standalone)', [
+                'tenant_id' => $tenantId,
+                'type'      => $type,
+                'inserted'  => $result['inserted'],
+            ]);
+
+            return response()->json([
+                'status'           => 'success',
+                'message'          => "Successfully imported {$result['inserted']} {$type} records",
+                'records_inserted' => $result['inserted'],
+                'type'             => $type,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Supplementary CSV upload failed (standalone)', [
+                'tenant_id' => $tenantId,
+                'type'      => $type,
+                'error'     => $e->getMessage(),
+            ]);
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
+        }
     }
 }

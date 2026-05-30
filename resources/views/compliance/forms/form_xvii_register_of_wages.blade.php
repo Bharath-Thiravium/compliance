@@ -116,25 +116,25 @@
             <div class="header-left">
                 <div class="header-row">
                     <span class="header-label">Name and address of Contractor:</span><br>
-                    <span class="header-value">{{ $contractor_name ?? 'NIL' }}</span>
+                    <span class="header-value">{{ $contractor_name ?? '' }}</span>
                 </div>
                 <div class="header-row">
                     <span class="header-label">Nature and location of work:</span><br>
-                    <span class="header-value">{{ $work_nature ?? 'NIL' }} - {{ $work_location ?? 'NIL' }}</span>
+                    <span class="header-value">{{ $work_nature ?? '' }}{{ !empty($work_location) ? ' - ' . $work_location : '' }}</span>
                 </div>
                 <div class="header-row">
                     <span class="header-label">Wage period:</span>
-                    <span class="header-value">{{ $wage_period ?? 'NIL' }}</span>
+                    <span class="header-value">{{ $wage_period ?? '' }}</span>
                 </div>
             </div>
             <div class="header-right">
                 <div class="header-row">
                     <span class="header-label">Name and address of Establishment in/under which contract is carried on:</span><br>
-                    <span class="header-value">{{ $establishment_name ?? 'NIL' }}</span>
+                    <span class="header-value">{{ $establishment_name ?? '' }}</span>
                 </div>
                 <div class="header-row">
                     <span class="header-label">Name and address of Principal Employer:</span><br>
-                    <span class="header-value">{{ $principal_employer ?? 'NIL' }}</span>
+                    <span class="header-value">{{ $principal_employer ?? '' }}</span>
                 </div>
             </div>
         </div>
@@ -173,52 +173,31 @@
                     @foreach($rows as $index => $row)
                     <tr>
                         <td class="col-sl">{{ $index + 1 }}</td>
-                        <td class="col-name">{{ $row['name'] ?? 'NIL' }}</td>
-                        <td class="col-serial">{{ $row['employee_code'] ?? 'NIL' }}</td>
-                        <td class="col-designation">{{ $row['designation'] ?? 'NIL' }}</td>
-                        <td class="col-days">{{ $row['days_worked'] ?? 'NIL' }}</td>
-                        <td class="col-unit">{{ $row['unit_work'] ?? 'NIL' }}</td>
-                        <td class="col-rate">{{ ($row['daily_rate'] ?? '') ? number_format($row['daily_rate'] ?? '', 2) : 'NIL' }}</td>
-                        <td class="col-basic">{{ ($row['basic_wages'] ?? '') ? number_format($row['basic_wages'] ?? '', 2) : 'NIL' }}</td>
-                        <td class="col-da">{{ ($row['da'] ?? '') ? number_format($row['da'] ?? '', 2) : 'NIL' }}</td>
-                        <td class="col-ot">{{ ($row['overtime'] ?? '') ? number_format($row['overtime'] ?? '', 2) : 'NIL' }}</td>
-                        <td class="col-other">{{ ($row['other_cash'] ?? '') ? number_format($row['other_cash'] ?? '', 2) : 'NIL' }}</td>
+                        <td class="col-name">{{ $row['name'] ?? '' }}</td>
+                        <td class="col-serial">{{ $row['employee_code'] ?? '' }}</td>
+                        <td class="col-designation">{{ $row['designation'] ?? '' }}</td>
+                        <td class="col-days">{{ $row['days_worked'] ?? '' }}</td>
+                        <td class="col-unit">{{ $row['unit_work'] ?? '' }}</td>
+                        <td class="col-rate">{{ ($row['daily_rate'] ?? 0) ? number_format($row['daily_rate'], 2) : '' }}</td>
+                        <td class="col-basic">{{ ($row['basic_wages'] ?? 0) ? number_format($row['basic_wages'], 2) : '' }}</td>
+                        <td class="col-da">{{ ($row['da'] ?? 0) ? number_format($row['da'], 2) : '' }}</td>
+                        <td class="col-ot">{{ ($row['overtime'] ?? 0) ? number_format($row['overtime'], 2) : '' }}</td>
+                        <td class="col-other">{{ ($row['other_cash'] ?? 0) ? number_format($row['other_cash'], 2) : '' }}</td>
                         <td style="width: 1%;"></td>
-                        <td class="col-total">{{ ($row['gross_salary'] ?? '') ? number_format($row['gross_salary'] ?? '', 2) : 'NIL' }}</td>
-                        <td class="col-esi">{{ ($row['esi'] ?? '') ? number_format($row['esi'] ?? '', 2) : 'NIL' }}</td>
-                        <td class="col-pf">{{ ($row['pf'] ?? '') ? number_format($row['pf'] ?? '', 2) : 'NIL' }}</td>
-                        <td class="col-pt">{{ ($row['pt'] ?? '') ? number_format($row['pt'] ?? '', 2) : 'NIL' }}</td>
-                        <td class="col-deduct-total">{{ ($row['total_deductions'] ?? '') ? number_format($row['total_deductions'] ?? '', 2) : 'NIL' }}</td>
-                        <td class="col-net">{{ ($row['net_amount'] ?? '') ? number_format($row['net_amount'] ?? '', 2) : 'NIL' }}</td>
+                        <td class="col-total">{{ ($row['gross_salary'] ?? 0) ? number_format($row['gross_salary'], 2) : '' }}</td>
+                        <td class="col-esi">{{ ($row['esi'] ?? 0) ? number_format($row['esi'], 2) : '' }}</td>
+                        <td class="col-pf">{{ ($row['pf'] ?? 0) ? number_format($row['pf'], 2) : '' }}</td>
+                        <td class="col-pt">{{ ($row['pt'] ?? 0) ? number_format($row['pt'], 2) : '' }}</td>
+                        <td class="col-deduct-total">{{ ($row['total_deductions'] ?? 0) ? number_format($row['total_deductions'], 2) : '' }}</td>
+                        <td class="col-net">{{ ($row['net_amount'] ?? 0) ? number_format($row['net_amount'], 2) : '' }}</td>
                         <td class="col-signature"></td>
                         <td class="col-initial"></td>
                     </tr>
                     @endforeach
                 @else
-                    @for($i = 0; $i < 10; $i++)
                     <tr>
-                        <td class="col-sl">{{ $i + 1 }}</td>
-                        <td class="col-name">NIL</td>
-                        <td class="col-serial">NIL</td>
-                        <td class="col-designation">NIL</td>
-                        <td class="col-days">NIL</td>
-                        <td class="col-unit">NIL</td>
-                        <td class="col-rate">NIL</td>
-                        <td class="col-basic">NIL</td>
-                        <td class="col-da">NIL</td>
-                        <td class="col-ot">NIL</td>
-                        <td class="col-other">NIL</td>
-                        <td style="width: 1%;"></td>
-                        <td class="col-total">NIL</td>
-                        <td class="col-esi">NIL</td>
-                        <td class="col-pf">NIL</td>
-                        <td class="col-pt">NIL</td>
-                        <td class="col-deduct-total">NIL</td>
-                        <td class="col-net">NIL</td>
-                        <td class="col-signature"></td>
-                        <td class="col-initial"></td>
+                        <td colspan="20" style="text-align:center; font-weight:bold; padding:6px;">NIL</td>
                     </tr>
-                    @endfor
                 @endif
             </tbody>
         </table>

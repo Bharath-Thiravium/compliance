@@ -1,5 +1,3 @@
-@extends('compliance.layouts.preview')
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -75,7 +73,7 @@
         }
         .footer-left { flex: 1; }
         .footer-right { flex: 1; text-align: right; }
-        .signature-label { margin-top: 2px; font-weight: bold; text-align: right; }
+        .signature-label { margin-top: 30px; font-weight: bold; text-align: right; }
     </style>
 </head>
 <body>

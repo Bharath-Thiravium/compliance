@@ -12,7 +12,7 @@ class Form11ApiService extends BaseFormApiService
         $this->validateTenantAndBranch($tenantId, $branchId);
 
         $rows = DB::table('incidents as i')
-            ->join('workforce_employee as e', 'e.id', '=', 'i.employee_id')
+            ->leftJoin('workforce_employee as e', 'e.id', '=', 'i.employee_id')
             ->where('i.tenant_id', $tenantId)
             ->where('i.branch_id', $branchId)
             ->whereYear('i.incident_date', $year)
@@ -39,6 +39,13 @@ class Form11ApiService extends BaseFormApiService
             ])
             ->orderBy('i.incident_date')
             ->get()
+            // Composite dedup: same incident_date + employee + injury_type = same incident
+            ->unique(fn($r) => implode('|', [
+                $r->incident_date ?? '',
+                $r->name          ?? '',
+                $r->injury_type   ?? '',
+            ]))
+            ->values()
             ->map(fn($row) => (array)$row)
             ->toArray();
 

@@ -150,12 +150,6 @@
 
     @php
         $hasOvertime = $hasOvertime ?? (isset($rows) && count($rows) > 0);
-        \Illuminate\Support\Facades\Log::info('FORM_10 render', [
-            'company'     => ($header['tenant'] ?? [])['name'] ?? '',
-            'period'      => $header['period'] ?? '',
-            'rows'        => count($rows ?? []),
-            'hasOvertime' => $hasOvertime,
-        ]);
     @endphp
 
     <table class="data-table">
@@ -207,7 +201,7 @@
             <tr>
                 <td class="tc">{{ $index + 1 }}</td>
                 <td>{{ $row['employee_name'] ?? '' }}</td>
-                <td>{{ $row['designation'] ?? '' }}</td>
+                <td>{{ $row['department'] ?? '' }}</td>
                 <td class="tc"></td>
                 <td class="tr">{{ number_format($row['overtime_hours'] ?? 0, 2) }}</td>
                 <td class="tr">{{ ($row['is_piece_worker'] ?? false) ? number_format($row['overtime_hours'] ?? 0, 2) : '' }}</td>
@@ -227,8 +221,8 @@
                 <td class="tr">{{ number_format($totals['overtime_hours'] ?? 0, 2) }}</td>
                 <td class="tr">{{ number_format($totals['piece_worker_overtime'] ?? 0, 2) }}</td>
                 <td class="tc">&mdash;</td>
-                <td class="tr">{{ number_format($totals['normal_rate'] ?? 0, 2) }}</td>
-                <td class="tr">{{ number_format($totals['overtime_rate'] ?? 0, 2) }}</td>
+                <td class="tc">&mdash;</td>
+                <td class="tc">&mdash;</td>
                 <td class="tr">{{ number_format($totals['normal_earnings'] ?? 0, 2) }}</td>
                 <td class="tr">{{ number_format($totals['overtime_wages'] ?? 0, 2) }}</td>
                 <td class="tr">{{ number_format($totals['food_grain_benefit'] ?? 0, 2) }}</td>

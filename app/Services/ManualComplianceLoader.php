@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\ComplianceExecutionBatch;
 use App\Models\ManualComplianceMaster;
 use App\Models\ManualComplianceBatchItem;
-use Illuminate\Support\Facades\DB;
 
 class ManualComplianceLoader
 {
@@ -16,20 +15,37 @@ class ManualComplianceLoader
         $branchId = $batch->branch_id;
         $batchId = $batch->id;
 
+        $isQuarterEnd  = in_array($month, [3, 6, 9, 12]);
+        $isHalfYearEnd = in_array($month, [6, 12]);
+        $isYearEnd     = ($month === 12);
+
         $compliances = ManualComplianceMaster::query()
             ->where('is_automatable', false)
-            ->where(function ($query) use ($month) {
-                $query->where('frequency', 'monthly')
-                    ->orWhere('frequency', 'event')
-                    ->orWhere(function ($q) use ($month) {
-                        $q->where('frequency', 'quarterly')
-                            ->whereIn('due_month', [3, 6, 9, 12])
-                            ->where('due_month', '<=', $month);
-                    })
-                    ->orWhere(function ($q) use ($month) {
-                        $q->where('frequency', 'annual')
-                            ->where('due_month', $month);
-                    });
+            ->where(function ($query) use ($month, $isQuarterEnd, $isHalfYearEnd, $isYearEnd) {
+                // Monthly and event-based tasks apply every period
+                $query->whereIn('frequency', ['monthly', 'event']);
+
+                // Quarterly tasks apply at end-of-quarter months: 3, 6, 9, 12
+                if ($isQuarterEnd) {
+                    $query->orWhere('frequency', 'quarterly');
+                }
+
+                // Half-yearly tasks apply in June and December
+                if ($isHalfYearEnd) {
+                    $query->orWhere('frequency', 'half_yearly');
+                }
+
+                // Annual tasks: apply in the specified due_month,
+                // or in December when due_month is not configured
+                $query->orWhere(function ($q) use ($month, $isYearEnd) {
+                    $q->where('frequency', 'annual')
+                        ->where(function ($cond) use ($month, $isYearEnd) {
+                            $cond->where('due_month', $month);
+                            if ($isYearEnd) {
+                                $cond->orWhereNull('due_month');
+                            }
+                        });
+                });
             })
             ->get();
 

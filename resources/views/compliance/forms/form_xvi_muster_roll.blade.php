@@ -122,21 +122,21 @@
             <div class="header-left">
                 <div class="header-row">
                     <span class="header-label">Name and address of contractor:</span><br>
-                    <span class="header-value">{{ $contractor_name ?? 'NIL' }}</span>
+                    <span class="header-value">{{ $contractor_name ?? '' }}</span>
                 </div>
                 <div class="header-row">
                     <span class="header-label">Name and address of establishment in/under which contract is carried on:</span><br>
-                    <span class="header-value">{{ $establishment_name ?? 'NIL' }}</span>
+                    <span class="header-value">{{ $establishment_name ?? '' }}</span>
                 </div>
             </div>
             <div class="header-right">
                 <div class="header-row">
                     <span class="header-label">Name and address of principal employer:</span><br>
-                    <span class="header-value">{{ $principal_employer ?? 'NIL' }}</span>
+                    <span class="header-value">{{ $principal_employer ?? '' }}</span>
                 </div>
                 <div class="header-row">
                     <span class="header-label">Nature and location of work:</span><br>
-                    <span class="header-value">{{ $work_nature ?? 'NIL' }} - {{ $work_location ?? 'NIL' }}</span>
+                    <span class="header-value">{{ $work_nature ?? '' }}{{ !empty($work_location) ? ' - ' . $work_location : '' }}</span>
                 </div>
                 <div class="header-row">
                     <span class="header-label">Wage period:</span>
@@ -204,9 +204,9 @@
                     @foreach($rows as $index => $row)
                     <tr>
                         <td class="col-sl">{{ $index + 1 }}</td>
-                        <td class="col-name">{{ $row['name'] ?? 'NIL' }}</td>
-                        <td class="col-father">{{ $row['father_name'] ?? 'NIL' }}</td>
-                        <td class="col-sex">{{ $row['sex'] ?? 'NIL' }}</td>
+                        <td class="col-name">{{ $row['name'] ?? '' }}</td>
+                        <td class="col-father">{{ $row['father_name'] ?? '' }}</td>
+                        <td class="col-sex">{{ $row['sex'] ?? '' }}</td>
                         @for($day = 1; $day <= 31; $day++)
                         <td class="col-date">{{ $row['day_' . $day] ?? '' }}</td>
                         @endfor
@@ -214,18 +214,9 @@
                     </tr>
                     @endforeach
                 @else
-                    @for($i = 0; $i < 10; $i++)
                     <tr>
-                        <td class="col-sl">{{ $i + 1 }}</td>
-                        <td class="col-name">NIL</td>
-                        <td class="col-father">NIL</td>
-                        <td class="col-sex">NIL</td>
-                        @for($day = 1; $day <= 31; $day++)
-                        <td class="col-date"></td>
-                        @endfor
-                        <td class="col-remarks"></td>
+                        <td colspan="36" style="text-align:center; font-weight:bold; padding:6px;">NIL</td>
                     </tr>
-                    @endfor
                 @endif
             </tbody>
         </table>

@@ -14,6 +14,7 @@ class FormXIIApiService extends BaseFormApiService
         $rows = DB::table('contractor_master as cm')
             ->where('cm.tenant_id', $tenantId)
             ->where('cm.branch_id', $branchId)
+            ->whereNull('cm.deleted_at')
             ->select([
                 'cm.id',
                 DB::raw("COALESCE(cm.contractor_name, cm.company_name, 'N/A') as contractor_name"),
@@ -21,10 +22,10 @@ class FormXIIApiService extends BaseFormApiService
                 DB::raw("COALESCE(cm.address, cm.company_address, 'N/A') as address"),
                 DB::raw("COALESCE(cm.phone, cm.contact_number, '') as phone"),
                 DB::raw("COALESCE(cm.email, '') as email"),
-                DB::raw("COALESCE(cm.license_no, '') as license_no"),
-                DB::raw("COALESCE(cm.license_expiry, NULL) as license_expiry"),
+                DB::raw("COALESCE(cm.license_number, cm.license_no, '') as license_no"),
+                DB::raw("COALESCE(cm.valid_to, cm.license_expiry, NULL) as license_expiry"),
             ])
-            ->orderBy('contractor_code')
+            ->orderBy('cm.contractor_name')
             ->get()
             ->map(fn($row) => (array)$row)
             ->toArray();

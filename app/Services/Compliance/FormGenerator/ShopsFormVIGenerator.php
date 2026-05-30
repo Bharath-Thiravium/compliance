@@ -7,49 +7,43 @@ class ShopsFormVIGenerator extends BaseFormGenerator
     protected string $formCode = 'SHOPS_FORM_VI';
     protected string $view = 'compliance.forms.shops_form_vi';
 
+    // Map raw attendance status to legend codes
+    private function mapStatus(?string $status): string
+    {
+        return match (strtolower((string) $status)) {
+            'present'          => 'W/D',
+            'holiday'          => 'H',
+            'absent', 'leave'  => 'N/E',
+            default            => 'H',  // declared holiday with no attendance record = H
+        };
+    }
+
     protected function prepareData(array $rawData): array
     {
-        $records = $rawData['records'] ?? [];
+        $holidays             = $rawData['holidays'] ?? [];
+        $employees            = $rawData['employees'] ?? [];
+        $attendanceOnHolidays = $rawData['attendance_on_holidays'] ?? [];
+
+        // Build ordered list of holiday dates (max 9 columns)
+        $holidayDates = array_slice(array_column($holidays, 'holiday_date'), 0, 9);
+
         $rows = [];
-        $employeeMap = [];
-
-        // Group records by employee
-        foreach ($records as $record) {
-            $code = $record['employee_code'] ?? '';
-            if (!isset($employeeMap[$code])) {
-                $employeeMap[$code] = [
-                    'employee_name' => $record['name'] ?? 'N/A',
-                    'ticket'        => $record['father_name'] ?? $record['employee_code'] ?? '',
-                    'holidays'      => [],
-                ];
-            }
-            $employeeMap[$code]['holidays'][] = [
-                'date' => $record['attendance_date'] ?? '',
-                'status' => $record['status'] ?? '',
-            ];
-        }
-
-        // Convert to rows with holiday columns
-        foreach ($employeeMap as $employee) {
-            $row = [
-                'employee_name' => $employee['employee_name'],
-                'ticket' => $employee['ticket'],
-                'holiday1' => '',
-                'holiday2' => '',
-                'holiday3' => '',
-                'holiday4' => '',
-                'holiday5' => '',
-                'holiday6' => '',
-                'holiday7' => '',
-                'holiday8' => '',
-                'holiday9' => '',
-                'remarks' => '',
+        foreach ($employees as $emp) {
+            $code = $emp['employee_code'] ?? '';
+            $row  = [
+                'employee_name' => $emp['name'] ?? 'N/A',
+                'ticket'        => $emp['father_name'] ?? $code,
+                'remarks'       => '',
             ];
 
-            // Map holidays to columns (max 9)
-            foreach ($employee['holidays'] as $idx => $holiday) {
-                if ($idx >= 9) break;
-                $row['holiday' . ($idx + 1)] = $holiday['status'] ?? '';
+            foreach (range(1, 9) as $i) {
+                $date = $holidayDates[$i - 1] ?? null;
+                if ($date && isset($attendanceOnHolidays[$code][$date])) {
+                    $att = $attendanceOnHolidays[$code][$date];
+                    $row['holiday' . $i] = $this->mapStatus($att['status'] ?? null);
+                } else {
+                    $row['holiday' . $i] = $date ? 'H' : '';
+                }
             }
 
             $rows[] = $row;

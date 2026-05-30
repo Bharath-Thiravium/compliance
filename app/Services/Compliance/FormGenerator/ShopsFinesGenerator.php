@@ -9,19 +9,28 @@ class ShopsFinesGenerator extends BaseFormGenerator
 
     protected function prepareData(array $rawData): array
     {
+        $seen = [];
         $rows = [];
         foreach ($rawData['records'] ?? [] as $record) {
             $record = $this->normalizeRecord($record);
+            // Composite dedup: same employee + same date + same amount
+            $key = implode('|', [
+                $record['employee_code']  ?? $record['employee_name'] ?? '',
+                $record['fine_date']      ?? '',
+                (string)($record['fine_amount'] ?? ''),
+            ]);
+            if (isset($seen[$key])) continue;
+            $seen[$key] = true;
             $rows[] = [
-                'employee_name' => $record['employee_name'] ?? 'N/A',
-                'father_name' => $record['father_name'] ?? 'N/A',
-                'reason' => $record['reason'] ?? 'N/A',
-                'cause' => $record['cause'] ?? 'N/A',
-                'wages' => $record['wages'] ?? 0,
-                'fine_amount' => $record['fine_amount'] ?? 0,
-                'fine_date' => $record['fine_date'] ?? '',
+                'employee_name' => $record['employee_name'] ?? '',
+                'father_name'   => $record['father_name']   ?? '',
+                'reason'        => $record['reason']        ?? '',
+                'cause'         => $record['cause']         ?? '',
+                'wages'         => $record['wages']         ?? 0,
+                'fine_amount'   => $record['fine_amount']   ?? 0,
+                'fine_date'     => $record['fine_date']     ?? '',
                 'realized_date' => $record['realized_date'] ?? '',
-                'remarks' => $record['remarks'] ?? '',
+                'remarks'       => $record['remarks']       ?? '',
             ];
         }
 
@@ -37,14 +46,14 @@ class ShopsFinesGenerator extends BaseFormGenerator
                 'form_title' => 'Register of Fines',
                 'period' => $this->formatPeriod($month, $year),
                 'branch' => $branch,
-                'tenant' => is_array($tenant) ? ($tenant['name'] ?? 'N/A') : $tenant,
+                'tenant' => is_array($tenant) ? ($tenant['name'] ?? '') : $tenant,
                 'tenant_details' => $tenant,
-                'establishment_name' => $branch['name'] ?? 'N/A',
-                'owner_name' => $tenant['owner_name'] ?? $tenant['name'] ?? 'N/A',
-                'factory_name' => $branch['name'] ?? 'N/A',
-                'address' => $branch['address'] ?? 'N/A',
-                'place' => $branch['address'] ?? 'N/A',
-                'district' => $branch['district'] ?? 'N/A',
+                'establishment_name' => $branch['name'] ?? '',
+                'owner_name' => $tenant['owner_name'] ?? $tenant['name'] ?? '',
+                'factory_name' => $branch['name'] ?? '',
+                'address' => $branch['address'] ?? '',
+                'place' => $branch['address'] ?? '',
+                'district' => $branch['district'] ?? '',
             ],
             'rows' => $rows,
             'totals' => $totals,

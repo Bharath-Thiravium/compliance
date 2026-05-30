@@ -39,7 +39,11 @@ class FormTemplateRegistry
         'ShopsFormC' => 'compliance.forms.shops_form_c',
         'ShopsUnpaid' => 'compliance.forms.shops_unpaid',
         'ShopsForm12' => 'compliance.forms.shops_form_12',
+        'SHOPS_FORM_12' => 'compliance.forms.shops_form_12',
+        'SHOPS_FORM_13' => 'compliance.forms.shops_form_13',
+
         'ShopsForm13' => 'compliance.forms.shops_form_13',
+
         'ShopsFines' => 'compliance.forms.shops_fines',
         'ShopsFormVI' => 'compliance.forms.shops_form_vi',
 
@@ -91,6 +95,7 @@ class FormTemplateRegistry
         }
         $snake = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $normalized));
         return 'compliance.forms.' . $snake;
+
     }
 
     public static function getAll(): array

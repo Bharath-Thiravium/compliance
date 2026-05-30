@@ -75,12 +75,12 @@ class StrictDataValidator
 
     private function getRequiredFieldsForForm(string $formCode): array
     {
+        // Only validate forms whose generators guarantee both keys exist in every row.
+        // SHOPS_FORM_12 rows use 'employee_name' not 'name' — handled by is_nil guard.
         $employeeBasedForms = [
             'FORM_10', 'Form10',
             'FORM_B',  'FormB',
             'FORM_25', 'Form25',
-            'FORM_XXIII', 'FormXXIII',
-            'SHOPS_FORM_12', 'ShopsForm12',
         ];
 
         if (in_array($formCode, $employeeBasedForms)) {

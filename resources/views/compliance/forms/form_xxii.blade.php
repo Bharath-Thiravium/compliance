@@ -173,14 +173,14 @@
                 <tr>
                     <td class="td-sl">{{ $i + 1 }}</td>
                     <td class="td-name">{{ strtoupper($row['name'] ?? '') }}</td>
-                    <td class="td-left">{{ ($v = strtoupper($row['father_name'] ?? '')) === 'NIL' ? '' : $v }}</td>
-                    <td class="td-left">{{ ($v = strtoupper($row['designation'] ?? '')) === 'NIL' ? '' : $v }}</td>
-                    <td class="td-ctr">{{ ($v = $row['advance_date_amount_1'] ?? '') === 'NIL' ? '' : $v }}</td>
-                    <td class="td-ctr">{{ ($v = $row['advance_date_amount_2'] ?? '') === 'NIL' ? '' : $v }}</td>
-                    <td class="td-ctr">{{ ($v = $row['purpose'] ?? '') === 'NIL' ? '' : $v }}</td>
-                    <td class="td-ctr">{{ ($v = $row['installments'] ?? '') === 'NIL' ? '' : $v }}</td>
-                    <td class="td-ctr">{{ ($v = $row['installment_repaid'] ?? '') === 'NIL' ? '' : $v }}</td>
-                    <td class="td-ctr">{{ ($v = $row['last_installment_date'] ?? '') === 'NIL' ? '' : $v }}</td>
+                    <td class="td-left">{{ strtoupper($row['father_name'] ?? '') }}</td>
+                    <td class="td-left">{{ strtoupper($row['designation'] ?? '') }}</td>
+                    <td class="td-ctr">{{ $row['advance_date_amount_1'] ?? '' }}</td>
+                    <td class="td-ctr">{{ $row['advance_date_amount_2'] ?? '' }}</td>
+                    <td class="td-ctr">{{ $row['purpose'] ?? '' }}</td>
+                    <td class="td-ctr">{{ $row['installments'] ?? '' }}</td>
+                    <td class="td-ctr">{{ $row['installment_repaid'] ?? '' }}</td>
+                    <td class="td-ctr">{{ $row['last_installment_date'] ?? '' }}</td>
                     <td class="td-ctr"></td>
                 </tr>
                 @endforeach

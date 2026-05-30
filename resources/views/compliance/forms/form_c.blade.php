@@ -67,21 +67,21 @@
             @forelse($rows ?? [] as $index => $row)
             <tr>
                 <td>{{ $index + 1 }}</td>
-                <td class="left">{{ $row['employee_name'] ?? 'Nil' }}</td>
-                <td>{{ $row['recovery_type'] ?? 'Nil' }}</td>
-                <td>{{ $row['particulars'] ?? 'Nil' }}</td>
-                <td>{{ $row['damage_date'] ?? 'Nil' }}</td>
-                <td>{{ $row['amount'] ?? 'Nil' }}</td>
-                <td>{{ $row['show_cause'] ?? 'Nil' }}</td>
-                <td>{{ $row['explanation'] ?? 'Nil' }}</td>
-                <td>{{ $row['installments'] ?? 'Nil' }}</td>
-                <td>{{ $row['first_month'] ?? 'Nil' }}</td>
-                <td>{{ $row['last_month'] ?? 'Nil' }}</td>
-                <td>{{ $row['recovery_date'] ?? 'Nil' }}</td>
-                <td>{{ $row['remarks'] ?? 'Nil' }}</td>
+                <td class="left">{{ $row['employee_name'] ?? '' }}</td>
+                <td>{{ $row['recovery_type'] ?? '' }}</td>
+                <td>{{ $row['particulars'] ?? '' }}</td>
+                <td>{{ $row['damage_date'] ?? '' }}</td>
+                <td>{{ $row['amount'] ?? '' }}</td>
+                <td>{{ $row['show_cause'] ?? '' }}</td>
+                <td>{{ $row['explanation'] ?? '' }}</td>
+                <td>{{ $row['installments'] ?? '' }}</td>
+                <td>{{ $row['first_month'] ?? '' }}</td>
+                <td>{{ $row['last_month'] ?? '' }}</td>
+                <td>{{ $row['recovery_date'] ?? '' }}</td>
+                <td>{{ $row['remarks'] ?? '' }}</td>
             </tr>
             @empty
-            <tr><td colspan="13" style="text-align:center; padding:4px;">Nil</td></tr>
+            <tr><td colspan="13" style="text-align:center; padding:4px;">NIL</td></tr>
             @endforelse
         </tbody>
     </table>

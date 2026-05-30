@@ -115,7 +115,7 @@
                     <td style="width:4%; font-size:7px;">{{ $row['weekly_off']    ?? 0 }}</td>
                     <td style="width:4%; font-size:7px;">{{ $row['absent_days']   ?? 0 }}</td>
                     <td style="width:4%; font-size:7px;">{{ $row['total_days']    ?? 0 }}</td>
-                    <td style="width:3%; font-size:7px;">{{ $row['remarks']       ?? '-' }}</td>
+                    <td style="width:3%; font-size:7px;">{{ $row['remarks'] ?? '' }}</td>
                 </tr>
             @empty
                 @for($i = 1; $i <= 9; $i++)

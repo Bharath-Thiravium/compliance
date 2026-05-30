@@ -14,8 +14,9 @@ class FormDERApiService extends BaseFormApiService
         $rows = DB::table('workforce_payroll_entry as pe')
             ->join('workforce_employee as e', 'e.id', '=', 'pe.employee_id')
             ->join('workforce_payroll_cycle as pc', 'pc.id', '=', 'pe.payroll_cycle_id')
-            ->where('e.tenant_id', $tenantId)
-            ->where('e.branch_id', $branchId)
+            ->where('pe.tenant_id', $tenantId)
+            ->where('pe.branch_id', $branchId)
+            ->whereNull('pe.deleted_at')
             ->whereYear('pc.period_from', $year)
             ->whereMonth('pc.period_from', $month)
             ->select([
@@ -23,19 +24,21 @@ class FormDERApiService extends BaseFormApiService
                 'e.name',
                 'e.gender',
                 'e.designation',
-                'pe.basic_earned',
-                DB::raw('COALESCE(pe.da_earned, 0) as da_earned'),
-                DB::raw('COALESCE(pe.hra_earned, 0) as hra_earned'),
-                DB::raw('COALESCE(pe.other_allowances, 0) as other_allowances'),
-                'pe.gross_salary',
+                DB::raw('SUM(pe.basic_earned) as basic_earned'),
+                DB::raw('SUM(COALESCE(pe.da_earned, 0)) as da_earned'),
+                DB::raw('SUM(COALESCE(pe.hra_earned, 0)) as hra_earned'),
+                DB::raw('SUM(COALESCE(pe.other_allowances, 0)) as other_allowances'),
+                DB::raw('SUM(pe.gross_salary) as gross_salary'),
             ])
+            ->groupBy('e.employee_code', 'e.name', 'e.gender', 'e.designation')
             ->orderBy('e.employee_code')
             ->get()
             ->map(fn($row) => (array)$row)
             ->toArray();
 
         return [
-            'records' => $rows,
+            'records'      => $rows,
+            'record_count' => count($rows),
             'meta' => [
                 'tenant_id' => $tenantId,
                 'branch_id' => $branchId,

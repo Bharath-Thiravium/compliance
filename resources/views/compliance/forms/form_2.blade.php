@@ -17,14 +17,14 @@
         .lc { text-align: left !important; font-weight: bold; font-size: 5.5px; width: 7%; }
         .sig { width: 100%; border-collapse: collapse; font-size: 7px; margin-top: 4px; }
         .sig td { padding: 1px 0; vertical-align: bottom; }
+        .nil-msg { text-align: center; font-size: 9px; padding: 20px; color: #555; }
     </style>
 </head>
 <body>
 
-{{-- Outer border as a single table --}}
-<table cellspacing="0" cellpadding="4" style="width:99%;margin-left:auto;margin-right:auto;border-top:2px solid #000;border-left:2px solid #000;border-right:2px solid #000;border-bottom:2px solid #000;">
+<table cellspacing="0" cellpadding="4" style="width:99%;margin-left:auto;margin-right:auto;border:2px solid #000;">
 <tr>
-<td style="padding:4px;border-top:1px solid #000;border-left:1px solid #000;border-right:1px solid #000;border-bottom:1px solid #000;">
+<td style="padding:4px;border:1px solid #000;">
 
     <div class="hdr">
         <div style="font-size:7px;">The Tamil Nadu Factories Rules</div>
@@ -34,71 +34,85 @@
     </div>
 
     <table class="ft">
-        <tr><td class="l">Name of factory</td><td>{{ $header['factory_name'] ?? $factory_name ?? 'NIL' }}</td></tr>
-        <tr><td class="l">Place</td><td>{{ $header['place'] ?? $place ?? 'NIL' }}</td></tr>
-        <tr><td class="l">District</td><td>{{ $header['district'] ?? $district ?? 'NIL' }}</td></tr>
+        <tr><td class="l">Name of factory</td><td>{{ $header['factory_name'] ?? '' }}</td></tr>
+        <tr><td class="l">Place</td><td>{{ $header['place'] ?? '' }}</td></tr>
+        <tr><td class="l">District</td><td>{{ $header['district'] ?? '' }}</td></tr>
     </table>
 
-    {{-- 31 cols in 750pt: label=40pt, 27 data cols=20pt each(540pt), grp=20pt, nature=30pt = 40+540+20+30=630... pad remaining --}}
-    <table class="mt">
-        <colgroup>
-            <col style="width:7%">
-            @for($i=0;$i<27;$i++)<col style="width:2.9%">@endfor
-            <col style="width:2.7%">
-            <col style="width:4%">
-        </colgroup>
-        <thead>
-            <tr>
-                <th rowspan="4" class="lc">Periods<br>of work</th>
-                <th colspan="9">Men</th>
-                <th colspan="9">Women</th>
-                <th colspan="9">Children</th>
-                <th rowspan="2" colspan="2">Desc.<br>of groups</th>
-            </tr>
-            <tr>
-                <th colspan="9">Total number of men employed</th>
-                <th colspan="9">Total number of women employed</th>
-                <th colspan="9">Total number of children employed</th>
-            </tr>
-            <tr>
-                <th colspan="3">A</th><th colspan="3">B</th><th colspan="3">C</th>
-                <th colspan="3">D</th><th colspan="3">E</th><th colspan="3">F</th>
-                <th colspan="3">G</th><th colspan="3">H</th><th colspan="3">I</th>
-                <th>Grp</th><th>Nature</th>
-            </tr>
-            <tr>
-                @for($i=0;$i<27;$i++)<th>{{ ($i%3)+1 }}</th>@endfor
-                <th></th><th></th>
-            </tr>
-            <tr>
-                <th class="lc">Relays</th>
-                @for($i=0;$i<27;$i++)<th>{{ ($i%3)+1 }}</th>@endfor
-                <th></th><th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @php $wg = ['A','B','C','D','E','F']; @endphp
-            @foreach($wg as $i => $g)
-            <tr>
-                @if($i===0)<td class="lc" rowspan="6">On<br>working<br>days</td>@endif
-                @for($c=0;$c<27;$c++)<td></td>@endfor
-                <td>{{ $g }}</td><td></td>
-            </tr>
-            @endforeach
-            @php $pg = ['G','H','I','','','']; @endphp
-            @foreach($pg as $i => $g)
-            <tr>
-                @if($i===0)<td class="lc" rowspan="6">On<br>partial<br>working<br>days</td>@endif
-                @for($c=0;$c<27;$c++)<td></td>@endfor
-                <td>{{ $g }}</td><td></td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
+    @php $relayGroups = $relay_groups ?? $rows ?? []; @endphp
+
+    @if($is_nil ?? empty($relayGroups))
+        <div class="nil-msg">{{ $nil_message ?? 'No Shift Schedule Data Available' }}</div>
+    @else
+        <table class="mt">
+            <colgroup>
+                <col style="width:4%">  {{-- Relay # --}}
+                <col style="width:14%"> {{-- Shift Name --}}
+                <col style="width:10%"> {{-- From --}}
+                <col style="width:10%"> {{-- To --}}
+                <col style="width:7%">  {{-- Men --}}
+                <col style="width:7%">  {{-- Women --}}
+                <col style="width:7%">  {{-- Children --}}
+                <col style="width:8%">  {{-- Weekly Off Days --}}
+                <col style="width:8%">  {{-- Holiday Days --}}
+                <col style="width:25%"> {{-- Attendance Dates (period) --}}
+            </colgroup>
+            <thead>
+                <tr>
+                    <th>Relay</th>
+                    <th>Shift Name</th>
+                    <th>Work From</th>
+                    <th>Work To</th>
+                    <th>Men</th>
+                    <th>Women</th>
+                    <th>Children</th>
+                    <th>Weekly Off<br>Days</th>
+                    <th>Holiday<br>Days</th>
+                    <th>Working Period</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($relayGroups as $i => $relay)
+                <tr>
+                    <td>{{ $i + 1 }}</td>
+                    <td style="text-align:left;padding:0 2px;">{{ $relay['shift_name'] ?? '' }}</td>
+                    <td>{{ $relay['shift_start'] ?? '' }}</td>
+                    <td>{{ $relay['shift_end'] ?? '' }}</td>
+                    <td>{{ $relay['men'] > 0 ? $relay['men'] : '' }}</td>
+                    <td>{{ $relay['women'] > 0 ? $relay['women'] : '' }}</td>
+                    <td>{{ $relay['children'] > 0 ? $relay['children'] : '' }}</td>
+                    <td>{{ $relay['weekly_off_days'] > 0 ? $relay['weekly_off_days'] : '' }}</td>
+                    <td>{{ $relay['holiday_days'] > 0 ? $relay['holiday_days'] : '' }}</td>
+                    <td style="text-align:left;padding:0 2px;font-size:5px;">
+                        @php
+                            $dates = $relay['attendance_dates'] ?? [];
+                            sort($dates);
+                            echo implode(', ', array_slice($dates, 0, 10));
+                            if (count($dates) > 10) echo ' ...';
+                        @endphp
+                    </td>
+                </tr>
+                @endforeach
+                {{-- Totals row --}}
+                <tr style="font-weight:bold;">
+                    <td colspan="4" style="text-align:right;padding:0 3px;">Total</td>
+                    <td>{{ array_sum(array_column($relayGroups, 'men')) ?: '' }}</td>
+                    <td>{{ array_sum(array_column($relayGroups, 'women')) ?: '' }}</td>
+                    <td>{{ array_sum(array_column($relayGroups, 'children')) ?: '' }}</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    @endif
 
     <table class="sig">
         <tr>
-            <td style="width:55%;vertical-align:bottom;">Date on which this notice was first exhibited weekly holidays: ___________</td>
+            <td style="width:55%;vertical-align:bottom;">
+                Date on which this notice was first exhibited: {{ $header['date_first_exhibited'] ?? '' }}
+                &nbsp;&nbsp; Period: {{ $header['period'] ?? '' }}
+            </td>
             <td style="width:45%;text-align:right;vertical-align:bottom;">
                 <table cellspacing="0" style="width:150pt;margin-left:auto;border-collapse:collapse;margin-top:50px;">
                     <tr>

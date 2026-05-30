@@ -52,8 +52,7 @@ class Form10Generator extends BaseFormGenerator
         $hasOvertime = count($filteredRows) > 0;
 
         $totals = $hasOvertime ? $this->calculateTotals($filteredRows, [
-            'normal_rate', 'overtime_rate', 'normal_earnings', 'overtime_hours',
-            'overtime_wages', 'food_grain_benefit', 'piece_worker_overtime'
+            'normal_earnings', 'overtime_hours', 'overtime_wages', 'food_grain_benefit', 'piece_worker_overtime'
         ]) : [];
 
         return [

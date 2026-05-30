@@ -678,7 +678,7 @@
                                                 <div class="mt-2" id="csv-status-employees"></div>
                                                 <div class="sample-box mt-3">
                                                     <span class="sample-title">📥 Sample CSV Format</span>
-                                                    <a href="{{ route('csv.template.employees') }}" class="sample-btn" download>⬇ Download Template</a>
+                                                    <a href="{{ route('csv.template', 'employees') }}" class="sample-btn" download>⬇ Download Template</a>
                                                 </div>
                                             </div>
                                         </div>
@@ -695,7 +695,7 @@
                                                 <div class="mt-2" id="csv-status-payroll"></div>
                                                 <div class="sample-box mt-3">
                                                     <span class="sample-title">📥 Sample CSV Format</span>
-                                                    <a href="{{ route('csv.template.payroll') }}" class="sample-btn" download>⬇ Download Template</a>
+                                                    <a href="{{ route('csv.template', 'payroll') }}" class="sample-btn" download>⬇ Download Template</a>
                                                 </div>
                                             </div>
                                         </div>
@@ -712,7 +712,7 @@
                                                 <div class="mt-2" id="csv-status-attendance"></div>
                                                 <div class="sample-box mt-3">
                                                     <span class="sample-title">📥 Sample CSV Format</span>
-                                                    <a href="{{ route('csv.template.attendance') }}" class="sample-btn" download>⬇ Download Template</a>
+                                                    <a href="{{ route('csv.template', 'attendance') }}" class="sample-btn" download>⬇ Download Template</a>
                                                 </div>
                                             </div>
                                         </div>

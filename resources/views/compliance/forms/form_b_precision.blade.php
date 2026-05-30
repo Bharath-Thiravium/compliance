@@ -70,8 +70,8 @@
             @endphp
             <tr>
                 <td class="col-sno">{{ $index + 1 }}</td>
-                <td class="col-name">{{ $row['employee_name'] ?? '-' }}</td>
-                <td class="col-desig">{{ $row['designation'] ?? '-' }}</td>
+                <td class="col-name">{{ $row['employee_name'] ?? '' }}</td>
+                <td class="col-desig">{{ $row['designation'] ?? '' }}</td>
                 <td class="col-days">{{ $daysWorked ?? '' }}</td>
                 <td class="col-rate">{{ number_format($dailyRate, 2) }}</td>
                 <td class="col-basic">{{ number_format($row['basic_earned'] ?? 0, 2) }}</td>

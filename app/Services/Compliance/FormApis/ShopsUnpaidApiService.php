@@ -11,11 +11,10 @@ class ShopsUnpaidApiService extends BaseFormApiService
         $this->initializePeriod($month, $year);
         $this->validateTenantAndBranch($tenantId, $branchId);
 
-        // Fines realisation — workforce_fines
+        // Fines realisation — filter directly on workforce_fines own columns
         $fines = DB::table('workforce_fines as wf')
-            ->join('workforce_employee as e', 'e.id', '=', 'wf.employee_id')
-            ->where('e.tenant_id', $tenantId)
-            ->where('e.branch_id', $branchId)
+            ->where('wf.tenant_id', $tenantId)
+            ->where('wf.branch_id', $branchId)
             ->whereYear('wf.fine_date', $year)
             ->select([
                 DB::raw('QUARTER(wf.fine_date) as quarter'),
@@ -24,14 +23,13 @@ class ShopsUnpaidApiService extends BaseFormApiService
             ->groupBy(DB::raw('QUARTER(wf.fine_date)'))
             ->get()->keyBy('quarter');
 
-        // Unpaid payroll accumulations — workforce_payroll_entry where payment_date IS NULL
-        $unpaidPayroll = DB::table('workforce_payroll_entry as pe')
-            ->join('workforce_employee as e', 'e.id', '=', 'pe.employee_id')
+        // Wage accumulations — workforce_payroll_entry joined to workforce_payroll_cycle
+        // Include ALL entries for the year; payment_date NULL is unreliable as an "unpaid" signal
+        $payroll = DB::table('workforce_payroll_entry as pe')
             ->join('workforce_payroll_cycle as pc', 'pc.id', '=', 'pe.payroll_cycle_id')
-            ->where('e.tenant_id', $tenantId)
-            ->where('e.branch_id', $branchId)
+            ->where('pe.tenant_id', $tenantId)
+            ->where('pe.branch_id', $branchId)
             ->whereYear('pc.period_from', $year)
-            ->whereNull('pe.payment_date')
             ->select([
                 DB::raw('QUARTER(pc.period_from) as quarter'),
                 DB::raw('SUM(COALESCE(pe.basic_earned, 0)) as unpaid_basic'),
@@ -42,11 +40,10 @@ class ShopsUnpaidApiService extends BaseFormApiService
             ->groupBy(DB::raw('QUARTER(pc.period_from)'))
             ->get()->keyBy('quarter');
 
-        // Standing order deductions — workforce_deductions
+        // Standing order deductions — filter directly on workforce_deductions own columns
         $standingOrder = DB::table('workforce_deductions as wd')
-            ->join('workforce_employee as e', 'e.id', '=', 'wd.employee_id')
-            ->where('e.tenant_id', $tenantId)
-            ->where('e.branch_id', $branchId)
+            ->where('wd.tenant_id', $tenantId)
+            ->where('wd.branch_id', $branchId)
             ->whereYear('wd.deduction_date', $year)
             ->select([
                 DB::raw('QUARTER(wd.deduction_date) as quarter'),
@@ -61,23 +58,25 @@ class ShopsUnpaidApiService extends BaseFormApiService
         foreach ($quarters as $q => $key) {
             $result[$key] = [
                 'fines_realisation'        => (float) ($fines[$q]->fines_realisation ?? 0),
-                'unpaid_basic'             => (float) ($unpaidPayroll[$q]->unpaid_basic ?? 0),
-                'unpaid_overtime'          => (float) ($unpaidPayroll[$q]->unpaid_overtime ?? 0),
-                'unpaid_allowance'         => (float) ($unpaidPayroll[$q]->unpaid_allowance ?? 0),
+                'unpaid_basic'             => (float) ($payroll[$q]->unpaid_basic ?? 0),
+                'unpaid_overtime'          => (float) ($payroll[$q]->unpaid_overtime ?? 0),
+                'unpaid_allowance'         => (float) ($payroll[$q]->unpaid_allowance ?? 0),
                 'unpaid_bonus'             => 0,
                 'unpaid_gratuity'          => 0,
                 'unpaid_other'             => 0,
                 'standing_order_deduction' => (float) ($standingOrder[$q]->standing_order_deduction ?? 0),
-                'pwa_deduction'            => (float) ($unpaidPayroll[$q]->pwa_deduction ?? 0),
+                'pwa_deduction'            => (float) ($payroll[$q]->pwa_deduction ?? 0),
             ];
         }
 
         return [
-            'records' => $result,
-            'meta'    => ['tenant_id' => $tenantId, 'branch_id' => $branchId, 'month' => $month, 'year' => $year],
-            'tenant'  => $this->getTenantDetails($tenantId),
-            'branch'  => $this->getBranchDetails($branchId, $tenantId),
-            'period'  => $this->formatPeriod(),
+            // Use 'quarters' key — NOT 'records' — so BaseFormGenerator::generate()
+            // does not run normalizeRecords() on it and destroy the associative keys.
+            'quarters' => $result,
+            'meta'     => ['tenant_id' => $tenantId, 'branch_id' => $branchId, 'month' => $month, 'year' => $year],
+            'tenant'   => $this->getTenantDetails($tenantId),
+            'branch'   => $this->getBranchDetails($branchId, $tenantId),
+            'period'   => $this->formatPeriod(),
         ];
     }
 }

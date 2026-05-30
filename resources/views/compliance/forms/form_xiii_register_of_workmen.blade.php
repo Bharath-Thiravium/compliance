@@ -166,34 +166,20 @@
                     @foreach($rows as $index => $row)
                     <tr>
                         <td class="col-1">{{ $index + 1 }}</td>
-                        <td class="col-2">{{ $row['name'] ?? 'NIL' }}</td>
-                        <td class="col-3">{{ $row['age'] ?? 'NIL' }} / {{ $row['sex'] ?? 'NIL' }}</td>
-                        <td class="col-4">{{ $row['father_name'] ?? 'NIL' }}</td>
-                        <td class="col-5">{{ $row['designation'] ?? 'NIL' }}</td>
-                        <td class="col-6">{{ $row['permanent_address'] ?? 'NIL' }}</td>
-                        <td class="col-7">{{ $row['local_address'] ?? 'NIL' }}</td>
-                        <td class="col-8">{{ $row['joining_date'] ?? 'NIL' }}</td>
+                        <td class="col-2">{{ $row['name'] ?? '' }}</td>
+                        <td class="col-3">{{ $row['age'] ?? '' }}{{ !empty($row['sex']) ? ' / ' . $row['sex'] : '' }}</td>
+                        <td class="col-4">{{ $row['father_name'] ?? '' }}</td>
+                        <td class="col-5">{{ $row['designation'] ?? '' }}</td>
+                        <td class="col-6">{{ $row['permanent_address'] ?? '' }}</td>
+                        <td class="col-7">{{ $row['local_address'] ?? '' }}</td>
+                        <td class="col-8">{{ $row['joining_date'] ?? '' }}</td>
                         <td class="col-9"></td>
-                        <td class="col-10">{{ $row['termination_date'] ?? 'NIL' }}</td>
-                        <td class="col-11">{{ $row['termination_reason'] ?? 'NIL' }}</td>
-                        <td class="col-12">{{ $row['remarks'] ?? 'NIL' }}</td>
+                        <td class="col-10">{{ $row['termination_date'] ?? '' }}</td>
+                        <td class="col-11">{{ $row['termination_reason'] ?? '' }}</td>
+                        <td class="col-12">{{ $row['remarks'] ?? '' }}</td>
                     </tr>
                     @endforeach
                 @else
-                    <tr>
-                        <td>&nbsp;</td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
                     <tr>
                         <td colspan="12" style="height:32px; text-align:center; vertical-align:middle; font-weight:bold;">NIL</td>
                     </tr>

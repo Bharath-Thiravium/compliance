@@ -15,8 +15,8 @@ class FormXXIIIApiService extends BaseFormApiService
         $rows = DB::table('workforce_payroll_entry as pe')
             ->join('workforce_employee as e', 'e.id', '=', 'pe.employee_id')
             ->join('workforce_payroll_cycle as pc', 'pc.id', '=', 'pe.payroll_cycle_id')
-            ->where('e.tenant_id', $tenantId)
-            ->where('e.branch_id', $branchId)
+            ->where('pe.tenant_id', $tenantId)
+            ->where('pe.branch_id', $branchId)
             ->whereYear('pc.period_from', $year)
             ->whereMonth('pc.period_from', $month)
             ->where(function ($q) {
@@ -29,7 +29,7 @@ class FormXXIIIApiService extends BaseFormApiService
                 e.father_name,
                 e.gender                                                 AS sex,
                 e.designation,
-                pc.period_from                                           AS overtime_dates,
+                DATE_FORMAT(pc.period_from, '%d/%m/%Y')                  AS overtime_dates,
                 COALESCE(pe.overtime_hours, 0)                          AS total_overtime,
                 COALESCE(NULLIF(pe.basic_earned,0), e.basic_salary, 0)  AS normal_rate,
                 COALESCE(NULLIF(pe.basic_earned,0), e.basic_salary, 0) * 2 AS overtime_rate,
@@ -42,7 +42,7 @@ class FormXXIIIApiService extends BaseFormApiService
                         * 2 * pe.overtime_hours, 2)
                     ELSE 0
                 END                                                      AS overtime_earnings,
-                pc.period_to                                             AS payment_date,
+                DATE_FORMAT(pc.period_to, '%d/%m/%Y')                    AS payment_date,
                 ''                                                       AS remarks
             ")
             ->orderBy('e.name')
@@ -51,7 +51,8 @@ class FormXXIIIApiService extends BaseFormApiService
             ->toArray();
 
         return [
-            'records' => $rows,
+            'records'      => $rows,
+            'record_count' => count($rows),
             'meta'    => [
                 'tenant_id' => $tenantId,
                 'branch_id' => $branchId,

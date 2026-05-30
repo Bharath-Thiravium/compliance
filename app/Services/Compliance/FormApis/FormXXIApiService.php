@@ -3,6 +3,7 @@
 namespace App\Services\Compliance\FormApis;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 
 class FormXXIApiService extends BaseFormApiService
@@ -12,133 +13,139 @@ class FormXXIApiService extends BaseFormApiService
         $this->initializePeriod($month, $year);
         $this->validateTenantAndBranch($tenantId, $branchId);
 
-        $periodStart = $this->periodStart;
-        $periodEnd   = $this->periodEnd;
+        $employeeIds = DB::table('workforce_employee')
+            ->where('tenant_id', $tenantId)
+            ->where('branch_id', $branchId)
+            ->where('status', 'active')
+            ->whereNull('deleted_at')
+            ->pluck('id');
 
-        // ── All active employees ──────────────────────────────────────────────
-        $employees = DB::table('workforce_employee as e')
-            ->where('e.tenant_id', $tenantId)
-            ->where('e.branch_id', $branchId)
-            ->where('e.status', 'active')
-            ->whereNull('e.deleted_at')
-            ->select(['e.id', 'e.employee_code', 'e.name as employee_name', 'e.father_name', 'e.designation'])
-            ->orderBy('e.employee_code')
-            ->get();
+        if ($employeeIds->isEmpty()) {
+            return $this->buildResponse([], $tenantId, $branchId, $month, $year);
+        }
 
-        $employeeIds = $employees->pluck('id');
+        // Source 1: dedicated workforce_fines table (one row per fine event — legitimate multiples)
+        if (Schema::hasTable('workforce_fines')) {
+            $tableFines = DB::table('workforce_fines as f')
+                ->join('workforce_employee as e', 'e.id', '=', 'f.employee_id')
+                ->where('f.tenant_id', $tenantId)
+                ->where('f.branch_id', $branchId)
+                ->whereBetween('f.fine_date', [$this->periodStart, $this->periodEnd])
+                ->whereNull('f.deleted_at')
+                ->whereIn('f.employee_id', $employeeIds)
+                ->where('f.amount', '>', 0)
+                ->select([
+                    'e.employee_code',
+                    'e.name as employee_name',
+                    'e.father_name',
+                    'e.designation',
+                    'f.amount as fine_amount',
+                    'f.fine_date',
+                    'f.reason',
+                    'f.remarks',
+                ])
+                ->orderBy('e.employee_code')
+                ->orderBy('f.fine_date')
+                ->get()
+                // Composite dedup: same employee + same date + same amount = duplicate DB row
+                ->unique(fn($r) => implode('|', [
+                    $r->employee_code ?? '',
+                    $r->fine_date     ?? '',
+                    (string)($r->fine_amount ?? ''),
+                ]))
+                ->values()
+                ->map(function ($r) {
+                    $r        = (array) $r;
+                    $fineDate = Carbon::parse($r['fine_date']);
+                    return [
+                        'employee_code'   => $r['employee_code'],
+                        'employee_name'   => $r['employee_name'],
+                        'father_name'     => $r['father_name']  ?? '',
+                        'designation'     => $r['designation']  ?? '',
+                        'act_or_omission' => $r['reason']       ?? 'Misconduct',
+                        'date_of_offence' => $fineDate->format('d/m/Y'),
+                        'showed_cause'    => 'Yes',
+                        'heard_by'        => 'Manager',
+                        'fine_amount'     => $r['fine_amount'],
+                        'fine_realised'   => $fineDate->format('d/m/Y'),
+                        'wage_period'     => $fineDate->format('F Y'),
+                        'remarks'         => $r['remarks'] ?? '',
+                    ];
+                })
+                ->toArray();
 
-        // ── Source 1: fines recorded in payroll_entry for this period ──────────
+            if (!empty($tableFines)) {
+                return $this->buildResponse($tableFines, $tenantId, $branchId, $month, $year);
+            }
+        }
+
+        // Source 2: payroll fines fallback — use only the latest cycle to prevent multi-cycle duplication
         $cycleId = DB::table('workforce_payroll_cycle')
             ->where('tenant_id', $tenantId)
             ->whereYear('period_from', $year)
             ->whereMonth('period_from', $month)
+            ->orderByDesc('id')
             ->value('id');
 
-        $payrollFines = collect();
-        if ($cycleId) {
-            $payrollFines = DB::table('workforce_payroll_entry as pe')
-                ->join('workforce_payroll_cycle as pc', 'pc.id', '=', 'pe.payroll_cycle_id')
-                ->where('pe.payroll_cycle_id', $cycleId)
-                ->where('pe.fines', '>', 0)
-                ->whereIn('pe.employee_id', $employeeIds)
-                ->select([
-                    'pe.employee_id',
-                    DB::raw('pe.fines as fine_amount'),
-                    DB::raw('pc.period_from as fine_date'),
-                    DB::raw('"Misconduct" as reason'),
-                ])
-                ->get()
-                ->keyBy('employee_id');
+        if (!$cycleId) {
+            return $this->buildResponse([], $tenantId, $branchId, $month, $year);
         }
 
-        // ── Source 2: dedicated workforce_fines table ──────────────────────────
-        $tableFines = collect();
-        if (\Illuminate\Support\Facades\Schema::hasTable('workforce_fines')) {
-            $tableFines = DB::table('workforce_fines')
-                ->where('tenant_id', $tenantId)
-                ->where('branch_id', $branchId)
-                ->whereBetween('fine_date', [$periodStart, $periodEnd])
-                ->whereNull('deleted_at')
-                ->whereIn('employee_id', $employeeIds)
-                ->select(['employee_id', 'amount as fine_amount', 'fine_date', 'reason', 'remarks'])
-                ->get()
-                ->groupBy('employee_id');
-        }
-
-        // ── Merge: prefer workforce_fines (granular) over payroll_entry lump ───
-        $rows = [];
-        foreach ($employees as $emp) {
-            $emp = (array) $emp;
-            $empId = $emp['id'];
-
-            if ($tableFines->has($empId)) {
-                // One row per recorded fine
-                foreach ($tableFines->get($empId) as $fine) {
-                    $fine = (array) $fine;
-                    $fineDate = Carbon::parse($fine['fine_date']);
-                    $rows[] = [
-                        'employee_code'   => $emp['employee_code'],
-                        'employee_name'   => $emp['employee_name'],
-                        'father_name'     => $emp['father_name'],
-                        'designation'     => $emp['designation'],
-                        'act_or_omission' => $fine['reason'] ?? 'Misconduct',
-                        'date_of_offence' => $fineDate->format('d/m/Y'),
-                        'showed_cause'    => 'Yes',
-                        'heard_by'        => 'Manager',
-                        'fine_amount'     => $fine['fine_amount'],
-                        'fine_realised'   => $fineDate->format('d/m/Y'),
-                        'wage_period'     => $fineDate->format('F Y'),
-                        'remarks'         => $fine['remarks'] ?? null,
-                    ];
-                }
-            } elseif ($payrollFines->has($empId)) {
-                $pf       = (array) $payrollFines->get($empId);
-                $fineDate = Carbon::parse($pf['fine_date']);
-                $rows[] = [
-                    'employee_code'   => $emp['employee_code'],
-                    'employee_name'   => $emp['employee_name'],
-                    'father_name'     => $emp['father_name'],
-                    'designation'     => $emp['designation'],
-                    'act_or_omission' => $pf['reason'] ?? 'Misconduct',
+        $rows = DB::table('workforce_payroll_entry as pe')
+            ->join('workforce_employee as e', 'e.id', '=', 'pe.employee_id')
+            ->join('workforce_payroll_cycle as pc', 'pc.id', '=', 'pe.payroll_cycle_id')
+            ->where('pe.payroll_cycle_id', $cycleId)
+            ->whereIn('pe.employee_id', $employeeIds)
+            ->where('pe.fines', '>', 0)
+            ->select([
+                'e.employee_code',
+                'e.name as employee_name',
+                'e.father_name',
+                'e.designation',
+                'pe.fines as fine_amount',
+                'pc.period_from as fine_date',
+            ])
+            ->orderBy('e.employee_code')
+            ->get()
+            // Composite dedup: same employee + same date + same amount
+            ->unique(fn($r) => implode('|', [
+                $r->employee_code ?? '',
+                $r->fine_date     ?? '',
+                (string)($r->fine_amount ?? ''),
+            ]))
+            ->values()
+            ->map(function ($r) {
+                $r        = (array) $r;
+                $fineDate = Carbon::parse($r['fine_date']);
+                return [
+                    'employee_code'   => $r['employee_code'],
+                    'employee_name'   => $r['employee_name'],
+                    'father_name'     => $r['father_name']  ?? '',
+                    'designation'     => $r['designation']  ?? '',
+                    'act_or_omission' => 'Misconduct',
                     'date_of_offence' => $fineDate->format('d/m/Y'),
                     'showed_cause'    => 'Yes',
                     'heard_by'        => 'Manager',
-                    'fine_amount'     => $pf['fine_amount'],
+                    'fine_amount'     => $r['fine_amount'],
                     'fine_realised'   => $fineDate->format('d/m/Y'),
                     'wage_period'     => $fineDate->format('F Y'),
-                    'remarks'         => null,
+                    'remarks'         => '',
                 ];
-            } else {
-                // No fine — included with nulls so generator can render NIL row
-                $rows[] = [
-                    'employee_code'   => $emp['employee_code'],
-                    'employee_name'   => $emp['employee_name'],
-                    'father_name'     => $emp['father_name'],
-                    'designation'     => $emp['designation'],
-                    'act_or_omission' => null,
-                    'date_of_offence' => null,
-                    'showed_cause'    => null,
-                    'heard_by'        => null,
-                    'fine_amount'     => null,
-                    'fine_realised'   => null,
-                    'wage_period'     => null,
-                    'remarks'         => null,
-                ];
-            }
-        }
+            })
+            ->toArray();
 
+        return $this->buildResponse($rows, $tenantId, $branchId, $month, $year);
+    }
+
+    private function buildResponse(array $rows, int $tenantId, int $branchId, int $month, int $year): array
+    {
         return [
             'records' => $rows,
-            'meta' => [
-                'tenant_id' => $tenantId,
-                'branch_id' => $branchId,
-                'month'     => $month,
-                'year'      => $year,
-            ],
+            'meta'    => ['tenant_id' => $tenantId, 'branch_id' => $branchId, 'month' => $month, 'year' => $year],
             'tenant'  => $this->getTenantDetails($tenantId),
             'branch'  => $this->getBranchDetails($branchId, $tenantId),
             'period'  => $this->formatPeriod(),
-            'is_nil'  => count($rows) === 0,
+            'is_nil'  => empty($rows),
         ];
     }
 }

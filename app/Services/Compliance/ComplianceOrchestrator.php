@@ -191,26 +191,29 @@ class ComplianceOrchestrator
         $viewData = array_merge(
             $formData['header'] ?? [],
             [
-                'form_title' => $formData['header']['form_title'] ?? $formCode,
-                'form_code' => $formCode,
+                'form_title'   => $formData['header']['form_title'] ?? $formCode,
+                'form_code'    => $formCode,
                 'period_month' => $month,
-                'period_year' => $year,
-                'batch_id' => $batchId ?? 0,
-                'header' => $formData['header'] ?? [],
-                'rows' => $formData['rows'] ?? [],
-                'entries' => $formData['rows'] ?? [],
-                'cards' => $formData['cards'] ?? [],
-                'slips' => $formData['slips'] ?? [],
-                'totals' => $formData['totals'] ?? [],
-                'is_nil' => $formData['is_nil'] ?? empty($formData['rows'])
+                'period_year'  => $year,
+                'batch_id'     => $batchId ?? 0,
+                'header'       => $formData['header'] ?? [],
+                'rows'         => $formData['rows'] ?? [],
+                'relay_groups' => $formData['relay_groups'] ?? [],
+                'data'         => $formData['data'] ?? [],
+                'entries'      => $formData['rows'] ?? [],
+                'cards'        => $formData['cards'] ?? [],
+                'slips'        => $formData['slips'] ?? [],
+                'totals'       => $formData['totals'] ?? [],
+                'is_nil'       => $formData['is_nil'] ?? empty($formData['rows']),
+                'nil_message'  => $formData['nil_message'] ?? '',
             ]
         );
 
         $html = View::make($viewPath, $viewData)->render();
 
         return [
-            'html' => $html,
-            'is_nil' => $formData['is_nil'] ?? false,
+            'html'       => $html,
+            'is_nil'     => $formData['is_nil'] ?? false,
             'rows_count' => count($formData['rows'] ?? [])
         ];
     }
@@ -271,11 +274,14 @@ class ComplianceOrchestrator
                 'batch_id'     => $batchId ?? 0,
                 'header'       => $formData['header'] ?? [],
                 'rows'         => $formData['rows'] ?? [],
+                'relay_groups' => $formData['relay_groups'] ?? [],
+                'data'         => $formData['data'] ?? [],
                 'entries'      => $formData['rows'] ?? [],
                 'cards'        => $formData['cards'] ?? [],
                 'slips'        => $formData['slips'] ?? [],
                 'totals'       => $formData['totals'] ?? [],
                 'is_nil'       => $formData['is_nil'] ?? empty($formData['rows']),
+                'nil_message'  => $formData['nil_message'] ?? '',
             ]
         );
 

@@ -32,7 +32,6 @@ class Form25ApiService extends BaseFormApiService
             ->orderBy('we.name')
             ->get();
 
-        // Attendance summary per employee for the period
         $attendanceSummary = DB::table('workforce_attendance')
             ->where('tenant_id', $tenantId)
             ->whereBetween('attendance_date', [$periodStart, $periodEnd])
@@ -41,7 +40,9 @@ class Form25ApiService extends BaseFormApiService
             ->get()
             ->groupBy('employee_id');
 
+        $branchDetails = $this->getBranchDetails($branchId, $tenantId);
         $records = [];
+
         foreach ($employees as $emp) {
             $emp        = (array) $emp;
             $attendance = $attendanceSummary[$emp['id']] ?? collect();
@@ -53,12 +54,12 @@ class Form25ApiService extends BaseFormApiService
             $records[] = [
                 'employee_code'       => $emp['employee_code'],
                 'name'                => $emp['name'],
-                'father_name'         => $emp['father_name']    ?? '',
-                'designation'         => $emp['designation']    ?? '',
-                'gender'              => $emp['gender']         ?? '',
-                'date_of_birth'       => $emp['date_of_birth']  ?? '',
+                'father_name'         => $emp['father_name']     ?? '',
+                'designation'         => $emp['designation']     ?? '',
+                'gender'              => $emp['gender']          ?? '',
+                'date_of_birth'       => $emp['date_of_birth']   ?? '',
                 'date_of_joining'     => $emp['date_of_joining'] ?? '',
-                'place_of_employment' => $this->getBranchDetails($branchId, $tenantId)['address'] ?? '',
+                'place_of_employment' => $branchDetails['address'] ?? '',
                 'attendance_date'     => $firstDate,
                 'present_days'        => $presentDays,
                 'absent_days'         => $absentDays,
@@ -75,7 +76,7 @@ class Form25ApiService extends BaseFormApiService
                 'year'      => $year,
             ],
             'tenant' => $this->getTenantDetails($tenantId),
-            'branch' => $this->getBranchDetails($branchId, $tenantId),
+            'branch' => $branchDetails,
             'period' => $this->formatPeriod(),
         ];
     }

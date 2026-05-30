@@ -289,9 +289,7 @@
                 @endforeach
             @else
                 <tr class="nil-row">
-                    <td>NIL</td><td>NIL</td><td>NIL</td><td>NIL</td><td>NIL</td><td>NIL</td>
-                    <td>NIL</td><td>NIL</td><td>NIL</td><td>NIL</td><td>NIL</td><td>NIL</td>
-                    <td>NIL</td><td>NIL</td><td>NIL</td><td>NIL</td><td>NIL</td><td>NIL</td>
+                    <td colspan="18" style="text-align:center; font-weight:bold;">NIL</td>
                 </tr>
             @endif
 

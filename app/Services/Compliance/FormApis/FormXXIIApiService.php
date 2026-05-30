@@ -3,6 +3,7 @@
 namespace App\Services\Compliance\FormApis;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class FormXXIIApiService extends BaseFormApiService
 {
@@ -11,112 +12,117 @@ class FormXXIIApiService extends BaseFormApiService
         $this->initializePeriod($month, $year);
         $this->validateTenantAndBranch($tenantId, $branchId);
 
-        // Step 1: all employees for this branch — no joins that can drop rows
-        $employees = DB::table('workforce_employee as e')
-            ->where('e.tenant_id', $tenantId)
-            ->where('e.branch_id', $branchId)
-            ->whereNull('e.deleted_at')
-            ->select([
-                'e.id',
-                'e.employee_code',
-                'e.name as employee_name',
-                'e.father_name',
-                'e.designation',
-                'e.basic_salary',
-            ])
-            ->orderBy('e.name')
-            ->get();
+        $employeeIds = DB::table('workforce_employee')
+            ->where('tenant_id', $tenantId)
+            ->where('branch_id', $branchId)
+            ->whereNull('deleted_at')
+            ->pluck('id');
 
-        // Step 2: payroll cycle for the period (may not exist)
+        if ($employeeIds->isEmpty()) {
+            return $this->buildResponse([], $tenantId, $branchId, $month, $year);
+        }
+
+        // Source 1: dedicated workforce_advances table (one row per advance event)
+        if (Schema::hasTable('workforce_advances')) {
+            $tableAdvances = DB::table('workforce_advances as a')
+                ->join('workforce_employee as e', 'e.id', '=', 'a.employee_id')
+                ->where('a.tenant_id', $tenantId)
+                ->where('a.branch_id', $branchId)
+                ->whereBetween('a.advance_date', [$this->periodStart, $this->periodEnd])
+                ->whereNull('a.deleted_at')
+                ->whereIn('a.employee_id', $employeeIds)
+                ->where('a.amount', '>', 0)
+                ->select([
+                    'e.employee_code',
+                    'e.name as employee_name',
+                    'e.father_name',
+                    'e.designation',
+                    'a.amount as advance_amount',
+                    'a.advance_date',
+                    'a.num_instalments as installments',
+                    'a.last_month',
+                    'a.remarks',
+                ])
+                ->orderBy('e.employee_code')
+                ->orderBy('a.advance_date')
+                ->get()
+                // Composite dedup: same employee + same date + same amount = duplicate DB row
+                ->unique(fn($r) => implode('|', [
+                    $r->employee_code  ?? '',
+                    $r->advance_date   ?? '',
+                    (string)($r->advance_amount ?? ''),
+                ]))
+                ->values()
+                ->map(function ($r) {
+                    $r = (array) $r;
+                    return array_merge($r, [
+                        'purpose'               => 'Salary Advance',
+                        'installment_repaid'    => $r['last_month'] ?? null,
+                        'last_installment_date' => $r['last_month'] ?? null,
+                    ]);
+                })
+                ->toArray();
+
+            if (!empty($tableAdvances)) {
+                return $this->buildResponse($tableAdvances, $tenantId, $branchId, $month, $year);
+            }
+        }
+
+        // Source 2: payroll advances fallback — use only the latest cycle to prevent multi-cycle duplication
         $cycleId = DB::table('workforce_payroll_cycle')
             ->where('tenant_id', $tenantId)
             ->whereYear('period_from', $year)
             ->whereMonth('period_from', $month)
+            ->orderByDesc('id')
             ->value('id');
 
-        $employeeIds = $employees->pluck('id');
-
-        // Step 3: payroll entries keyed by employee_id (only if cycle exists)
-        $payrollMap = [];
-        if ($cycleId && $employees->isNotEmpty()) {
-            DB::table('workforce_payroll_entry')
-                ->where('payroll_cycle_id', $cycleId)
-                ->whereIn('employee_id', $employeeIds)
-                ->select(['employee_id', 'advances', 'payment_date'])
-                ->get()
-                ->each(function ($entry) use (&$payrollMap) {
-                    $payrollMap[$entry->employee_id] = (array) $entry;
-                });
+        if (!$cycleId) {
+            return $this->buildResponse([], $tenantId, $branchId, $month, $year);
         }
 
-        // Step 4: dedicated workforce_advances table — more granular than payroll lump
-        $tableAdvances = collect();
-        if (\Illuminate\Support\Facades\Schema::hasTable('workforce_advances')) {
-            $tableAdvances = DB::table('workforce_advances')
-                ->where('tenant_id', $tenantId)
-                ->where('branch_id', $branchId)
-                ->whereBetween('advance_date', [$this->periodStart, $this->periodEnd])
-                ->whereNull('deleted_at')
-                ->whereIn('employee_id', $employeeIds)
-                ->select([
-                    'employee_id',
-                    'amount as advance_amount',
-                    'advance_date',
-                    'num_instalments as installments',
-                    'first_month',
-                    'last_month as installment_repaid',
-                    'remarks',
-                ])
-                ->get()
-                ->groupBy('employee_id');
-        }
+        $records = DB::table('workforce_payroll_entry as pe')
+            ->join('workforce_employee as e', 'e.id', '=', 'pe.employee_id')
+            ->join('workforce_payroll_cycle as pc', 'pc.id', '=', 'pe.payroll_cycle_id')
+            ->where('pe.payroll_cycle_id', $cycleId)
+            ->whereIn('pe.employee_id', $employeeIds)
+            ->where('pe.advances', '>', 0)
+            ->select([
+                'e.employee_code',
+                'e.name as employee_name',
+                'e.father_name',
+                'e.designation',
+                'pe.advances as advance_amount',
+                'pc.period_from as advance_date',
+            ])
+            ->orderBy('e.employee_code')
+            ->get()
+            // Composite dedup: same employee + same date + same amount
+            ->unique(fn($r) => implode('|', [
+                $r->employee_code  ?? '',
+                $r->advance_date   ?? '',
+                (string)($r->advance_amount ?? ''),
+            ]))
+            ->values()
+            ->map(fn($r) => array_merge((array) $r, [
+                'purpose'               => 'Salary Advance',
+                'installments'          => 1,
+                'installment_repaid'    => null,
+                'last_installment_date' => null,
+                'remarks'               => null,
+            ]))
+            ->toArray();
 
-        // Step 5: merge into records array — workforce_advances takes priority
-        $records = [];
-        foreach ($employees as $emp) {
-            $emp   = (array) $emp;
-            $empId = $emp['id'];
+        return $this->buildResponse($records, $tenantId, $branchId, $month, $year);
+    }
 
-            if ($tableAdvances->has($empId)) {
-                // One record per advance entry
-                foreach ($tableAdvances->get($empId) as $adv) {
-                    $adv = (array) $adv;
-                    $records[] = array_merge($emp, [
-                        'advance_amount'        => (float) ($adv['advance_amount']    ?? 0),
-                        'advance_date'          => $adv['advance_date']               ?? null,
-                        'purpose'               => 'Salary Advance',
-                        'installments'          => $adv['installments']               ?? 1,
-                        'installment_repaid'    => $adv['installment_repaid']         ?? null,
-                        'last_installment_date' => $adv['last_month']                 ?? null,
-                        'remarks'               => $adv['remarks']                   ?? null,
-                    ]);
-                }
-            } else {
-                // Fall back to payroll_entry.advances lump
-                $payroll = $payrollMap[$empId] ?? [];
-                $records[] = array_merge($emp, [
-                    'advance_amount'        => (float) ($payroll['advances']    ?? 0),
-                    'advance_date'          => $payroll['payment_date']         ?? null,
-                    'purpose'               => 'Salary Advance',
-                    'installments'          => 1,
-                    'installment_repaid'    => null,
-                    'last_installment_date' => null,
-                    'remarks'               => null,
-                ]);
-            }
-        }
-
+    private function buildResponse(array $records, int $tenantId, int $branchId, int $month, int $year): array
+    {
         return [
             'records' => $records,
-            'meta'    => [
-                'tenant_id' => $tenantId,
-                'branch_id' => $branchId,
-                'month'     => $month,
-                'year'      => $year,
-            ],
-            'tenant' => $this->getTenantDetails($tenantId),
-            'branch' => $this->getBranchDetails($branchId, $tenantId),
-            'period' => $this->formatPeriod(),
+            'meta'    => ['tenant_id' => $tenantId, 'branch_id' => $branchId, 'month' => $month, 'year' => $year],
+            'tenant'  => $this->getTenantDetails($tenantId),
+            'branch'  => $this->getBranchDetails($branchId, $tenantId),
+            'period'  => $this->formatPeriod(),
         ];
     }
 }

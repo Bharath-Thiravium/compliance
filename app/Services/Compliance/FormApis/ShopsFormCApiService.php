@@ -14,33 +14,50 @@ class ShopsFormCApiService extends BaseFormApiService
         $rows = DB::table('workforce_payroll_entry as pe')
             ->join('workforce_employee as e', 'e.id', '=', 'pe.employee_id')
             ->join('workforce_payroll_cycle as pc', 'pc.id', '=', 'pe.payroll_cycle_id')
-            ->where('e.tenant_id', $tenantId)
-            ->where('e.branch_id', $branchId)
+            ->where('pe.tenant_id', $tenantId)
+            ->where('pe.branch_id', $branchId)
             ->whereYear('pc.period_from', $year)
             ->whereMonth('pc.period_from', $month)
-            ->selectRaw("
-                e.employee_code,
-                e.name                                  AS employee_name,
-                e.father_name,
-                e.date_of_birth,
-                e.designation,
-                pe.total_days_worked                    AS days_worked,
-                pe.gross_salary                         AS total_wages,
-                0                                       AS bonus_amount,
-                0                                       AS puja_bonus,
-                0                                       AS interim_bonus,
-                COALESCE(pe.professional_tax, 0)        AS tax_deducted,
-                COALESCE(pe.other_deductions, 0)        AS loss_deduction,
-                0                                       AS bonus_paid,
-                NULL                                    AS bonus_payment_date
-            ")
+            ->select([
+                'e.id as employee_id',
+                'e.employee_code',
+                'e.name as employee_name',
+                'e.father_name',
+                'e.date_of_birth',
+                'e.designation',
+                'pe.total_days_worked as days_worked',
+                'pe.gross_salary as total_wages',
+                DB::raw('COALESCE(pe.professional_tax, 0) as tax_deducted'),
+                DB::raw('COALESCE(pe.other_deductions, 0) as loss_deduction'),
+            ])
             ->orderBy('e.employee_code')
+            ->get();
+
+        // Pull bonus records for these employees — financial_year covers the period
+        $employeeIds = $rows->pluck('employee_id');
+        $bonusMap = DB::table('bonus_records')
+            ->where('tenant_id', $tenantId)
+            ->where('branch_id', $branchId)
+            ->whereIn('employee_id', $employeeIds)
+            ->whereNull('deleted_at')
+            ->select('employee_id', 'bonus_amount', 'payment_date', 'financial_year')
             ->get()
-            ->map(fn($row) => (array) $row)
-            ->toArray();
+            ->keyBy('employee_id');
+
+        $records = $rows->map(function ($row) use ($bonusMap) {
+            $row    = (array) $row;
+            $bonus  = isset($bonusMap[$row['employee_id']]) ? (array) $bonusMap[$row['employee_id']] : [];
+            return array_merge($row, [
+                'bonus_amount'        => (float) ($bonus['bonus_amount']  ?? 0),
+                'puja_bonus'          => 0,
+                'interim_bonus'       => 0,
+                'bonus_paid'          => (float) ($bonus['bonus_amount']  ?? 0),
+                'bonus_payment_date'  => $bonus['payment_date']           ?? null,
+            ]);
+        })->toArray();
 
         return [
-            'records' => $rows,
+            'records' => $records,
             'meta'    => [
                 'tenant_id' => $tenantId,
                 'branch_id' => $branchId,

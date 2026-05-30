@@ -37,7 +37,7 @@ class January2025ComprehensiveSeeder extends Seeder
 
     private function cleanData(): void
     {
-        DB::statement('PRAGMA foreign_keys = OFF');
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
         DB::table('hazard_register')->truncate();
         DB::table('incident_documents')->truncate();
         DB::table('incidents')->truncate();
@@ -52,7 +52,7 @@ class January2025ComprehensiveSeeder extends Seeder
         DB::table('branches')->truncate();
         DB::table('tenants')->truncate();
         DB::table('users')->truncate();
-        DB::statement('PRAGMA foreign_keys = ON');
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
     }
 
     private function createUser(): void

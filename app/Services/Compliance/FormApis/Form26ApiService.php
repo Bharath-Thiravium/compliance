@@ -11,26 +11,37 @@ class Form26ApiService extends BaseFormApiService
         $this->initializePeriod($month, $year);
         $this->validateTenantAndBranch($tenantId, $branchId);
 
-        // Fetch accident records from incident_documents with employee details
-        $rows = DB::table('incident_documents as id')
-            ->leftJoin('workforce_employee as we', 'id.employee_id', '=', 'we.id')
-            ->where('id.tenant_id', $tenantId)
-            ->where('id.branch_id', $branchId)
-            ->where('id.incident_type', 'accident')
-            ->whereYear('id.incident_date', $year)
-            ->whereMonth('id.incident_date', $month)
+        $rows = DB::table('incidents as i')
+            ->leftJoin('workforce_employee as e', 'i.employee_id', '=', 'e.id')
+            ->where('i.tenant_id', $tenantId)
+            ->where('i.branch_id', $branchId)
+            ->whereYear('i.incident_date', $year)
+            ->whereMonth('i.incident_date', $month)
             ->select([
-                'id.id',
-                'id.incident_date',
-                'id.location',
-                'id.description',
-                'we.name as employee_name',
-                'we.designation',
-                'we.employee_code',
+                'i.id',
+                'i.incident_date',
+                'i.location',
+                'i.description',
+                'i.cause',
+                'i.injury_type',
+                'i.severity',
+                'i.corrective_action',
+                'e.name as employee_name',
+                'e.designation',
+                'e.employee_code',
+                'e.gender',
+                'e.esi_number',
             ])
-            ->orderBy('id.incident_date')
+            ->orderBy('i.incident_date')
             ->get()
-            ->map(fn($row) => (array)$row)
+            // Composite dedup: same incident_date + employee + injury_type = same incident
+            ->unique(fn($r) => implode('|', [
+                $r->incident_date  ?? '',
+                $r->employee_code  ?? $r->employee_name ?? '',
+                $r->injury_type    ?? '',
+            ]))
+            ->values()
+            ->map(fn($row) => (array) $row)
             ->toArray();
 
         return [
@@ -38,8 +49,8 @@ class Form26ApiService extends BaseFormApiService
             'meta' => [
                 'tenant_id' => $tenantId,
                 'branch_id' => $branchId,
-                'month' => $month,
-                'year' => $year,
+                'month'     => $month,
+                'year'      => $year,
             ],
             'tenant' => $this->getTenantDetails($tenantId),
             'branch' => $this->getBranchDetails($branchId, $tenantId),

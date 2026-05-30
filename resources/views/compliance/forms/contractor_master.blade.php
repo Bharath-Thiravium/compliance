@@ -49,10 +49,10 @@ $totals = $totals ?? [];
             @foreach($rows as $index => $row)
             <tr>
                 <td class="text-center">{{ $index + 1 }}</td>
-                <td>{{ $row['company_name'] ?? 'N/A' }}</td>
-                <td>{{ $row['license_number'] ?? 'N/A' }}</td>
-                <td class="text-center">{{ $row['valid_from'] ?? 'N/A' }}</td>
-                <td class="text-center">{{ $row['valid_to'] ?? 'N/A' }}</td>
+                <td>{{ $row['company_name'] ?? '' }}</td>
+                <td>{{ $row['license_number'] ?? '' }}</td>
+                <td class="text-center">{{ $row['valid_from'] ?? '' }}</td>
+                <td class="text-center">{{ $row['valid_to'] ?? '' }}</td>
                 <td></td>
             </tr>
             @endforeach

@@ -211,23 +211,23 @@
             <tr>
                 <td>{{ $index + 1 }}</td>
                 <td style="font-size:5.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:0;">{{ $row['name'] ?? '' }}</td>
-                <td>{{ ($v = $row['father_name'] ?? '') === 'NIL' ? '' : $v }}</td>
-                <td>{{ ($v = $row['designation'] ?? '') === 'NIL' ? '' : $v }}</td>
-                <td>{{ ($v = $row['act_or_omission'] ?? '') === 'NIL' ? '' : $v }}</td>
-                <td>{{ ($v = $row['date_of_offence'] ?? '') === 'NIL' ? '' : $v }}</td>
-                <td>{{ ($v = $row['showed_cause'] ?? '') === 'NIL' ? '' : $v }}</td>
-                <td>{{ ($v = $row['heard_by'] ?? '') === 'NIL' ? '' : $v }}</td>
-                <td>{{ ($v = $row['wage_period'] ?? '') === 'NIL' ? '' : $v }}</td>
-                <td>{{ ($v = $row['fine_amount'] ?? '') === 'NIL' ? '' : $v }}</td>
-                <td>{{ ($v = $row['fine_realised'] ?? '') === 'NIL' ? '' : $v }}</td>
-                <td>{{ ($v = $row['remarks'] ?? '') === '-' ? '' : $v }}</td>
+                <td>{{ $row['father_name'] ?? '' }}</td>
+                <td>{{ $row['designation'] ?? '' }}</td>
+                <td>{{ $row['act_or_omission'] ?? '' }}</td>
+                <td>{{ $row['date_of_offence'] ?? '' }}</td>
+                <td>{{ $row['showed_cause'] ?? '' }}</td>
+                <td>{{ $row['heard_by'] ?? '' }}</td>
+                <td>{{ $row['wage_period'] ?? '' }}</td>
+                <td>{{ $row['fine_amount'] ?? '' }}</td>
+                <td>{{ $row['fine_realised'] ?? '' }}</td>
+                <td>{{ $row['remarks'] ?? '' }}</td>
             </tr>
             @empty
             @endforelse
 
             <tr class="footer-row">
                 <td colspan="4" class="fn-note">*Applicable only in case of damage/loss/fine</td>
-                <td colspan="8" class="fn-nil">Nil for the month of &nbsp;{{ $header['month_year'] ?? '' }}</td>
+                <td colspan="8" class="fn-nil">@if($is_nil ?? empty($rows))Nil for the month of &nbsp;{{ $header['month_year'] ?? '' }}@endif</td>
             </tr>
         </tbody>
     </table>

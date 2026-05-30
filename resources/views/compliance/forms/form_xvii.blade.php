@@ -169,7 +169,7 @@
                 <tr>
                     <td>{{ $index + 1 }}</td>
                     <td class="text-left">{{ $row['name'] ?? '' }}</td>
-                    <td>{{ $row['father_name'] ?? '' }}</td>
+                    <td>{{ $row['employee_code'] ?? '' }}</td>
                     <td class="text-left">{{ $row['designation'] ?? '' }}</td>
                     <td>{{ $row['days_worked'] ?? '' }}</td>
                     <td>{{ $row['unit_work'] ?? '' }}</td>
@@ -192,6 +192,26 @@
                         <td colspan="19" style="text-align:center;">No records found</td>
                     </tr>
                 @endforelse
+                @if(!empty($rows ?? []))
+                <tr style="font-weight:bold;">
+                    <td colspan="4" style="text-align:right;">Total</td>
+                    <td class="text-right">{{ $totals['days_worked'] ?? '' }}</td>
+                    <td></td>
+                    <td></td>
+                    <td class="text-right">{{ isset($totals['basic_wages'])      ? number_format($totals['basic_wages'], 2)      : '' }}</td>
+                    <td class="text-right">{{ isset($totals['da'])               ? number_format($totals['da'], 2)               : '' }}</td>
+                    <td class="text-right">{{ isset($totals['overtime'])         ? number_format($totals['overtime'], 2)         : '' }}</td>
+                    <td class="text-right">{{ isset($totals['other_cash'])       ? number_format($totals['other_cash'], 2)       : '' }}</td>
+                    <td class="text-right">{{ isset($totals['gross_salary'])     ? number_format($totals['gross_salary'], 2)     : '' }}</td>
+                    <td class="text-right">{{ isset($totals['esi'])              ? number_format($totals['esi'], 2)              : '' }}</td>
+                    <td class="text-right">{{ isset($totals['pf'])               ? number_format($totals['pf'], 2)               : '' }}</td>
+                    <td class="text-right">{{ isset($totals['pt'])               ? number_format($totals['pt'], 2)               : '' }}</td>
+                    <td class="text-right">{{ isset($totals['total_deductions']) ? number_format($totals['total_deductions'], 2) : '' }}</td>
+                    <td class="text-right">{{ isset($totals['net_amount'])       ? number_format($totals['net_amount'], 2)       : '' }}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                @endif
             </tbody>
         </table>
 

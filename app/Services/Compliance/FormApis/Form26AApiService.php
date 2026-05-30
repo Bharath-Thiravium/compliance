@@ -12,20 +12,26 @@ class Form26AApiService extends BaseFormApiService
         $this->validateTenantAndBranch($tenantId, $branchId);
 
         $rows = DB::table('incidents as i')
+            ->leftJoin('workforce_employee as e', 'i.employee_id', '=', 'e.id')
             ->where('i.tenant_id', $tenantId)
             ->where('i.branch_id', $branchId)
             ->whereYear('i.incident_date', $year)
-            ->whereMonth('i.incident_date', $month)
-            ->where('i.severity', 'HIGH')
             ->select([
                 'i.id',
                 'i.incident_date',
+                'i.incident_time',
                 'i.description',
                 'i.severity',
+                'i.location',
+                'i.cause',
+                'i.remarks',
+                'e.name as employee_name',
+                'e.employee_code',
+                'e.designation',
             ])
             ->orderBy('i.incident_date')
             ->get()
-            ->map(fn($row) => (array)$row)
+            ->map(fn($row) => (array) $row)
             ->toArray();
 
         return [
@@ -33,8 +39,8 @@ class Form26AApiService extends BaseFormApiService
             'meta' => [
                 'tenant_id' => $tenantId,
                 'branch_id' => $branchId,
-                'month' => $month,
-                'year' => $year,
+                'month'     => $month,
+                'year'      => $year,
             ],
             'tenant' => $this->getTenantDetails($tenantId),
             'branch' => $this->getBranchDetails($branchId, $tenantId),

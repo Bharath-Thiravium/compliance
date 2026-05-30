@@ -60,7 +60,7 @@ class FormXVIIGenerator extends BaseFormGenerator
                 'contractor_name'    => $tenant['name']    ?? '',
                 'establishment_name' => $branch['name']    ?? '',
                 'principal_employer' => $tenant['name']    ?? '',
-                'work_nature'        => 'Manufacturing',
+                'work_nature'        => $branch['address'] ?? $branch['name'] ?? '',
                 'work_location'      => $branch['address'] ?? $branch['name'] ?? '',
                 'wage_period'        => $this->formatPeriod($month, $year),
                 'tenant'             => $tenant,

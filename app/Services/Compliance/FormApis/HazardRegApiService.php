@@ -11,24 +11,27 @@ class HazardRegApiService extends BaseFormApiService
         $this->initializePeriod($month, $year);
         $this->validateTenantAndBranch($tenantId, $branchId);
 
-        $rows = DB::table('incidents as i')
-            ->where('i.tenant_id', $tenantId)
-            ->where('i.branch_id', $branchId)
-            ->whereYear('i.incident_date', $year)
-            ->whereMonth('i.incident_date', $month)
+        $rows = DB::table('hazard_register')
+            ->where('tenant_id', $tenantId)
+            ->where('branch_id', $branchId)
+            ->whereNull('deleted_at')
             ->select([
-                'i.id',
-                'i.incident_date',
-                'i.description',
-                'i.severity',
-                DB::raw("'Hazard' as hazard_type"),
-                DB::raw("'Factory Floor' as location"),
-                DB::raw("i.severity as risk_level"),
-                DB::raw("'Standard Controls' as control_measures"),
+                'id',
+                'hazard_date',
+                'hazard_type',
+                'description',
+                'location',
+                'severity',
+                'risk_rating',
+                'control_measure',
+                'corrective_action',
+                'preventive_action',
+                'reported_by',
+                'status',
             ])
-            ->orderBy('i.incident_date')
+            ->orderBy('hazard_date')
             ->get()
-            ->map(fn($row) => (array)$row)
+            ->map(fn($row) => (array) $row)
             ->toArray();
 
         return [
@@ -36,8 +39,8 @@ class HazardRegApiService extends BaseFormApiService
             'meta' => [
                 'tenant_id' => $tenantId,
                 'branch_id' => $branchId,
-                'month' => $month,
-                'year' => $year,
+                'month'     => $month,
+                'year'      => $year,
             ],
             'tenant' => $this->getTenantDetails($tenantId),
             'branch' => $this->getBranchDetails($branchId, $tenantId),

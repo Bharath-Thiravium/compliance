@@ -5,19 +5,20 @@ namespace App\Services\Compliance\FormGenerator;
 class FormXVIGenerator extends BaseFormGenerator
 {
     protected string $formCode = 'FORM_XVI';
-    protected string $view = 'compliance.forms.form_xvi'; // same template as preview
+    protected string $view = 'compliance.forms.form_xvi';
 
-    public function generatePdf(array $formData): string
+    // Status abbreviation map for muster roll day cells
+    private function statusCode(string $status): string
     {
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView($this->view, $formData)
-            ->setPaper('A4', 'landscape')
-            ->setOption('isHtml5ParserEnabled', true)
-            ->setOption('isRemoteEnabled', false)
-            ->setOption('dpi', 96)
-            ->setOption('defaultFont', 'Arial')
-            ->setOption('chroot', [public_path()]);
-
-        return $pdf->output();
+        return match(strtolower(trim($status))) {
+            'present'                  => 'P',
+            'absent'                   => 'A',
+            'leave', 'paid leave'      => 'L',
+            'holiday', 'public holiday'=> 'H',
+            'week off', 'weekoff', 'wo'=> 'WO',
+            'half day'                 => 'HD',
+            default                    => strtoupper(substr(trim($status), 0, 2)),
+        };
     }
 
     protected function prepareData(array $rawData): array
@@ -25,14 +26,15 @@ class FormXVIGenerator extends BaseFormGenerator
         $employees = [];
 
         foreach ($rawData['records'] ?? [] as $record) {
-            $record = $this->normalizeRecord($record);
+            $record  = $this->normalizeRecord($record);
             $empCode = $record['employee_code'] ?? '';
 
             if (!isset($employees[$empCode])) {
+                $gender = strtolower(trim($record['sex'] ?? $record['gender'] ?? ''));
                 $employees[$empCode] = [
                     'name'        => $record['name']        ?? '',
                     'father_name' => $record['father_name'] ?? '',
-                    'sex'         => $record['sex']         ?? '',
+                    'sex'         => in_array($gender, ['female', 'f']) ? 'F' : (in_array($gender, ['male', 'm']) ? 'M' : ''),
                     'designation' => $record['designation'] ?? '',
                     'remarks'     => '',
                 ];
@@ -43,22 +45,47 @@ class FormXVIGenerator extends BaseFormGenerator
 
             $date = $record['attendance_date'] ?? '';
             if ($date) {
-                $day = (int)date('d', strtotime($date));
+                $day = (int) date('d', strtotime($date));
                 if ($day >= 1 && $day <= 31) {
-                    $employees[$empCode]["day_$day"] = $record['status'] ?? '';
+                    $employees[$empCode]["day_$day"] = $this->statusCode($record['status'] ?? '');
                 }
             }
         }
 
+        $tenant = $rawData['tenant'] ?? [];
+        $branch = $rawData['branch'] ?? [];
+        $month  = $rawData['meta']['month'] ?? 1;
+        $year   = $rawData['meta']['year']  ?? date('Y');
+        $period = $this->formatPeriod($month, $year);
+
+        $contractorName    = $tenant['name']    ?? '';
+        $establishmentName = $branch['name']    ?? '';
+        $principalEmployer = $tenant['name']    ?? '';
+        $workNature        = $branch['address'] ?? $branch['name'] ?? '';
+        $workLocation      = $branch['address'] ?? $branch['name'] ?? '';
+
         return [
             'header' => [
-                'form_title' => 'FORM XVI - Muster Roll (CLRA)',
-                'period' => $this->formatPeriod($rawData['meta']['month'] ?? 1, $rawData['meta']['year'] ?? 2024),
-                'branch' => $rawData['branch'] ?? [],
-                'tenant' => $rawData['tenant'] ?? [],
+                'form_title'         => 'FORM XVI - Muster Roll (CLRA)',
+                'period'             => $period,
+                'branch'             => $branch,
+                'tenant'             => $tenant,
+                'contractor_name'    => $contractorName,
+                'establishment_name' => $establishmentName,
+                'principal_employer' => $principalEmployer,
+                'work_nature'        => $workNature,
+                'work_location'      => $workLocation,
+                'wage_period'        => $period,
             ],
-            'rows' => array_values($employees),
-            'is_nil' => count($employees) === 0,
+            // Root-level vars the Blade reads directly
+            'contractor_name'    => $contractorName,
+            'establishment_name' => $establishmentName,
+            'principal_employer' => $principalEmployer,
+            'work_nature'        => $workNature,
+            'work_location'      => $workLocation,
+            'wage_period'        => $period,
+            'rows'               => array_values($employees),
+            'is_nil'             => count($employees) === 0,
         ];
     }
 }

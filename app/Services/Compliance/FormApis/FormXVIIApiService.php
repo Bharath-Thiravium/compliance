@@ -14,13 +14,31 @@ class FormXVIIApiService extends BaseFormApiService
         $periodStart = $this->periodStart;
         $periodEnd   = $this->periodEnd;
 
+        // Use latest cycle for the period to avoid multi-cycle duplication
+        $cycleId = DB::table('workforce_payroll_cycle')
+            ->where('tenant_id', $tenantId)
+            ->whereYear('period_from', $year)
+            ->whereMonth('period_from', $month)
+            ->orderByDesc('id')
+            ->value('id');
+
+        if (!$cycleId) {
+            return [
+                'records'      => [],
+                'record_count' => 0,
+                'meta'         => ['tenant_id' => $tenantId, 'branch_id' => $branchId, 'month' => $month, 'year' => $year],
+                'tenant'       => $this->getTenantDetails($tenantId),
+                'branch'       => $this->getBranchDetails($branchId, $tenantId),
+                'period'       => $this->formatPeriod(),
+            ];
+        }
+
         $rawRows = DB::table('workforce_payroll_entry as pe')
             ->join('workforce_employee as e', 'e.id', '=', 'pe.employee_id')
             ->join('workforce_payroll_cycle as pc', 'pc.id', '=', 'pe.payroll_cycle_id')
-            ->where('e.tenant_id', $tenantId)
-            ->where('e.branch_id', $branchId)
-            ->whereYear('pc.period_from', $year)
-            ->whereMonth('pc.period_from', $month)
+            ->where('pe.tenant_id', $tenantId)
+            ->where('pe.branch_id', $branchId)
+            ->where('pe.payroll_cycle_id', $cycleId)
             ->selectRaw("
                 e.id                                    AS employee_id,
                 e.employee_code,
@@ -71,8 +89,9 @@ class FormXVIIApiService extends BaseFormApiService
             ->toArray();
 
         return [
-            'records' => $rows,
-            'meta'    => [
+            'records'      => $rows,
+            'record_count' => count($rows),
+            'meta'         => [
                 'tenant_id' => $tenantId,
                 'branch_id' => $branchId,
                 'month'     => $month,

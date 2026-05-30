@@ -568,9 +568,52 @@ class DataInputController extends Controller
         }
     }
 
+    private function uploadSupplementaryCsv(Request $request, int $batchId, string $type): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $request->validate(['file' => 'required|file|max:10240']);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['status' => 'error', 'message' => 'File required.'], 422);
+        }
+
+        $batch = ComplianceExecutionBatch::where('tenant_id', Auth::user()->tenant_id)
+            ->where('id', $batchId)->first();
+
+        if (! $batch) {
+            return response()->json(['status' => 'error', 'message' => "Batch #{$batchId} not found."], 404);
+        }
+
+        $branchId = $this->resolveBatchBranchId($batch);
+
+        try {
+            $result = app(\App\Services\Compliance\SupplementaryCsvUploadService::class)
+                ->upload($request->file('file'), $type, $batch->tenant_id, $branchId);
+
+            Log::info('Supplementary CSV uploaded', ['batch_id' => $batchId, 'type' => $type, 'result' => $result]);
+
+            return response()->json([
+                'status'           => 'success',
+                'message'          => "Successfully imported {$result['inserted']} {$type} records",
+                'records_inserted' => $result['inserted'],
+                'dataset_type'     => $type,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Supplementary CSV upload failed', ['batch_id' => $batchId, 'type' => $type, 'error' => $e->getMessage()]);
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
+        }
+    }
+
     public function uploadCsvData(Request $request, int $batchId)
     {
-        // ── 1. Table existence guard — never let a missing table produce a 500 ──
+        // ── Supplementary dataset types (bonus/fines/advances/deductions/incidents/hazard) ──
+        $supplementaryTypes = ['bonus', 'fines', 'advances', 'deductions', 'incidents', 'hazard_register'];
+        $datasetType = $request->input('dataset_type', '');
+
+        if (in_array($datasetType, $supplementaryTypes)) {
+            return $this->uploadSupplementaryCsv($request, $batchId, $datasetType);
+        }
+
+        // ── Core types (employees/payroll/attendance) ─────────────────────────
         $requiredTables = [
             'workforce_employee',
             'workforce_payroll_entry',
@@ -743,28 +786,35 @@ class DataInputController extends Controller
                             ->exists();
 
                         $employeeFields = [
-                                    'name'              => $row['name'],
-                                    'father_name'       => $row['father_name']       ?? null,
-                                    'gender'            => CsvNormalizer::normalizeGender($row['gender'] ?? null),
-                                    'date_of_birth'     => $this->parseDate($row['date_of_birth'] ?? null),
-                                    'marital_status'    => $row['marital_status']    ?? null,
-                                    'nationality'       => $row['nationality']       ?? null,
-                                    'mobile'            => CsvNormalizer::normalizeMobile($row['mobile'] ?? null),
-                                    'email'             => $row['email']             ?? null,
-                                    'permanent_address' => $row['permanent_address'] ?? null,
-                                    'designation'       => $row['designation']       ?? null,
-                                    'department'        => $row['department']        ?? null,
-                                    'skill_type'        => $row['skill_type']        ?? null,
-                                    'date_of_joining'   => $this->parseDate($row['date_of_joining'] ?? null),
-                                    'pf_number'         => CsvNormalizer::normalizePF($row['pf_number'] ?? null),
-                                    'esi_number'        => CsvNormalizer::normalizeESI($row['esi_number'] ?? null),
-                                    'uan_number'        => CsvNormalizer::normalizeUAN($row['uan_number'] ?? $row['pf_number'] ?? null),
-                                    'pan'               => $row['pan']               ?? null,
-                                    'aadhaar'           => $row['aadhaar']           ?? null,
-                                    'bank_account'      => $row['bank_account']      ?? null,
-                                    'bank_name'         => $row['bank_name']         ?? null,
-                                    'ifsc'              => $row['ifsc']              ?? null,
-                                    'basic_salary'      => CsvNormalizer::normalizeFloat($row['basic_salary'] ?? null),
+                                    'name'                => $row['name'],
+                                    'father_name'         => $row['father_name']         ?? null,
+                                    'gender'              => CsvNormalizer::normalizeGender($row['gender'] ?? null),
+                                    'date_of_birth'       => $this->parseDate($row['date_of_birth'] ?? null),
+                                    'marital_status'      => $row['marital_status']       ?? null,
+                                    'nationality'         => $row['nationality']          ?? null,
+                                    'mobile'              => CsvNormalizer::normalizeMobile($row['mobile'] ?? null),
+                                    'email'               => $row['email']                ?? null,
+                                    'permanent_address'   => $row['permanent_address']    ?? null,
+                                    'local_address'       => $row['local_address']        ?? null,
+                                    'designation'         => $row['designation']          ?? null,
+                                    'department'          => $row['department']           ?? null,
+                                    'skill_type'          => $row['skill_type']           ?? null,
+                                    'employment_type'     => CsvNormalizer::normalizeEmploymentType($row['employment_type'] ?? null),
+                                    'education_level'     => $row['education_level']      ?? null,
+                                    'identification_mark' => $row['identification_mark']  ?? null,
+                                    'work_nature'         => $row['work_nature']          ?? null,
+                                    'shift_name'          => $row['shift_name']           ?? null,
+                                    'date_of_joining'     => $this->parseDate($row['date_of_joining'] ?? null),
+                                    'date_of_exit'        => $this->parseDate($row['date_of_exit'] ?? null),
+                                    'pf_number'           => CsvNormalizer::normalizePF($row['pf_number'] ?? null),
+                                    'esi_number'          => CsvNormalizer::normalizeESI($row['esi_number'] ?? null),
+                                    'uan_number'          => CsvNormalizer::normalizeUAN($row['uan_number'] ?? null),
+                                    'pan'                 => CsvNormalizer::normalizePAN($row['pan'] ?? null),
+                                    'aadhaar'             => CsvNormalizer::normalizeAadhaar($row['aadhaar'] ?? null),
+                                    'bank_account'        => $row['bank_account']         ?? null,
+                                    'bank_name'           => $row['bank_name']            ?? null,
+                                    'ifsc'                => CsvNormalizer::normalizeIFSC($row['ifsc'] ?? null),
+                                    'basic_salary'        => CsvNormalizer::normalizeFloat($row['basic_salary'] ?? null),
                                 ];
 
                         if ($exists) {
@@ -772,8 +822,8 @@ class DataInputController extends Controller
                                 ->where('tenant_id', $batch->tenant_id)
                                 ->where('employee_code', $row['employee_code'])
                                 ->update(array_merge($employeeFields, [
-                                    'branch_id' => $branchId,
-                                    'status' => 'active',
+                                    'branch_id'  => $branchId,
+                                    'status'     => CsvNormalizer::normalizeStatus($row['status'] ?? null),
                                     'deleted_at' => null,
                                     'updated_at' => now(),
                                 ]));
@@ -783,7 +833,7 @@ class DataInputController extends Controller
                                 'branch_id'       => $branchId,
                                 'employee_code'   => $row['employee_code'],
                                 'date_of_joining' => $this->parseDate($row['date_of_joining'] ?? null) ?? now()->toDateString(),
-                                'status'          => 'active',
+                                'status'          => CsvNormalizer::normalizeStatus($row['status'] ?? null),
                                 'created_at'      => now(),
                                 'updated_at'      => now(),
                             ]));
@@ -858,29 +908,45 @@ class DataInputController extends Controller
                                 'employee_id'      => $employeeId,
                             ],
                             [
-                            'total_days_worked' => CsvNormalizer::normalizeInt($row['total_days_worked'] ?? null, 26),
-                            'paid_leave_days'   => CsvNormalizer::normalizeInt($row['paid_leave_days']   ?? null),
-                            'unpaid_leave_days' => CsvNormalizer::normalizeInt($row['unpaid_leave_days'] ?? null),
-                            'overtime_hours'    => CsvNormalizer::normalizeFloat($row['overtime_hours']  ?? null),
-                            'basic_earned'      => CsvNormalizer::normalizeFloat($row['basic_earned']    ?? null),
-                            'da_earned'         => CsvNormalizer::normalizeFloat($row['da_earned']       ?? null),
-                            'hra_earned'        => CsvNormalizer::normalizeFloat($row['hra_earned']      ?? null),
-                            'other_allowances'  => CsvNormalizer::normalizeFloat($row['other_allowances'] ?? null),
-                            'overtime_wages'    => CsvNormalizer::normalizeFloat($row['overtime_wages']  ?? null),
-                            'gross_salary'      => $gross,
-                            'pf_employee'       => $pf,
-                            'esi_employee'      => $esi,
-                            'professional_tax'  => $pt,
-                            'fines'             => CsvNormalizer::normalizeFloat($row['fines']            ?? null),
-                            'advances'          => CsvNormalizer::normalizeFloat($row['advances']         ?? null),
-                            'other_deductions'  => CsvNormalizer::normalizeFloat($row['other_deductions'] ?? null),
-                            'total_deductions'  => $gross - $net,
-                            'net_salary'        => $net,
-                            'payment_date'      => $row['payment_date'] ?? null,
-                            'payment_mode'      => $row['payment_mode'] ?? 'Bank Transfer',
-                            'created_at'        => now(),
-                            'updated_at'        => now(),
-                            'deleted_at'         => null,
+                            'total_days_worked'     => CsvNormalizer::normalizeInt($row['total_days_worked']   ?? null, 26),
+                            'paid_leave_days'        => CsvNormalizer::normalizeInt($row['paid_leave_days']     ?? null),
+                            'unpaid_leave_days'      => CsvNormalizer::normalizeInt($row['unpaid_leave_days']   ?? null),
+                            'overtime_hours'         => CsvNormalizer::normalizeFloat($row['overtime_hours']   ?? null),
+                            'basic_earned'           => CsvNormalizer::normalizeFloat($row['basic_earned']     ?? null),
+                            'da_earned'              => CsvNormalizer::normalizeFloat($row['da_earned']        ?? null),
+                            'hra_earned'             => CsvNormalizer::normalizeFloat($row['hra_earned']       ?? null),
+                            'other_allowances'       => CsvNormalizer::normalizeFloat($row['other_allowances'] ?? null),
+                            'overtime_wages'         => CsvNormalizer::normalizeFloat($row['overtime_wages']   ?? null),
+                            'bonus_amount'           => CsvNormalizer::normalizeFloat($row['bonus_amount']     ?? null),
+                            'gross_salary'           => $gross,
+                            'pf_employee'            => $pf,
+                            'pf_employer'            => CsvNormalizer::normalizeFloat($row['pf_employer']      ?? null),
+                            'esi_employee'           => $esi,
+                            'esi_employer'           => CsvNormalizer::normalizeFloat($row['esi_employer']     ?? null),
+                            'professional_tax'       => $pt,
+                            'lwf'                    => CsvNormalizer::normalizeFloat($row['lwf']              ?? null),
+                            'fines'                  => CsvNormalizer::normalizeFloat($row['fines']            ?? null),
+                            'fine_reason'            => $row['fine_reason']                                    ?? null,
+                            'fine_date'              => $this->parseDate($row['fine_date']                     ?? null),
+                            'advances'               => CsvNormalizer::normalizeFloat($row['advances']         ?? null),
+                            'advance_reason'         => $row['advance_reason']                                 ?? null,
+                            'advance_installment'    => CsvNormalizer::normalizeFloat($row['advance_installment'] ?? null),
+                            'other_deductions'       => CsvNormalizer::normalizeFloat($row['other_deductions'] ?? null),
+                            'deduction_reason'       => $row['deduction_reason']                               ?? null,
+                            'damage_particulars'     => $row['damage_particulars']                             ?? null,
+                            'showed_cause'           => CsvNormalizer::normalizeBool($row['showed_cause']      ?? null),
+                            'heard_by'               => $row['heard_by']                                       ?? null,
+                            'witness_name'           => $row['witness_name']                                   ?? null,
+                            'total_deductions'       => $gross - $net,
+                            'net_salary'             => $net,
+                            'payment_date'           => $row['payment_date']                                   ?? null,
+                            'payment_mode'           => $row['payment_mode']                                   ?? 'Bank Transfer',
+                            'transaction_reference'  => $row['transaction_reference']                          ?? null,
+                            'salary_month'           => CsvNormalizer::normalizeInt($row['salary_month']       ?? null) ?: null,
+                            'salary_year'            => CsvNormalizer::normalizeInt($row['salary_year']        ?? null) ?: null,
+                            'created_at'             => now(),
+                            'updated_at'             => now(),
+                            'deleted_at'             => null,
                             ]
                         );
                         $inserted++;
@@ -943,9 +1009,16 @@ class DataInputController extends Controller
                                 ],
                                 [
                                     'branch_id'      => $branchId,
-                                    'status'         => ($row['attendance_status'] ?? $row['status'] ?? 'present'),
+                                    'status'         => CsvNormalizer::normalizeAttendanceStatus($row['status'] ?? $row['attendance_status'] ?? null),
+                                    'shift_name'     => $row['shift_name']   ?? null,
+                                    'in_time'        => CsvNormalizer::normalizeTime($row['in_time']  ?? null),
+                                    'out_time'       => CsvNormalizer::normalizeTime($row['out_time'] ?? null),
+                                    'working_hours'  => CsvNormalizer::normalizeFloat($row['working_hours'] ?? null),
                                     'overtime_hours' => $otHours,
-                                    'remarks'        => "CSV import: {$presentDays}/{$workingDays} days present",
+                                    'leave_type'     => $row['leave_type']   ?? null,
+                                    'weekly_off'     => CsvNormalizer::normalizeBool($row['weekly_off']   ?? null),
+                                    'holiday_flag'   => CsvNormalizer::normalizeBool($row['holiday_flag'] ?? null),
+                                    'remarks'        => $row['remarks']       ?? null,
                                     'deleted_at'     => null,
                                     'updated_at'     => now(),
                                     'created_at'     => now(),

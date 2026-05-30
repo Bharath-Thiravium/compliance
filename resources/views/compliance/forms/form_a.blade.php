@@ -175,7 +175,7 @@
                 <td class="tc">{{ $row['uan_number'] ?? '' }}</td>
                 <td class="tc" style="white-space:nowrap;">{{ $row['esi_number'] ?? '' }}</td>
                 <td class="tc" style="white-space:nowrap;">{{ $row['pf_number'] ?? '' }}</td>
-                <td class="tc">{{ $row['lwf'] ?? '-' }}</td>
+                <td class="tc">{{ $row['lwf'] ?? '' }}</td>
                 <td class="tc">{{ $row['aadhaar'] ?? '' }}</td>
                 <td class="tc">{{ $row['bank_account'] ?? '' }}</td>
                 <td class="tl">{{ $row['branch_ifsc'] ?? (($row['bank_name'] ?? '') . ($row['ifsc'] ? ' (' . $row['ifsc'] . ')' : '')) }}</td>

@@ -137,8 +137,8 @@
                 <th>No. of women employed</th>
                 <th>Rate of remuneration paid</th>
                 <th>Basic wage or salary</th>
-                <th>Dearness rent allowance</th>
-                <th>House</th>
+                <th>Dearness Allowance</th>
+                <th>House Rent Allowance</th>
                 <th>Other allowance</th>
                 <th>Cash value of concessional supply of essential commodities</th>
             </tr>
@@ -148,11 +148,10 @@
             </tr>
         </thead>
         <tbody>
-            @if(($total_women ?? 0) == 0)
+            @if($is_nil ?? false)
                 <tr class="no-data">
-                    <td colspan="10">No Women Workers Employed on &nbsp; {{ $month ?? '' }} {{ $year ?? '' }}</td>
+                    <td colspan="10">No Records Found for {{ $month ?? '' }} {{ $year ?? '' }}</td>
                 </tr>
-                {{-- Extra empty rows like reference image --}}
                 <tr><td colspan="10" style="height:20px;"></td></tr>
             @else
                 @forelse($rows ?? [] as $row)

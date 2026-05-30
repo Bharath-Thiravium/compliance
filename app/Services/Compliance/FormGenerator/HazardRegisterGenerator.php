@@ -17,8 +17,8 @@ class HazardRegisterGenerator extends BaseFormGenerator
                 'hazard_type' => $record['hazard_type'] ?? 'N/A',
                 'location' => $record['location'] ?? 'N/A',
                 'description' => $record['description'] ?? 'N/A',
-                'risk_level' => $record['risk_level'] ?? 'N/A',
-                'control_measures' => $record['control_measures'] ?? 'N/A',
+                'risk_level' => $record['risk_rating'] ?? $record['risk_level'] ?? 'N/A',
+                'control_measures' => $record['control_measure'] ?? $record['control_measures'] ?? 'N/A',
             ];
         }
 

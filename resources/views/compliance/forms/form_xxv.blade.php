@@ -55,7 +55,7 @@ FORM XXV - HALF-YEARLY RETURN
             <tr>
                 <td class="text-center">{{ $index + 1 }}</td>
                 @foreach($row as $value)
-                <td>{{ is_numeric($value) ? number_format($value, 2) : ($value ?? 'N/A') }}</td>
+                <td>{{ is_numeric($value) ? number_format($value, 2) : ($value ?? '') }}</td>
                 @endforeach
             </tr>
             @endforeach

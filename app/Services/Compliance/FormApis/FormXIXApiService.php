@@ -14,7 +14,7 @@ class FormXIXApiService extends BaseFormApiService
         $periodStart = $this->periodStart;
         $periodEnd   = $this->periodEnd;
 
-        $rows = DB::table('workforce_payroll_entry as pe')
+        $rawRows = DB::table('workforce_payroll_entry as pe')
             ->join('workforce_employee as e', 'e.id', '=', 'pe.employee_id')
             ->join('workforce_payroll_cycle as pc', 'pc.id', '=', 'pe.payroll_cycle_id')
             ->where('e.tenant_id', $tenantId)
@@ -46,22 +46,27 @@ class FormXIXApiService extends BaseFormApiService
             ")
             ->orderBy('e.employee_code')
             ->get()
-            ->map(function ($row) use ($tenantId, $periodStart, $periodEnd) {
-                $row = (array) $row;
+            ->unique('employee_id');
 
-                $daysWorked = DB::table('workforce_attendance')
-                    ->where('employee_id', $row['employee_id'])
-                    ->where('tenant_id', $tenantId)
-                    ->whereBetween('attendance_date', [$periodStart, $periodEnd])
-                    ->whereIn('status', ['present', 'leave'])
-                    ->count();
+        // Pre-load attendance counts in a single query to avoid N+1
+        $employeeIds      = $rawRows->pluck('employee_id')->unique()->values();
+        $attendanceCounts = DB::table('workforce_attendance')
+            ->where('tenant_id', $tenantId)
+            ->whereBetween('attendance_date', [$periodStart, $periodEnd])
+            ->whereIn('status', ['present', 'leave'])
+            ->whereIn('employee_id', $employeeIds)
+            ->selectRaw('employee_id, COUNT(*) as days_count')
+            ->groupBy('employee_id')
+            ->pluck('days_count', 'employee_id');
 
-                $row['days_worked'] = $daysWorked ?: ($row['total_days_worked'] ?? 0);
-                $row['daily_rate']  = $row['days_worked'] > 0
-                    ? round($row['gross_salary'] / $row['days_worked'], 2)
+        $rows = $rawRows->map(function ($row) use ($attendanceCounts) {
+                $row            = (array) $row;
+                $daysWorked     = (int) ($attendanceCounts[$row['employee_id']] ?? $row['total_days_worked'] ?? 0);
+                $row['days_worked'] = $daysWorked;
+                $row['daily_rate']  = $daysWorked > 0
+                    ? round($row['gross_salary'] / $daysWorked, 2)
                     : 0;
                 $row['work_nature'] = 'Manufacturing';
-
                 return $row;
             })
             ->toArray();

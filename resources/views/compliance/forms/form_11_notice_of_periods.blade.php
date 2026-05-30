@@ -82,15 +82,15 @@
     <table class="factory-info">
         <tr>
             <td class="label">Name of factory</td>
-            <td colspan="3">{{ $factory_name ?? 'NIL' }}</td>
+            <td colspan="3">{{ $factory_name ?? '' }}</td>
         </tr>
         <tr>
             <td class="label">Place</td>
-            <td colspan="3">{{ $place ?? 'NIL' }}</td>
+            <td colspan="3">{{ $place ?? '' }}</td>
         </tr>
         <tr>
             <td class="label">District</td>
-            <td colspan="3">{{ $district ?? 'NIL' }}</td>
+            <td colspan="3">{{ $district ?? '' }}</td>
         </tr>
     </table>
 

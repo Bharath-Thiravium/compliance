@@ -10,10 +10,19 @@ class FillMissingDataSeeder extends Seeder
 {
     public function run(): void
     {
-        $tenantId = 1;
-        $branchId = 1;
+        // Resolve IDs dynamically — don't assume 1
+        $tenant = DB::table('tenants')->orderBy('id')->first();
+        $branch = DB::table('branches')->orderBy('id')->first();
 
-        $this->command->info("Starting to fill missing data for Tenant: {$tenantId}, Branch: {$branchId}");
+        if (!$tenant || !$branch) {
+            $this->command->error('No tenant/branch found — run January2025ComprehensiveSeeder first.');
+            return;
+        }
+
+        $tenantId = $tenant->id;
+        $branchId = $branch->id;
+
+        $this->command->info("Filling missing data for Tenant: {$tenantId}, Branch: {$branchId}");
 
         // Get payroll cycle for January 2025
         $payrollCycle = DB::table('workforce_payroll_cycle')

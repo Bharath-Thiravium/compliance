@@ -1,5 +1,3 @@
-@extends('compliance.layouts.preview')
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -108,7 +106,7 @@
         <!-- Establishment Field -->
         <div class="establishment-field">
             <span class="establishment-label">Establishment:</span>
-            <span class="establishment-value">{{ $establishment ?? '' }}</span>
+            <span class="establishment-value">{{ $header['establishment_name'] ?? $establishment_name ?? '' }}</span>
         </div>
 
         <!-- Fines Register Table -->

@@ -15,10 +15,12 @@ class ManualComplianceMaster extends Model
         'due_month',
         'requires_document',
         'is_event_based',
+        'is_automatable',
     ];
 
     protected $casts = [
         'requires_document' => 'boolean',
-        'is_event_based' => 'boolean',
+        'is_event_based'    => 'boolean',
+        'is_automatable'    => 'boolean',
     ];
 }
