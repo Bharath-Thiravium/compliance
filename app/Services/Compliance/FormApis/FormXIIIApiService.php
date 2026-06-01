@@ -14,15 +14,14 @@ class FormXIIIApiService extends BaseFormApiService
 
         // Show all contract labour deployments — not period-filtered (contract labour is cumulative)
         try {
-            $rows = DB::table('contract_labour as cl')
-                ->join('workforce_employee as we', 'we.id', '=', 'cl.employee_id')
-                ->join('contractors as c', 'c.id', '=', 'cl.contractor_id')
-                ->where('cl.tenant_id', $tenantId)
-                ->whereNull('cl.deleted_at')
+            $rows = DB::table('contract_labour_deployment as cld')
+                ->join('workforce_employee as we', 'we.id', '=', 'cld.employee_id')
+                ->leftJoin('contractor_master as cm', 'cm.id', '=', 'cld.contractor_id')
+                ->where('cld.tenant_id', $tenantId)
+                ->whereNull('cld.deleted_at')
                 ->whereNull('we.deleted_at')
-                ->whereNull('c.deleted_at')
                 ->select([
-                    'c.contractor_name',
+                    DB::raw("COALESCE(cm.contractor_name, cm.company_name, 'N/A') as contractor_name"),
                     'we.name',
                     'we.date_of_birth',
                     'we.gender',
@@ -30,10 +29,10 @@ class FormXIIIApiService extends BaseFormApiService
                     'we.designation',
                     'we.permanent_address',
                     'we.local_address',
-                    'cl.employment_start as joining_date',
-                    'cl.employment_end as termination_date',
+                    'cld.deployment_start as joining_date',
+                    'cld.deployment_end as termination_date',
                 ])
-                ->orderBy('cl.employment_start')
+                ->orderBy('cld.deployment_start')
                 ->get()
                 ->map(fn($row) => (array)$row)
                 ->toArray();
