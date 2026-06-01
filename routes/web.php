@@ -580,6 +580,250 @@ Route::get('/_ops/super-admin-check', function (Request $request) {
     ], 200, [], JSON_PRETTY_PRINT);
 });
 
+Route::get('/_ops/live-data-trace', function (Request $request) {
+    $token = (string) config('app.ops_token', '');
+    if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
+
+    $tenantId = (int) $request->query('tenant_id', 0);
+    $branchId = (int) $request->query('branch_id', 0);
+    $month    = (int) $request->query('month', now()->month);
+    $year     = (int) $request->query('year',  now()->year);
+    $formCode = strtoupper((string) $request->query('form', 'FORM_XVII'));
+
+    // Auto-detect tenant/branch if not supplied
+    if ($tenantId === 0) {
+        $tenantId = (int) (DB::table('tenants')->orderBy('id')->value('id') ?? 0);
+    }
+    if ($branchId === 0) {
+        $branchId = (int) (DB::table('branches')->where('tenant_id', $tenantId)->orderBy('id')->value('id') ?? 0);
+    }
+
+    $out = [
+        'params'    => compact('tenantId','branchId','month','year','formCode'),
+        'timestamp' => now()->toDateTimeString(),
+        'php'       => PHP_VERSION,
+        'laravel'   => app()->version(),
+        'env'       => config('app.env'),
+        'app_url'   => config('app.url'),
+    ];
+
+    // ── 1. Tenant & branch existence ─────────────────────────────────────────
+    $tenant = DB::table('tenants')->where('id', $tenantId)->first();
+    $branch = DB::table('branches')->where('id', $branchId)->where('tenant_id', $tenantId)->first();
+    $out['tenant'] = $tenant ? (array)$tenant : 'NOT FOUND';
+    $out['branch'] = $branch ? (array)$branch : 'NOT FOUND';
+
+    // ── 2. Raw data counts per table ─────────────────────────────────────────
+    $tables = [
+        'workforce_employee'      => ['tenant_id' => $tenantId, 'branch_id' => $branchId],
+        'workforce_attendance'    => ['tenant_id' => $tenantId, 'branch_id' => $branchId],
+        'workforce_payroll_entry' => ['tenant_id' => $tenantId, 'branch_id' => $branchId],
+        'workforce_payroll_cycle' => ['tenant_id' => $tenantId],
+        'bonus_records'           => ['tenant_id' => $tenantId, 'branch_id' => $branchId],
+        'workforce_fines'         => ['tenant_id' => $tenantId, 'branch_id' => $branchId],
+        'workforce_advances'      => ['tenant_id' => $tenantId, 'branch_id' => $branchId],
+        'workforce_deductions'    => ['tenant_id' => $tenantId, 'branch_id' => $branchId],
+        'incidents'               => ['tenant_id' => $tenantId, 'branch_id' => $branchId],
+        'hazard_register'         => ['tenant_id' => $tenantId, 'branch_id' => $branchId],
+        'contractor_master'       => ['tenant_id' => $tenantId, 'branch_id' => $branchId],
+        'contractors'             => ['tenant_id' => $tenantId],
+    ];
+    foreach ($tables as $tbl => $filters) {
+        if (!Schema::hasTable($tbl)) { $out['counts'][$tbl] = 'TABLE MISSING'; continue; }
+        try {
+            $q = DB::table($tbl);
+            foreach ($filters as $col => $val) $q->where($col, $val);
+            $out['counts'][$tbl] = $q->count();
+        } catch (\Throwable $e) {
+            $out['counts'][$tbl] = 'ERR: ' . $e->getMessage();
+        }
+    }
+
+    // ── 3. Attendance period breakdown ───────────────────────────────────────
+    try {
+        $out['attendance_by_period'] = DB::table('workforce_attendance')
+            ->selectRaw('YEAR(attendance_date) as y, MONTH(attendance_date) as m, COUNT(*) as cnt')
+            ->where('tenant_id', $tenantId)->where('branch_id', $branchId)
+            ->whereNull('deleted_at')
+            ->groupBy('y','m')->orderBy('y')->orderBy('m')
+            ->get()->map(fn($r) => (array)$r)->toArray();
+    } catch (\Throwable $e) { $out['attendance_by_period'] = 'ERR: '.$e->getMessage(); }
+
+    // ── 4. Payroll cycle details ──────────────────────────────────────────────
+    try {
+        $out['payroll_cycles'] = DB::table('workforce_payroll_cycle')
+            ->where('tenant_id', $tenantId)
+            ->orderByDesc('id')->limit(5)
+            ->get()->map(fn($r) => (array)$r)->toArray();
+    } catch (\Throwable $e) { $out['payroll_cycles'] = 'ERR: '.$e->getMessage(); }
+
+    // ── 5. Sample employee rows ───────────────────────────────────────────────
+    try {
+        $out['sample_employees'] = DB::table('workforce_employee')
+            ->where('tenant_id', $tenantId)->where('branch_id', $branchId)
+            ->whereNull('deleted_at')
+            ->select('id','employee_code','name','status','branch_id')
+            ->limit(5)->get()->map(fn($r) => (array)$r)->toArray();
+    } catch (\Throwable $e) { $out['sample_employees'] = 'ERR: '.$e->getMessage(); }
+
+    // ── 6. Missing DB columns check ───────────────────────────────────────────
+    $colChecks = [
+        'workforce_attendance'    => ['in_time','out_time','working_hours','shift_name','leave_type','weekly_off','holiday_flag','overtime_hours','deleted_at'],
+        'workforce_payroll_entry' => ['pf_employer','esi_employer','lwf','bonus_amount','salary_month','salary_year','overtime_hours'],
+        'workforce_employee'      => ['employment_type','education_level','work_nature','shift_name','uan_number','esi_number','pan','aadhaar'],
+        'incidents'               => ['root_cause','corrective_action','preventive_action','medical_leave_days','injury_type','location'],
+        'hazard_register'         => ['risk_rating','control_measure','reported_by'],
+    ];
+    foreach ($colChecks as $tbl => $cols) {
+        if (!Schema::hasTable($tbl)) { $out['missing_columns'][$tbl] = 'TABLE MISSING'; continue; }
+        $missing = array_filter($cols, fn($c) => !Schema::hasColumn($tbl, $c));
+        $out['missing_columns'][$tbl] = empty($missing) ? 'OK' : array_values($missing);
+    }
+
+    // ── 7. Form API service test ──────────────────────────────────────────────
+    try {
+        $svc = \App\Services\Compliance\FormApis\FormApiServiceFactory::make($formCode);
+        if (!$svc) throw new \Exception('No API service registered for: '.$formCode);
+        $raw     = $svc->fetch($tenantId, $branchId, $month, $year);
+        $records = count($raw['records'] ?? []);
+        $out['form_api_test'] = [
+            'form'         => $formCode,
+            'records'      => $records,
+            'tenant_id'    => $raw['tenant_id']    ?? 'missing',
+            'branch_id'    => $raw['branch_id']    ?? 'missing',
+            'period_month' => $raw['period_month'] ?? 'missing',
+            'period_year'  => $raw['period_year']  ?? 'missing',
+            'sample'       => array_slice($raw['records'] ?? [], 0, 2),
+        ];
+    } catch (\Throwable $e) {
+        $out['form_api_test'] = ['error' => $e->getMessage(), 'trace' => array_slice(explode("\n", $e->getTraceAsString()), 0, 6)];
+    }
+
+    // ── 8. Generator test ─────────────────────────────────────────────────────
+    try {
+        $svc = \App\Services\Compliance\FormApis\FormApiServiceFactory::make($formCode);
+        $raw = $svc->fetch($tenantId, $branchId, $month, $year);
+        $gen = \App\Services\Compliance\FormGenerator\FormGeneratorFactory::make($formCode);
+        if (!$gen) throw new \Exception('No generator registered for: '.$formCode);
+        $data = $gen->generate($raw);
+        $out['generator_test'] = [
+            'form'   => $formCode,
+            'keys'   => array_keys($data),
+            'rows'   => count($data['rows'] ?? $data['entries'] ?? []),
+            'sample' => array_slice($data['rows'] ?? $data['entries'] ?? [], 0, 1),
+        ];
+    } catch (\Throwable $e) {
+        $out['generator_test'] = ['error' => $e->getMessage(), 'trace' => array_slice(explode("\n", $e->getTraceAsString()), 0, 6)];
+    }
+
+    // ── 9. Batch context ──────────────────────────────────────────────────────
+    try {
+        $batches = DB::table('compliance_execution_batches')
+            ->where('tenant_id', $tenantId)
+            ->orderByDesc('id')->limit(3)
+            ->get()->map(fn($r) => (array)$r)->toArray();
+        $out['recent_batches'] = $batches;
+
+        // Check batch_forms for the latest batch
+        if (!empty($batches)) {
+            $latestBatchId = $batches[0]['id'];
+            $out['batch_forms_sample'] = DB::table('compliance_batch_forms')
+                ->where('batch_id', $latestBatchId)
+                ->select('form_code','status','file_path','updated_at')
+                ->limit(10)->get()->map(fn($r) => (array)$r)->toArray();
+        }
+    } catch (\Throwable $e) { $out['recent_batches'] = 'ERR: '.$e->getMessage(); }
+
+    // ── 10. All tenants data snapshot ─────────────────────────────────────────
+    try {
+        $out['all_tenants_data'] = DB::table('tenants')
+            ->select('id','name','establishment_name','subscription_type')
+            ->get()->map(function($t) {
+                $empCount  = DB::table('workforce_employee')->where('tenant_id',$t->id)->whereNull('deleted_at')->count();
+                $attCount  = DB::table('workforce_attendance')->where('tenant_id',$t->id)->whereNull('deleted_at')->count();
+                $payCount  = DB::table('workforce_payroll_entry')->where('tenant_id',$t->id)->count();
+                $branches  = DB::table('branches')->where('tenant_id',$t->id)->pluck('id')->toArray();
+                return [
+                    'tenant_id'    => $t->id,
+                    'name'         => $t->name,
+                    'subscription' => $t->subscription_type,
+                    'branches'     => $branches,
+                    'employees'    => $empCount,
+                    'attendance'   => $attCount,
+                    'payroll'      => $payCount,
+                ];
+            })->toArray();
+    } catch (\Throwable $e) { $out['all_tenants_data'] = 'ERR: '.$e->getMessage(); }
+
+    // ── Render as HTML ────────────────────────────────────────────────────────
+    $token_q = htmlspecialchars((string)$request->query('token'));
+    $baseUrl = "?token={$token_q}&tenant_id={$tenantId}&branch_id={$branchId}&month={$month}&year={$year}";
+
+    $html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Live Data Trace</title><style>
+    *{box-sizing:border-box;margin:0;padding:0}body{font-family:system-ui,sans-serif;background:#0f172a;color:#e2e8f0;padding:20px;font-size:13px}
+    h1{font-size:18px;font-weight:700;color:#f8fafc;margin-bottom:16px}
+    h2{font-size:13px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin:20px 0 8px}
+    .card{background:#1e293b;border-radius:8px;padding:14px 16px;margin-bottom:12px}
+    .ok{color:#4ade80}.warn{color:#fbbf24}.err{color:#f87171}
+    table{width:100%;border-collapse:collapse}
+    th{text-align:left;padding:6px 10px;background:#334155;font-size:11px;color:#94a3b8;font-weight:600}
+    td{padding:6px 10px;border-bottom:1px solid #0f172a;vertical-align:top}
+    pre{white-space:pre-wrap;word-break:break-all;font-size:11px;color:#cbd5e1;margin:0}
+    .badge{display:inline-block;padding:1px 8px;border-radius:12px;font-size:11px;font-weight:600}
+    .badge-ok{background:#14532d;color:#4ade80}.badge-warn{background:#451a03;color:#fbbf24}.badge-err{background:#450a0a;color:#f87171}
+    a{color:#60a5fa;text-decoration:none}
+    </style></head><body>';
+
+    $html .= '<h1>🔬 Live Data Trace</h1>';
+
+    // Params bar
+    $html .= '<div class="card"><strong>Tenant:</strong> '.$tenantId.' &nbsp;|&nbsp; <strong>Branch:</strong> '.$branchId.' &nbsp;|&nbsp; <strong>Period:</strong> '.$month.'/'.$year.' &nbsp;|&nbsp; <strong>Form:</strong> '.$formCode;
+    $html .= '<br><br>Change period: ';
+    foreach([[now()->month,now()->year],[now()->subMonth()->month,now()->subMonth()->year],[now()->subMonths(2)->month,now()->subMonths(2)->year]] as [$m,$y]) {
+        $html .= "<a href='{$baseUrl}&month={$m}&year={$y}&form={$formCode}'>{$m}/{$y}</a> &nbsp;";
+    }
+    $html .= '<br>Change form: ';
+    foreach(['FORM_XVII','FORM_XVI','FORM_XII','FORM_B','FORM_25','ESI_FORM_12','FORM_11'] as $fc) {
+        $html .= "<a href='{$baseUrl}&form={$fc}'>{$fc}</a> &nbsp;";
+    }
+    $html .= '</div>';
+
+    // Section renderer
+    $section = function(string $title, $data) use (&$html) {
+        $html .= "<h2>{$title}</h2><div class='card'><pre>" . htmlspecialchars(json_encode($data, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE)) . '</pre></div>';
+    };
+
+    // Counts table
+    $html .= '<h2>Data Counts</h2><div class="card"><table><tr><th>Table</th><th>Count</th><th>Status</th></tr>';
+    foreach ($out['counts'] as $tbl => $cnt) {
+        $badge = is_int($cnt) && $cnt > 0 ? "<span class='badge badge-ok'>{$cnt}</span>" : "<span class='badge badge-err'>{$cnt}</span>";
+        $html .= "<tr><td>{$tbl}</td><td>{$cnt}</td><td>{$badge}</td></tr>";
+    }
+    $html .= '</table></div>';
+
+    // Missing columns
+    $html .= '<h2>Missing DB Columns</h2><div class="card"><table><tr><th>Table</th><th>Status</th></tr>';
+    foreach ($out['missing_columns'] as $tbl => $status) {
+        $badge = $status === 'OK' ? "<span class='badge badge-ok'>OK</span>" : "<span class='badge badge-err'>".htmlspecialchars(is_array($status)?implode(', ',$status):$status)."</span>";
+        $html .= "<tr><td>{$tbl}</td><td>{$badge}</td></tr>";
+    }
+    $html .= '</table></div>';
+
+    $section('Tenant', $out['tenant']);
+    $section('Branch', $out['branch']);
+    $section('Attendance by Period', $out['attendance_by_period']);
+    $section('Payroll Cycles', $out['payroll_cycles']);
+    $section('Sample Employees', $out['sample_employees']);
+    $section('Form API Test ('.$formCode.')', $out['form_api_test']);
+    $section('Generator Test ('.$formCode.')', $out['generator_test']);
+    $section('Recent Batches', $out['recent_batches']);
+    $section('Batch Forms (latest batch)', $out['batch_forms_sample'] ?? []);
+    $section('All Tenants Data Snapshot', $out['all_tenants_data']);
+
+    $html .= '</body></html>';
+    return response($html)->header('Content-Type','text/html');
+});
+
 require __DIR__.'/compliance.php';
 require __DIR__.'/batch-processing.php';
 require __DIR__.'/data-input.php';

@@ -182,7 +182,7 @@ const getCsrf = () => document.querySelector('meta[name="csrf-token"]')?.content
 // Falls back to the meta tag value if the request fails.
 const fetchCsrf = async () => {
     try {
-        const r = await fetch('{{ route("csrf.token") }}', {
+        const r = await fetch('{{ url("/compliance/csrf-token") }}', {
             credentials: 'same-origin',
             headers: { 'Accept': 'application/json' },
         });
