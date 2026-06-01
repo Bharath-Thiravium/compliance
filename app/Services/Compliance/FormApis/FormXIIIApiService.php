@@ -12,15 +12,16 @@ class FormXIIIApiService extends BaseFormApiService
         $this->initializePeriod($month, $year);
         $this->validateTenantAndBranch($tenantId, $branchId);
 
-        // Show all contract labour deployments — not period-filtered (contract labour is cumulative)
         try {
             $rows = DB::table('contract_labour_deployment as cld')
                 ->join('workforce_employee as we', 'we.id', '=', 'cld.employee_id')
                 ->leftJoin('contractor_master as cm', 'cm.id', '=', 'cld.contractor_id')
                 ->where('cld.tenant_id', $tenantId)
+                ->where('cld.branch_id', $branchId)
                 ->whereNull('cld.deleted_at')
                 ->whereNull('we.deleted_at')
                 ->select([
+                    'cld.contractor_id',
                     DB::raw("COALESCE(cm.contractor_name, cm.company_name, 'N/A') as contractor_name"),
                     'we.name',
                     'we.date_of_birth',
@@ -32,12 +33,13 @@ class FormXIIIApiService extends BaseFormApiService
                     'cld.deployment_start as joining_date',
                     'cld.deployment_end as termination_date',
                 ])
+                ->orderBy('cld.contractor_id')
                 ->orderBy('cld.deployment_start')
                 ->get()
                 ->map(fn($row) => (array)$row)
                 ->toArray();
         } catch (\Exception $e) {
-            Log::error('FORM XIII FETCH ERROR', ['error' => $e->getMessage(), 'tenant_id' => $tenantId]);
+            Log::error('FORM XIII FETCH ERROR', ['error' => $e->getMessage(), 'tenant_id' => $tenantId, 'branch_id' => $branchId]);
             $rows = [];
         }
 

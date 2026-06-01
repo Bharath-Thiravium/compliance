@@ -16,9 +16,11 @@ class FormXIIIGenerator extends BaseFormGenerator
         
         foreach ($rawData['records'] ?? [] as $record) {
             $record = $this->normalizeRecord($record);
-            if (!$contractorName && isset($record['contractor_name'])) {
+            
+            if (!$contractorName && isset($record['contractor_name']) && $record['contractor_name'] !== 'N/A') {
                 $contractorName = $record['contractor_name'];
             }
+            
             $rows[] = [
                 'name' => $record['name'] ?? null,
                 'age' => $this->calculateAge($record['date_of_birth'] ?? null),
