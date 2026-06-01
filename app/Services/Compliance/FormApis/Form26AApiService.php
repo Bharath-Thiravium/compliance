@@ -31,6 +31,13 @@ class Form26AApiService extends BaseFormApiService
             ])
             ->orderBy('i.incident_date')
             ->get()
+            // Composite dedup: same incident_date + employee + description = same incident
+            ->unique(fn($r) => implode('|', [
+                $r->incident_date  ?? '',
+                $r->employee_code  ?? $r->employee_name ?? '',
+                $r->description    ?? '',
+            ]))
+            ->values()
             ->map(fn($row) => (array) $row)
             ->toArray();
 
