@@ -197,6 +197,7 @@ function showBanner(elId, type, html) {
 document.querySelectorAll('.csv-input').forEach(input => {
     input.addEventListener('change', function () {
         const cardId   = this.dataset.card;
+        if (!cardId) return;
         const type     = cardId.replace('card-', '');
         const statusEl = document.getElementById('status-' + type);
         const card     = document.getElementById(cardId);
