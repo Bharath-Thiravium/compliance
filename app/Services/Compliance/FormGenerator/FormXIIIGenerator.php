@@ -3,6 +3,7 @@
 namespace App\Services\Compliance\FormGenerator;
 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class FormXIIIGenerator extends BaseFormGenerator
 {
@@ -11,6 +12,10 @@ class FormXIIIGenerator extends BaseFormGenerator
 
     protected function prepareData(array $rawData): array
     {
+        Log::info('FORM XIII GENERATOR: START', [
+            'record_count' => count($rawData['records'] ?? []),
+        ]);
+
         $rows = [];
         $contractorName = null;
         $contractorAddress = null;
@@ -18,10 +23,15 @@ class FormXIIIGenerator extends BaseFormGenerator
         foreach ($rawData['records'] ?? [] as $record) {
             $record = $this->normalizeRecord($record);
             
-            // Extract contractor details from first record (now guaranteed to be present from API)
+            // Extract contractor details from first record
             if (!$contractorName && isset($record['contractor_name'])) {
                 $contractorName = $record['contractor_name'];
                 $contractorAddress = $record['contractor_address'] ?? '';
+                
+                Log::info('FORM XIII GENERATOR: Contractor extracted', [
+                    'contractor_name' => $contractorName,
+                    'contractor_address' => $contractorAddress,
+                ]);
             }
             
             $rows[] = [
@@ -39,29 +49,41 @@ class FormXIIIGenerator extends BaseFormGenerator
             ];
         }
 
+        Log::info('FORM XIII GENERATOR: Rows transformed', [
+            'total_rows' => count($rows),
+            'contractor_name' => $contractorName,
+        ]);
+
         $tenant = $rawData['tenant'] ?? [];
         $branch = $rawData['branch'] ?? [];
         $month = $rawData['meta']['month'] ?? 1;
         $year = $rawData['meta']['year'] ?? 2024;
 
-        return [
+        $result = [
             'header' => [
                 'form_title' => 'FORM XIII - Register of Workmen Employed by Contractor',
                 'period' => $this->formatPeriod($month, $year),
                 'contractor_name' => $contractorName ?? '',
                 'contractor_address' => $contractorAddress ?? '',
                 'tenant' => [
-                    'name' => $tenant['name'] ?? 'NIL',
+                    'name' => $tenant['name'] ?? 'N/A',
                     'address' => $tenant['address'] ?? '',
                 ],
                 'branch' => [
-                    'name' => $branch['name'] ?? 'NIL',
-                    'address' => $branch['address'] ?? 'NIL',
+                    'name' => $branch['name'] ?? 'N/A',
+                    'address' => $branch['address'] ?? 'N/A',
                 ],
             ],
             'rows' => $rows,
             'is_nil' => count($rows) === 0,
         ];
+
+        Log::info('FORM XIII GENERATOR: COMPLETE', [
+            'is_nil' => $result['is_nil'],
+            'row_count' => count($rows),
+        ]);
+
+        return $result;
     }
 
     private function calculateAge(?string $dateOfBirth): ?string
