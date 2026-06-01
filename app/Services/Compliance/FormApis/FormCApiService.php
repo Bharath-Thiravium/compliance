@@ -19,12 +19,13 @@ class FormCApiService extends BaseFormApiService
             ->whereMonth('period_from', $month)
             ->value('id');
 
-        // Advances - deduplicate by employee
+        // Advances - filter by month/year period, one per employee
         $advances = DB::table('workforce_advances as a')
             ->join('workforce_employee as e', 'e.id', '=', 'a.employee_id')
             ->where('a.tenant_id', $tenantId)
             ->where('a.branch_id', $branchId)
             ->whereYear('a.advance_date', $year)
+            ->whereMonth('a.advance_date', $month)
             ->whereNull('a.deleted_at')
             ->select([
                 'e.id as employee_id',
@@ -32,46 +33,51 @@ class FormCApiService extends BaseFormApiService
                 DB::raw("'Advance' as recovery_type"),
                 DB::raw("'' as particulars"),
                 DB::raw("'' as damage_date"),
-                DB::raw('SUM(a.amount) as amount'),
+                'a.amount',
                 DB::raw("'' as show_cause"),
                 DB::raw("'' as explanation"),
-                DB::raw('MAX(a.num_instalments) as installments'),
-                DB::raw('MIN(a.first_month) as first_month'),
-                DB::raw('MAX(a.last_month) as last_month'),
+                'a.num_instalments as installments',
+                'a.first_month',
+                'a.last_month',
                 DB::raw("'' as recovery_date"),
-                DB::raw("GROUP_CONCAT(a.remarks SEPARATOR '; ') as remarks"),
+                'a.remarks',
             ])
-            ->groupBy('e.id', 'e.name')
             ->orderBy('e.name')
+            ->orderByDesc('a.advance_date')
             ->get()
+            ->unique('employee_id')
+            ->values()
             ->map(fn($r) => collect((array) $r)->except('employee_id')->toArray())
             ->toArray();
 
-        // Fines - deduplicate by employee
+        // Fines - filter by month/year period, one per employee
         $fines = DB::table('workforce_fines as f')
             ->join('workforce_employee as e', 'e.id', '=', 'f.employee_id')
             ->where('f.tenant_id', $tenantId)
             ->where('f.branch_id', $branchId)
             ->whereYear('f.fine_date', $year)
+            ->whereMonth('f.fine_date', $month)
             ->whereNull('f.deleted_at')
             ->select([
                 'e.id as employee_id',
                 'e.name as employee_name',
                 DB::raw("'Fine' as recovery_type"),
-                DB::raw("GROUP_CONCAT(f.reason SEPARATOR '; ') as particulars"),
-                DB::raw('MIN(f.fine_date) as damage_date'),
-                DB::raw('SUM(f.amount) as amount'),
+                'f.reason as particulars',
+                'f.fine_date as damage_date',
+                'f.amount',
                 DB::raw("'' as show_cause"),
                 DB::raw("'' as explanation"),
                 DB::raw("1 as installments"),
                 DB::raw("'' as first_month"),
                 DB::raw("'' as last_month"),
                 DB::raw("'' as recovery_date"),
-                DB::raw("GROUP_CONCAT(f.remarks SEPARATOR '; ') as remarks"),
+                'f.remarks',
             ])
-            ->groupBy('e.id', 'e.name')
             ->orderBy('e.name')
+            ->orderByDesc('f.fine_date')
             ->get()
+            ->unique('employee_id')
+            ->values()
             ->map(fn($r) => collect((array) $r)->except('employee_id')->toArray())
             ->toArray();
 

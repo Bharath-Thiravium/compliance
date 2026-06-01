@@ -36,7 +36,6 @@ class ShopsForm12ApiService extends BaseFormApiService
             ->orderBy('e.employee_code')
             ->orderBy('wa.advance_date')
             ->get()
-            // Composite dedup: same employee + same date + same amount = duplicate DB row
             ->unique(fn($r) => implode('|', [
                 $r->employee_code  ?? '',
                 $r->advance_date   ?? '',
@@ -51,7 +50,7 @@ class ShopsForm12ApiService extends BaseFormApiService
         }
 
         // Source 2: payroll_entry.advances fallback
-        $cycleId = DB::table('payroll_cycles')
+        $cycleId = DB::table('workforce_payroll_cycle')
             ->where('tenant_id', $tenantId)
             ->whereYear('period_from', $year)
             ->whereMonth('period_from', $month)
@@ -61,9 +60,9 @@ class ShopsForm12ApiService extends BaseFormApiService
             return $this->buildResponse([], $tenantId, $branchId, $month, $year);
         }
 
-        $rows = DB::table('payroll_entries as pe')
+        $rows = DB::table('workforce_payroll_entry as pe')
             ->join('workforce_employee as e', 'e.id', '=', 'pe.employee_id')
-            ->join('payroll_cycles as pc', 'pc.id', '=', 'pe.payroll_cycle_id')
+            ->join('workforce_payroll_cycle as pc', 'pc.id', '=', 'pe.payroll_cycle_id')
             ->where('e.tenant_id', $tenantId)
             ->where('e.branch_id', $branchId)
             ->whereNull('e.deleted_at')
@@ -82,7 +81,6 @@ class ShopsForm12ApiService extends BaseFormApiService
             ])
             ->orderBy('e.employee_code')
             ->get()
-            // Composite dedup: same employee + same date + same amount
             ->unique(fn($r) => implode('|', [
                 $r->employee_code  ?? '',
                 $r->advance_date   ?? '',

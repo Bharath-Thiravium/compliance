@@ -12,11 +12,11 @@ class FormXIIIApiService extends BaseFormApiService
         $this->initializePeriod($month, $year);
         $this->validateTenantAndBranch($tenantId, $branchId);
 
-        // Show all deployments — not period-filtered (contract labour is cumulative)
-        $rows = DB::table('contract_labour_deployment as cld')
-            ->join('workforce_employee as we', 'we.id', '=', 'cld.employee_id')
-            ->where('cld.tenant_id', $tenantId)
-            ->where('cld.branch_id', $branchId)
+        // Show all contract labour deployments — not period-filtered (contract labour is cumulative)
+        $rows = DB::table('contract_labour as cl')
+            ->join('workforce_employee as we', 'we.id', '=', 'cl.employee_id')
+            ->where('cl.tenant_id', $tenantId)
+            ->whereNull('cl.deleted_at')
             ->select([
                 'we.name',
                 'we.date_of_birth',
@@ -25,10 +25,10 @@ class FormXIIIApiService extends BaseFormApiService
                 'we.designation',
                 'we.permanent_address',
                 'we.local_address',
-                'cld.deployment_start as joining_date',
-                'cld.deployment_end as termination_date',
+                'cl.employment_start as joining_date',
+                'cl.employment_end as termination_date',
             ])
-            ->orderBy('cld.deployment_start')
+            ->orderBy('cl.employment_start')
             ->get()
             ->map(fn($row) => (array)$row)
             ->toArray();
