@@ -35,13 +35,13 @@ class DataAvailabilityEngine
         $summary['payroll_entries'] = $result['count'];
 
         // Optional data — shown in summary but do NOT block generation
-        $result = $this->checkTable('contract_labour_deployment', $tenantId, $branchId);
+        $result = $this->checkContractorData($tenantId, $branchId);
         $summary['contract_labour'] = $result['count'];
 
         $result = $this->checkBonusData($tenantId, $branchId);
         $summary['bonus_records'] = $result['count'];
 
-        $result = $this->checkTableByPeriod('incidents', $tenantId, $branchId, $month, $year, 'notice_date');
+        $result = $this->checkTableByPeriod('incidents', $tenantId, $branchId, $month, $year, 'incident_date');
         $summary['incidents'] = $result['count'];
 
         $result = $this->checkTable('hazard_register', $tenantId, $branchId);
@@ -146,6 +146,31 @@ class DataAvailabilityEngine
             return ['exists' => $count > 0, 'count' => $count];
         } catch (\Exception $e) {
             \Log::warning("Error checking payroll data: " . $e->getMessage());
+            return ['exists' => false, 'count' => 0];
+        }
+    }
+
+    /**
+     * Check contractor data (CSV uploads go to contractor_master)
+     */
+    private function checkContractorData(int $tenantId, int $branchId): array
+    {
+        try {
+            $count = 0;
+            if (Schema::hasTable('contractor_master')) {
+                $count = DB::table('contractor_master')
+                    ->where('tenant_id', $tenantId)
+                    ->where('branch_id', $branchId)
+                    ->count();
+            }
+            if ($count === 0 && Schema::hasTable('contractors')) {
+                $count = DB::table('contractors')
+                    ->where('tenant_id', $tenantId)
+                    ->count();
+            }
+            return ['exists' => $count > 0, 'count' => $count];
+        } catch (\Exception $e) {
+            \Log::warning('Error checking contractor data: ' . $e->getMessage());
             return ['exists' => false, 'count' => 0];
         }
     }

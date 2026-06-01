@@ -328,12 +328,20 @@ document.getElementById('uploadAllSuppBtn').addEventListener('click', async func
                 body   : fd,
             });
             const rawText = await resp.text();
+            refreshCsrf();
             let json;
             try   { json = JSON.parse(rawText.replace(/^\uFEFF/, '')); }
             catch (_) { json = { status: 'error', message: `Server error (${resp.status})` }; }
 
             if (json.status === 'success') {
-                statusEl.innerHTML = `<span class="badge badge-success">✅ ${json.records_inserted} records</span>`;
+                const skipped = json.records_skipped ?? 0;
+                const label   = skipped > 0
+                    ? `✅ ${json.records_inserted} inserted, ${skipped} skipped`
+                    : `✅ ${json.records_inserted} records`;
+                statusEl.innerHTML = `<span class="badge badge-success">${label}</span>`;
+                if (json.row_errors?.length) {
+                    statusEl.innerHTML += `<div style="font-size:11px;color:#cf1322;margin-top:4px;">${json.row_errors.slice(0,3).map(escHtml).join('<br>')}</div>`;
+                }
                 card.classList.add('ready');
                 passed++;
             } else {
@@ -397,7 +405,14 @@ document.querySelectorAll('.supp-upload-btn').forEach(btn => {
             }
 
             if (json.status === 'success') {
-                statusEl.innerHTML = `<span class="badge badge-success">✅ ${json.records_inserted} records imported</span>`;
+                const skipped = json.records_skipped ?? 0;
+                const label   = skipped > 0
+                    ? `✅ ${json.records_inserted} inserted, ${skipped} skipped`
+                    : `✅ ${json.records_inserted} records imported`;
+                statusEl.innerHTML = `<span class="badge badge-success">${label}</span>`;
+                if (json.row_errors?.length) {
+                    statusEl.innerHTML += `<div style="font-size:11px;color:#cf1322;margin-top:4px;">${json.row_errors.slice(0,3).map(escHtml).join('<br>')}</div>`;
+                }
                 card.classList.add('ready');
                 showBanner('globalResult', 'success',
                     `<strong>✅ ${escHtml(json.message)}</strong>`);

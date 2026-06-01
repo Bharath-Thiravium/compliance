@@ -642,8 +642,11 @@ class ComplianceDataUploadController extends Controller
 
             return response()->json([
                 'status'           => 'success',
-                'message'          => "Successfully imported {$result['inserted']} {$type} records",
+                'message'          => "Successfully imported {$result['inserted']} {$type} records"
+                    . ($result['skipped'] > 0 ? " ({$result['skipped']} skipped)" : ''),
                 'records_inserted' => $result['inserted'],
+                'records_skipped'  => $result['skipped'] ?? 0,
+                'row_errors'       => $result['errors']  ?? [],
                 'type'             => $type,
             ]);
         } catch (\Throwable $e) {
