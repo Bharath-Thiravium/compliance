@@ -176,21 +176,39 @@
 
 @push('scripts')
 <script>
-const getCsrf = () => {
-    // Always read fresh from meta tag (updated after each response)
-    return document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+const getCsrf = () => document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+
+// Fetch a guaranteed-fresh token from the server before each upload batch.
+// Falls back to the meta tag value if the request fails.
+const fetchCsrf = async () => {
+    try {
+        const r = await fetch('{{ rtrim(config("app.url"), "/") }}/csrf-token', {
+            credentials: 'same-origin',
+            headers: { 'Accept': 'application/json' },
+        });
+        if (r.ok) {
+            const d = await r.json();
+            if (d.token) {
+                document.querySelector('meta[name="csrf-token"]')?.setAttribute('content', d.token);
+                return d.token;
+            }
+        }
+    } catch (_) {}
+    return getCsrf();
 };
 
-const refreshCsrf = (resp) => {
-    // Laravel rotates XSRF-TOKEN cookie on each response — sync the meta tag
-    const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
-    if (match) {
-        try {
-            const token = decodeURIComponent(match[1]);
-            const meta  = document.querySelector('meta[name="csrf-token"]');
-            if (meta && token) meta.setAttribute('content', token);
-        } catch (_) {}
-    }
+// Keep meta tag in sync from the XSRF-TOKEN cookie after each response.
+const refreshCsrf = () => {
+    try {
+        const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+        if (match) {
+            const raw = decodeURIComponent(match[1]);
+            // Laravel encrypts the cookie value — only use it if it looks like a plain token
+            if (raw.length < 100) {
+                document.querySelector('meta[name="csrf-token"]')?.setAttribute('content', raw);
+            }
+        }
+    } catch (_) {}
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -256,9 +274,10 @@ document.getElementById('coreUploadForm').addEventListener('submit', async funct
     document.getElementById('coreResult').style.display = 'none';
 
     try {
+        const token = await fetchCsrf();
         const resp = await fetch('{{ route("data.upload-multi") }}', {
             method : 'POST',
-            headers: { 'X-CSRF-TOKEN': getCsrf(), 'Accept': 'application/json' },
+            headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json' },
             body   : new FormData(this),
         });
 
@@ -322,9 +341,10 @@ document.getElementById('uploadAllSuppBtn').addEventListener('click', async func
         fd.append('type', type);
 
         try {
+            const token   = await fetchCsrf();
             const resp    = await fetch('{{ route("data.upload-supplementary") }}', {
                 method : 'POST',
-                headers: { 'X-CSRF-TOKEN': getCsrf(), 'Accept': 'application/json' },
+                headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json' },
                 body   : fd,
             });
             const rawText = await resp.text();
@@ -389,9 +409,10 @@ document.querySelectorAll('.supp-upload-btn').forEach(btn => {
         fd.append('type', type);
 
         try {
+            const token = await fetchCsrf();
             const resp = await fetch('{{ route("data.upload-supplementary") }}', {
                 method : 'POST',
-                headers: { 'X-CSRF-TOKEN': getCsrf(), 'Accept': 'application/json' },
+                headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json' },
                 body   : fd,
             });
 
