@@ -24,8 +24,7 @@ class FormCApiService extends BaseFormApiService
             ->join('workforce_employee as e', 'e.id', '=', 'a.employee_id')
             ->where('a.tenant_id', $tenantId)
             ->where('a.branch_id', $branchId)
-            ->whereYear('a.advance_date', $resolvedYear)
-            ->whereMonth('a.advance_date', $resolvedMonth)
+            ->whereYear('a.advance_date', $year)
             ->whereNull('a.deleted_at')
             ->select([
                 'e.name as employee_name',
@@ -51,8 +50,7 @@ class FormCApiService extends BaseFormApiService
             ->join('workforce_employee as e', 'e.id', '=', 'f.employee_id')
             ->where('f.tenant_id', $tenantId)
             ->where('f.branch_id', $branchId)
-            ->whereYear('f.fine_date', $resolvedYear)
-            ->whereMonth('f.fine_date', $resolvedMonth)
+            ->whereYear('f.fine_date', $year)
             ->whereNull('f.deleted_at')
             ->select([
                 'e.name as employee_name',

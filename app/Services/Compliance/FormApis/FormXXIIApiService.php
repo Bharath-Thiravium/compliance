@@ -29,7 +29,7 @@ class FormXXIIApiService extends BaseFormApiService
                 ->join('workforce_employee as e', 'e.id', '=', 'a.employee_id')
                 ->where('a.tenant_id', $tenantId)
                 ->where('a.branch_id', $branchId)
-                ->whereBetween('a.advance_date', [$this->periodStart, $this->periodEnd])
+                ->whereYear('a.advance_date', $year)
                 ->whereNull('a.deleted_at')
                 ->whereIn('a.employee_id', $employeeIds)
                 ->where('a.amount', '>', 0)

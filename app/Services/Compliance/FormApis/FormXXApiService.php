@@ -30,7 +30,7 @@ class FormXXApiService extends BaseFormApiService
                 ->join('workforce_employee as e', 'e.id', '=', 'd.employee_id')
                 ->where('d.tenant_id', $tenantId)
                 ->where('d.branch_id', $branchId)
-                ->whereBetween('d.deduction_date', [$this->periodStart, $this->periodEnd])
+                ->whereYear('d.deduction_date', $year)
                 ->whereNull('d.deleted_at')
                 ->whereIn('d.employee_id', $employeeIds)
                 ->where('d.amount', '>', 0)
