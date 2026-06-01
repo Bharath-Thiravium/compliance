@@ -11,6 +11,12 @@ class Form11ApiService extends BaseFormApiService
         $this->initializePeriod($month, $year);
         $this->validateTenantAndBranch($tenantId, $branchId);
 
+        // Get contractor name
+        $contractorName = DB::table('contractor_master')
+            ->where('tenant_id', $tenantId)
+            ->where('branch_id', $branchId)
+            ->value('company_name') ?? '';
+
         $rows = DB::table('incidents as i')
             ->leftJoin('workforce_employee as e', 'e.id', '=', 'i.employee_id')
             ->where('i.tenant_id', $tenantId)
@@ -50,6 +56,7 @@ class Form11ApiService extends BaseFormApiService
 
         return [
             'records' => $rows,
+            'contractor_name' => $contractorName,
             'meta' => [
                 'tenant_id' => $tenantId,
                 'branch_id' => $branchId,

@@ -28,7 +28,7 @@ class ShopsForm12ApiService extends BaseFormApiService
                 'e.father_name',
                 'wa.amount as advance_amount',
                 'wa.advance_date',
-                'wa.purpose as advance_purpose',
+                'wa.remarks as advance_purpose',
                 'wa.num_instalments as advance_installments',
                 DB::raw('NULL as advance_postponements'),
                 DB::raw('NULL as advance_repaid_date'),
@@ -51,7 +51,7 @@ class ShopsForm12ApiService extends BaseFormApiService
         }
 
         // Source 2: payroll_entry.advances fallback
-        $cycleId = DB::table('workforce_payroll_cycle')
+        $cycleId = DB::table('payroll_cycles')
             ->where('tenant_id', $tenantId)
             ->whereYear('period_from', $year)
             ->whereMonth('period_from', $month)
@@ -61,9 +61,9 @@ class ShopsForm12ApiService extends BaseFormApiService
             return $this->buildResponse([], $tenantId, $branchId, $month, $year);
         }
 
-        $rows = DB::table('workforce_payroll_entry as pe')
+        $rows = DB::table('payroll_entries as pe')
             ->join('workforce_employee as e', 'e.id', '=', 'pe.employee_id')
-            ->join('workforce_payroll_cycle as pc', 'pc.id', '=', 'pe.payroll_cycle_id')
+            ->join('payroll_cycles as pc', 'pc.id', '=', 'pe.payroll_cycle_id')
             ->where('e.tenant_id', $tenantId)
             ->where('e.branch_id', $branchId)
             ->whereNull('e.deleted_at')

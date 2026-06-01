@@ -57,7 +57,7 @@ class Form11Generator extends BaseFormGenerator
         return [
             'header' => [
                 'company_name'       => $rawData['tenant']['name']    ?? '',
-                'contractor_name'    => '',
+                'contractor_name'    => $rawData['contractor_name']   ?? '',
                 'total_workers'      => '',
                 'work_location'      => $rawData['branch']['address'] ?? '',
                 'principal_employer' => $rawData['tenant']['name']    ?? '',

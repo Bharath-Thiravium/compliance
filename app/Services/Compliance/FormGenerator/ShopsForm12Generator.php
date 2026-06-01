@@ -9,6 +9,10 @@ class ShopsForm12Generator extends BaseFormGenerator
 
     protected function prepareData(array $rawData): array
     {
+        \Log::info('SHOPS_FORM_12 Generator prepareData', [
+            'records_count' => count($rawData['records'] ?? []),
+            'first_record' => $rawData['records'][0] ?? null,
+        ]);
         $seen = [];
         $rows = [];
         foreach ($rawData['records'] ?? [] as $record) {
@@ -38,6 +42,8 @@ class ShopsForm12Generator extends BaseFormGenerator
         $year = $rawData['meta']['year'] ?? 2024;
         $tenant = $rawData['tenant'] ?? [];
         $branch = $rawData['branch'] ?? [];
+
+        \Log::info('SHOPS_FORM_12 Generator output', ['rows_count' => count($rows)]);
 
         return [
             'header' => [
