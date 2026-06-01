@@ -18,5 +18,6 @@
 
     # Send requests to front controller
     RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !^_ops_.*\.php$
     RewriteRule ^ index.php [L]
 </IfModule>
