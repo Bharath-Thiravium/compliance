@@ -13,6 +13,11 @@ Route::post('/logout',   [AuthController::class, 'logout'])->name('logout');
 Route::get('/register',  [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
+// ── CSRF token route (for legacy blade templates) ──────────────────────────────
+Route::get('/_csrf-token', function () {
+    return response()->json(['token' => csrf_token()]);
+})->name('csrf.token');
+
 // ── Ops helpers (token-protected) ─────────────────────────────────────────────
 
 Route::get('/_ops/optimize-clear', function (Request $request) {
