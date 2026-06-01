@@ -35,7 +35,7 @@ class FormXIIIApiService extends BaseFormApiService
                 ->map(fn($row) => (array)$row)
                 ->toArray();
         } catch (\Exception $e) {
-            Log::error('FORM XIII FETCH ERROR', ['error' => $e->getMessage()]);
+            Log::error('FORM XIII FETCH ERROR', ['error' => $e->getMessage(), 'tenant_id' => $tenantId]);
             $rows = [];
         }
 
