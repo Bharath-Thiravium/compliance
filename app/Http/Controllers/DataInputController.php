@@ -987,13 +987,7 @@ class DataInputController extends Controller
                         }
 
                         $workingDays = trim($row['working_days'] ?? '');
-                        if (! is_numeric($workingDays)) {
-                            throw new \InvalidArgumentException(
-                                "Attendance: invalid working_days value '{$workingDays}' for employee {$empCode}."
-                            );
-                        }
-
-                        $workingDays = (int) $workingDays;
+                        $workingDays = is_numeric($workingDays) ? (int) $workingDays : 26;
                         $absentDays  = CsvNormalizer::normalizeInt($row['absent_days'] ?? $row['absent'] ?? null);
                         $presentDays = max(0, $workingDays - $absentDays);
                         $otHours     = CsvNormalizer::normalizeFloat($row['overtime_hours'] ?? null);
