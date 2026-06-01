@@ -13,26 +13,31 @@ class FormXIIIApiService extends BaseFormApiService
         $this->validateTenantAndBranch($tenantId, $branchId);
 
         // Show all contract labour deployments — not period-filtered (contract labour is cumulative)
-        $rows = DB::table('contract_labour as cl')
-            ->join('workforce_employee as we', 'we.id', '=', 'cl.employee_id')
-            ->where('cl.tenant_id', $tenantId)
-            ->whereNull('cl.deleted_at')
-            ->whereNull('we.deleted_at')
-            ->select([
-                'we.name',
-                'we.date_of_birth',
-                'we.gender',
-                'we.father_name',
-                'we.designation',
-                'we.permanent_address',
-                'we.local_address',
-                'cl.employment_start as joining_date',
-                'cl.employment_end as termination_date',
-            ])
-            ->orderBy('cl.employment_start')
-            ->get()
-            ->map(fn($row) => (array)$row)
-            ->toArray();
+        try {
+            $rows = DB::table('contract_labour as cl')
+                ->join('workforce_employee as we', 'we.id', '=', 'cl.employee_id')
+                ->where('cl.tenant_id', $tenantId)
+                ->whereNull('cl.deleted_at')
+                ->whereNull('we.deleted_at')
+                ->select([
+                    'we.name',
+                    'we.date_of_birth',
+                    'we.gender',
+                    'we.father_name',
+                    'we.designation',
+                    'we.permanent_address',
+                    'we.local_address',
+                    'cl.employment_start as joining_date',
+                    'cl.employment_end as termination_date',
+                ])
+                ->orderBy('cl.employment_start')
+                ->get()
+                ->map(fn($row) => (array)$row)
+                ->toArray();
+        } catch (\Exception $e) {
+            Log::error('FORM XIII FETCH ERROR', ['error' => $e->getMessage()]);
+            $rows = [];
+        }
 
         Log::info('FORM XIII FETCH', [
             'tenant_id' => $tenantId,
