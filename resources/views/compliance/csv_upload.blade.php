@@ -176,7 +176,22 @@
 
 @push('scripts')
 <script>
-const CSRF = document.querySelector('meta[name="csrf-token"]').content;
+const getCsrf = () => {
+    // Always read fresh from meta tag (updated after each response)
+    return document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+};
+
+const refreshCsrf = (resp) => {
+    // Laravel rotates XSRF-TOKEN cookie on each response — sync the meta tag
+    const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+    if (match) {
+        try {
+            const token = decodeURIComponent(match[1]);
+            const meta  = document.querySelector('meta[name="csrf-token"]');
+            if (meta && token) meta.setAttribute('content', token);
+        } catch (_) {}
+    }
+};
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function escHtml(s) {
@@ -243,11 +258,12 @@ document.getElementById('coreUploadForm').addEventListener('submit', async funct
     try {
         const resp = await fetch('{{ route("data.upload-multi") }}', {
             method : 'POST',
-            headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+            headers: { 'X-CSRF-TOKEN': getCsrf(), 'Accept': 'application/json' },
             body   : new FormData(this),
         });
 
         const rawText = await resp.text();
+        refreshCsrf();
         let json;
         try   { json = JSON.parse(rawText.replace(/^\uFEFF/, '')); }
         catch (_) {
@@ -308,7 +324,7 @@ document.getElementById('uploadAllSuppBtn').addEventListener('click', async func
         try {
             const resp    = await fetch('{{ route("data.upload-supplementary") }}', {
                 method : 'POST',
-                headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+                headers: { 'X-CSRF-TOKEN': getCsrf(), 'Accept': 'application/json' },
                 body   : fd,
             });
             const rawText = await resp.text();
@@ -367,11 +383,12 @@ document.querySelectorAll('.supp-upload-btn').forEach(btn => {
         try {
             const resp = await fetch('{{ route("data.upload-supplementary") }}', {
                 method : 'POST',
-                headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+                headers: { 'X-CSRF-TOKEN': getCsrf(), 'Accept': 'application/json' },
                 body   : fd,
             });
 
             const rawText = await resp.text();
+            refreshCsrf();
             let json;
             try   { json = JSON.parse(rawText.replace(/^\uFEFF/, '')); }
             catch (_) {
