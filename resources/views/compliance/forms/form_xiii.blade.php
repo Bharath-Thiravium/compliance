@@ -98,7 +98,7 @@
             <tr>
                 <td class="info-label">Name and address of Contractor</td>
                 <td class="info-colon">:</td>
-                <td class="info-value">{{ data_get($header, 'contractor_name') ?? '' }}</td>
+                <td class="info-value">{{ data_get($header, 'contractor_name') ?? '' }}@if(!empty(data_get($header, 'contractor_address')))<br>{{ data_get($header, 'contractor_address') }}@endif</td>
             </tr>
             <tr>
                 <td class="info-label">Name and address of Establishment in/under which contract is carried on</td>

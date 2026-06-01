@@ -13,12 +13,15 @@ class FormXIIIGenerator extends BaseFormGenerator
     {
         $rows = [];
         $contractorName = null;
+        $contractorAddress = null;
         
         foreach ($rawData['records'] ?? [] as $record) {
             $record = $this->normalizeRecord($record);
             
-            if (!$contractorName && isset($record['contractor_name']) && $record['contractor_name'] !== 'N/A') {
+            // Extract contractor details from first record (now guaranteed to be present from API)
+            if (!$contractorName && isset($record['contractor_name'])) {
                 $contractorName = $record['contractor_name'];
+                $contractorAddress = $record['contractor_address'] ?? '';
             }
             
             $rows[] = [
@@ -45,7 +48,8 @@ class FormXIIIGenerator extends BaseFormGenerator
             'header' => [
                 'form_title' => 'FORM XIII - Register of Workmen Employed by Contractor',
                 'period' => $this->formatPeriod($month, $year),
-                'contractor_name' => $contractorName ?? 'NIL',
+                'contractor_name' => $contractorName ?? '',
+                'contractor_address' => $contractorAddress ?? '',
                 'tenant' => [
                     'name' => $tenant['name'] ?? 'NIL',
                     'address' => $tenant['address'] ?? '',
