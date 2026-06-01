@@ -3,6 +3,7 @@
 namespace App\Services\Compliance\FormApis;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 
@@ -138,6 +139,13 @@ class FormXXIApiService extends BaseFormApiService
 
     private function buildResponse(array $rows, int $tenantId, int $branchId, int $month, int $year): array
     {
+        Log::info('FORM XXI FETCH', [
+            'tenant_id' => $tenantId,
+            'branch_id' => $branchId,
+            'month' => $month,
+            'year' => $year,
+            'record_count' => count($rows),
+        ]);
         return [
             'records' => $rows,
             'meta'    => ['tenant_id' => $tenantId, 'branch_id' => $branchId, 'month' => $month, 'year' => $year],

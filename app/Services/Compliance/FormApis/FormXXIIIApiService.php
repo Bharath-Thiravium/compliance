@@ -3,6 +3,7 @@
 namespace App\Services\Compliance\FormApis;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class FormXXIIIApiService extends BaseFormApiService
 {
@@ -63,6 +64,14 @@ class FormXXIIIApiService extends BaseFormApiService
             ->get()
             ->map(fn($row) => (array) $row)
             ->toArray();
+
+        Log::info('FORM XXIII FETCH', [
+            'tenant_id' => $tenantId,
+            'branch_id' => $branchId,
+            'month' => $month,
+            'year' => $year,
+            'record_count' => count($rows),
+        ]);
 
         return [
             'records'      => $rows,

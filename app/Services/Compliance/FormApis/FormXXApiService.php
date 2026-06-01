@@ -3,6 +3,7 @@
 namespace App\Services\Compliance\FormApis;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
 class FormXXApiService extends BaseFormApiService
@@ -127,6 +128,13 @@ class FormXXApiService extends BaseFormApiService
 
     private function buildResponse(array $records, int $tenantId, int $branchId, int $month, int $year): array
     {
+        Log::info('FORM XX FETCH', [
+            'tenant_id' => $tenantId,
+            'branch_id' => $branchId,
+            'month' => $month,
+            'year' => $year,
+            'record_count' => count($records),
+        ]);
         return [
             'records'      => $records,
             'record_count' => count($records),

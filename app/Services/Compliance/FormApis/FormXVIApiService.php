@@ -36,6 +36,14 @@ class FormXVIApiService extends BaseFormApiService
             ->map(fn($row) => (array)$row)
             ->toArray();
 
+        \Log::info('FORM XVI FETCH', [
+            'tenant_id' => $tenantId,
+            'branch_id' => $branchId,
+            'month' => $month,
+            'year' => $year,
+            'row_count' => count($rows),
+        ]);
+
         return [
             'records'      => $rows,
             'record_count' => count($rows),

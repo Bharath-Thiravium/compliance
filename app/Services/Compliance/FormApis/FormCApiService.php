@@ -3,6 +3,7 @@
 namespace App\Services\Compliance\FormApis;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class FormCApiService extends BaseFormApiService
 {
@@ -106,6 +107,14 @@ class FormCApiService extends BaseFormApiService
 
         // Merge all sources — only employees with actual data appear
         $records = array_merge($advances, $fines, $payrollDeductions);
+
+        Log::info('FORM C FETCH', [
+            'tenant_id' => $tenantId,
+            'branch_id' => $branchId,
+            'month' => $month,
+            'year' => $year,
+            'record_count' => count($records),
+        ]);
 
         return [
             'records'      => $records,

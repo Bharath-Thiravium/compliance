@@ -3,6 +3,7 @@
 namespace App\Services\Compliance\FormApis;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class Form2ApiService extends BaseFormApiService
 {
@@ -41,6 +42,14 @@ class Form2ApiService extends BaseFormApiService
             ->get()
             ->map(fn($r) => (array) $r)
             ->toArray();
+
+        Log::info('FORM 2 FETCH', [
+            'tenant_id' => $tenantId,
+            'branch_id' => $branchId,
+            'month' => $month,
+            'year' => $year,
+            'row_count' => count($records),
+        ]);
 
         $place = '';
         if ($branch && !empty($branch->address)) {
