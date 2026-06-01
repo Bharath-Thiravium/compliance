@@ -20,6 +20,33 @@ class FormXIIIApiService extends BaseFormApiService
         ]);
 
         try {
+            // DIAGNOSTIC: Check what tables exist
+            $contractLabourExists = DB::connection()->getSchemaBuilder()->hasTable('contract_labour');
+            $contractLabourDeploymentExists = DB::connection()->getSchemaBuilder()->hasTable('contract_labour_deployment');
+            
+            Log::info('FORM XIII: Table check', [
+                'contract_labour_exists' => $contractLabourExists,
+                'contract_labour_deployment_exists' => $contractLabourDeploymentExists,
+            ]);
+
+            // DIAGNOSTIC: Check data in both tables
+            $contractLabourCount = DB::table('contract_labour')->where('tenant_id', $tenantId)->count();
+            $contractLabourDeploymentCount = DB::table('contract_labour_deployment')->where('tenant_id', $tenantId)->count();
+            
+            Log::info('FORM XIII: Data count', [
+                'contract_labour_count' => $contractLabourCount,
+                'contract_labour_deployment_count' => $contractLabourDeploymentCount,
+            ]);
+
+            // Use whichever table has data
+            $useContractLabour = $contractLabourCount > 0;
+            $useContractLabourDeployment = $contractLabourDeploymentCount > 0;
+
+            Log::info('FORM XIII: Using tables', [
+                'use_contract_labour' => $useContractLabour,
+                'use_contract_labour_deployment' => $useContractLabourDeployment,
+            ]);
+
             // STEP 1: Fetch all contractors for this tenant
             $contractors = DB::table('contractor_master as cm')
                 ->where('cm.tenant_id', $tenantId)
@@ -35,46 +62,97 @@ class FormXIIIApiService extends BaseFormApiService
 
             Log::info('FORM XIII: Contractors fetched', [
                 'contractor_count' => count($contractors),
+                'contractor_ids' => array_keys($contractors),
             ]);
 
-            // STEP 2: Fetch all contract labour records for this tenant
-            // Use contract_labour table (not contract_labour_deployment)
-            $rows = DB::table('contract_labour as cl')
-                ->join('workforce_employee as we', 'we.id', '=', 'cl.employee_id')
-                ->where('cl.tenant_id', $tenantId)
-                ->whereNull('cl.deleted_at')
-                ->whereNull('we.deleted_at')
-                ->select([
-                    'cl.contractor_id',
-                    'we.name',
-                    'we.date_of_birth',
-                    'we.gender',
-                    'we.father_name',
-                    'we.designation',
-                    'we.permanent_address',
-                    'we.local_address',
-                    'cl.employment_start as joining_date',
-                    'cl.employment_end as termination_date',
-                ])
-                ->orderBy('cl.employment_start')
-                ->get()
-                ->toArray();
-
-            Log::info('FORM XIII: Contract labour records fetched', [
-                'record_count' => count($rows),
-            ]);
+            // STEP 2: Fetch contract labour records from the table that has data
+            $rows = [];
+            
+            if ($useContractLabour) {
+                Log::info('FORM XIII: Querying contract_labour table');
+                
+                $rows = DB::table('contract_labour as cl')
+                    ->join('workforce_employee as we', 'we.id', '=', 'cl.employee_id')
+                    ->where('cl.tenant_id', $tenantId)
+                    ->whereNull('cl.deleted_at')
+                    ->whereNull('we.deleted_at')
+                    ->select([
+                        'cl.contractor_id',
+                        'we.name',
+                        'we.date_of_birth',
+                        'we.gender',
+                        'we.father_name',
+                        'we.designation',
+                        'we.permanent_address',
+                        'we.local_address',
+                        'cl.employment_start as joining_date',
+                        'cl.employment_end as termination_date',
+                    ])
+                    ->orderBy('cl.employment_start')
+                    ->get()
+                    ->toArray();
+                    
+                Log::info('FORM XIII: contract_labour query result', [
+                    'row_count' => count($rows),
+                ]);
+            }
+            
+            if ($useContractLabourDeployment && empty($rows)) {
+                Log::info('FORM XIII: Querying contract_labour_deployment table');
+                
+                $rows = DB::table('contract_labour_deployment as cld')
+                    ->join('workforce_employee as we', 'we.id', '=', 'cld.employee_id')
+                    ->where('cld.tenant_id', $tenantId)
+                    ->where(function ($query) use ($branchId) {
+                        $query->where('cld.branch_id', $branchId)
+                              ->orWhereNull('cld.branch_id');
+                    })
+                    ->whereNull('cld.deleted_at')
+                    ->whereNull('we.deleted_at')
+                    ->select([
+                        'cld.contractor_id',
+                        'we.name',
+                        'we.date_of_birth',
+                        'we.gender',
+                        'we.father_name',
+                        'we.designation',
+                        'we.permanent_address',
+                        'we.local_address',
+                        'cld.deployment_start as joining_date',
+                        'cld.deployment_end as termination_date',
+                    ])
+                    ->orderBy('cld.deployment_start')
+                    ->get()
+                    ->toArray();
+                    
+                Log::info('FORM XIII: contract_labour_deployment query result', [
+                    'row_count' => count($rows),
+                ]);
+            }
 
             if (empty($rows)) {
                 Log::warning('FORM XIII: No contract labour records found', [
                     'tenant_id' => $tenantId,
+                    'branch_id' => $branchId,
                 ]);
                 return $this->buildResponse([], $tenantId, $branchId);
             }
 
             // STEP 3: Enrich records with contractor details
             $enrichedRows = [];
+            $nullContractorIds = [];
+            
             foreach ($rows as $row) {
                 $contractorId = $row->contractor_id;
+                
+                if ($contractorId === null) {
+                    $nullContractorIds[] = $row->name;
+                    Log::warning('FORM XIII: NULL contractor_id', [
+                        'employee_name' => $row->name,
+                    ]);
+                    continue;
+                }
+
                 $contractor = $contractors[$contractorId] ?? null;
 
                 if (!$contractor) {
@@ -99,16 +177,13 @@ class FormXIIIApiService extends BaseFormApiService
                     'joining_date' => $row->joining_date,
                     'termination_date' => $row->termination_date,
                 ];
-
-                Log::debug('FORM XIII: Row enriched', [
-                    'contractor_id' => $contractorId,
-                    'contractor_name' => $contractor->contractor_name,
-                    'employee_name' => $row->name,
-                ]);
             }
 
             Log::info('FORM XIII: Enrichment complete', [
+                'total_rows_fetched' => count($rows),
                 'total_enriched_rows' => count($enrichedRows),
+                'null_contractor_ids_count' => count($nullContractorIds),
+                'null_contractor_employees' => $nullContractorIds,
             ]);
 
         } catch (\Exception $e) {
