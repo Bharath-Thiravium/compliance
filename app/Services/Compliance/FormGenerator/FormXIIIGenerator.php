@@ -17,22 +17,9 @@ class FormXIIIGenerator extends BaseFormGenerator
         ]);
 
         $rows = [];
-        $contractorName = null;
-        $contractorAddress = null;
         
         foreach ($rawData['records'] ?? [] as $record) {
             $record = $this->normalizeRecord($record);
-            
-            // Extract contractor details from first record
-            if (!$contractorName && isset($record['contractor_name'])) {
-                $contractorName = $record['contractor_name'];
-                $contractorAddress = $record['contractor_address'] ?? '';
-                
-                Log::info('FORM XIII GENERATOR: Contractor extracted', [
-                    'contractor_name' => $contractorName,
-                    'contractor_address' => $contractorAddress,
-                ]);
-            }
             
             $rows[] = [
                 'name' => $record['name'] ?? null,
@@ -51,7 +38,6 @@ class FormXIIIGenerator extends BaseFormGenerator
 
         Log::info('FORM XIII GENERATOR: Rows transformed', [
             'total_rows' => count($rows),
-            'contractor_name' => $contractorName,
         ]);
 
         $tenant = $rawData['tenant'] ?? [];
@@ -63,8 +49,8 @@ class FormXIIIGenerator extends BaseFormGenerator
             'header' => [
                 'form_title' => 'FORM XIII - Register of Workmen Employed by Contractor',
                 'period' => $this->formatPeriod($month, $year),
-                'contractor_name' => $contractorName ?? '',
-                'contractor_address' => $contractorAddress ?? '',
+                'contractor_name' => $rawData['contractor_name'] ?? 'N/A',
+                'contractor_address' => $rawData['contractor_address'] ?? 'N/A',
                 'tenant' => [
                     'name' => $tenant['name'] ?? 'N/A',
                     'address' => $tenant['address'] ?? '',
