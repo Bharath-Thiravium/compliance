@@ -16,10 +16,13 @@ class FormXIIIApiService extends BaseFormApiService
         try {
             $rows = DB::table('contract_labour as cl')
                 ->join('workforce_employee as we', 'we.id', '=', 'cl.employee_id')
+                ->join('contractors as c', 'c.id', '=', 'cl.contractor_id')
                 ->where('cl.tenant_id', $tenantId)
                 ->whereNull('cl.deleted_at')
                 ->whereNull('we.deleted_at')
+                ->whereNull('c.deleted_at')
                 ->select([
+                    'c.contractor_name',
                     'we.name',
                     'we.date_of_birth',
                     'we.gender',
