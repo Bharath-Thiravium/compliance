@@ -580,11 +580,6 @@ Route::get('/_ops/super-admin-check', function (Request $request) {
     ], 200, [], JSON_PRETTY_PRINT);
 });
 
-// Fresh CSRF token endpoint — used by JS fetch loops to avoid 419 on sequential uploads
-Route::get('/csrf-token', function () {
-    return response()->json(['token' => csrf_token()]);
-})->middleware(['web', 'auth']);
-
 require __DIR__.'/compliance.php';
 require __DIR__.'/batch-processing.php';
 require __DIR__.'/data-input.php';

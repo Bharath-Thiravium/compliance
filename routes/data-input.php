@@ -10,6 +10,9 @@ Route::prefix('compliance')->middleware(['web', 'auth'])->group(function () {
     Route::post('/form/upload/{batch}/{form}', [DataInputController::class, 'uploadPdfForm'])->name('data.upload-pdf');
     Route::post('/batch/{batch}/upload-csv', [DataInputController::class, 'uploadCsvData'])->name('data.upload-csv');
 
+    // Fresh CSRF token for JS sequential uploads
+    Route::get('/csrf-token', fn() => response()->json(['token' => csrf_token()]))->name('csrf.token');
+
     // Multi-CSV upload
     Route::get('/data/upload',  [ComplianceDataUploadController::class, 'showForm'])->name('data.upload-multi.form');
     Route::post('/data/upload', [ComplianceDataUploadController::class, 'upload'])->name('data.upload-multi');

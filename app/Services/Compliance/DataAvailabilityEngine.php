@@ -25,7 +25,7 @@ class DataAvailabilityEngine
         $summary['employees'] = $result['count'];
 
         // Check attendance
-        $result = $this->checkTableByPeriod('workforce_attendance', $tenantId, $branchId, $month, $year, 'attendance_date');
+        $result = $this->checkTable('workforce_attendance', $tenantId, $branchId);
         if (!$result['exists']) $missing[] = 'attendance';
         $summary['attendance_records'] = $result['count'];
 
@@ -41,7 +41,7 @@ class DataAvailabilityEngine
         $result = $this->checkBonusData($tenantId, $branchId);
         $summary['bonus_records'] = $result['count'];
 
-        $result = $this->checkTableByPeriod('incidents', $tenantId, $branchId, $month, $year, 'incident_date');
+        $result = $this->checkTable('incidents', $tenantId, $branchId);
         $summary['incidents'] = $result['count'];
 
         $result = $this->checkTable('hazard_register', $tenantId, $branchId);
@@ -64,10 +64,16 @@ class DataAvailabilityEngine
                 return ['exists' => false, 'count' => 0];
             }
 
-            $count = DB::table($table)
+            $q = DB::table($table)
                 ->where('tenant_id', $tenantId)
-                ->where('branch_id', $branchId)
-                ->count();
+                ->where('branch_id', $branchId);
+
+            // Respect soft deletes where the column exists
+            if (Schema::hasColumn($table, 'deleted_at')) {
+                $q->whereNull('deleted_at');
+            }
+
+            $count = $q->count();
 
             return ['exists' => $count > 0, 'count' => $count];
         } catch (\Exception $e) {
