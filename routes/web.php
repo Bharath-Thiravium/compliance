@@ -20,15 +20,53 @@ Route::get('/_csrf-token', function () {
 
 // ── Ops helpers (token-protected) ─────────────────────────────────────────────
 
-Route::get('/_ops/optimize-clear', function (Request $request) {
-    $token = (string) config('app.ops_token', '');
-    if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
-    $out = [];
-    Artisan::call('optimize:clear'); $out['optimize:clear'] = trim(Artisan::output());
-    Artisan::call('config:cache');   $out['config:cache']   = trim(Artisan::output());
-    Artisan::call('route:cache');    $out['route:cache']    = trim(Artisan::output());
-    Artisan::call('view:cache');     $out['view:cache']     = trim(Artisan::output());
-    return response()->json(['ok' => true, 'output' => $out]);
+Route::middleware([])->group(function () {
+    Route::get('/_ops/optimize-clear', function (Request $request) {
+        $token = (string) (env('OPS_TOKEN') ?: config('app.ops_token', ''));
+        
+        $providedToken = (string) $request->query('token', '');
+        $isTokenValid = ($token !== '' && hash_equals($token, $providedToken));
+        
+        \Illuminate\Support\Facades\Log::info('Ops Optimize Clear: Token validation attempt.', [
+            'token_configured' => ($token !== ''),
+            'token_matched' => $isTokenValid,
+            'ip' => $request->ip(),
+        ]);
+
+        if (!$isTokenValid) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: Invalid token'
+            ], 403);
+        }
+
+        try {
+            \Illuminate\Support\Facades\Log::info('Ops Optimize Clear: Starting optimize:clear...');
+
+            Artisan::call('optimize:clear');
+            $artisanOutput = trim(Artisan::output());
+
+            \Illuminate\Support\Facades\Log::info('Ops Optimize Clear: Completed optimize:clear successfully.', [
+                'output' => $artisanOutput,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Application cache cleared successfully',
+                'output' => $artisanOutput,
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Ops Optimize Clear: Exception occurred during execution.', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred during cache clearing: ' . $e->getMessage(),
+            ], 500);
+        }
+    })->withoutMiddleware('web');
 });
 
 Route::get('/_ops/migrate', function (Request $request) {
