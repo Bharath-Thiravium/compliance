@@ -12,15 +12,25 @@ class FormXIIIApiService extends BaseFormApiService
         $this->initializePeriod($month, $year);
         $this->validateTenantAndBranch($tenantId, $branchId);
 
+        $timestamp = date('Y-m-d H:i:s');
+        $uniqueId = uniqid('FORM_XIII_');
+        
+        Log::info("[$uniqueId] [$timestamp] FORM XIII FETCH STARTED", [
+            'tenant_id' => $tenantId,
+            'branch_id' => $branchId,
+            'month' => $month,
+            'year' => $year,
+        ]);
+
         $rows = [];
 
         try {
-            // Simple query - just get all data without complex joins
+            // Get all deployments for this tenant
             $deployments = DB::table('contract_labour_deployment')
                 ->where('tenant_id', $tenantId)
                 ->get();
 
-            Log::info('FORM XIII: Total deployments', ['count' => count($deployments)]);
+            Log::info("[$uniqueId] Total deployments found: " . count($deployments));
 
             foreach ($deployments as $deployment) {
                 try {
@@ -48,18 +58,23 @@ class FormXIIIApiService extends BaseFormApiService
                         ];
                     }
                 } catch (\Exception $e) {
-                    Log::error('FORM XIII: Error processing deployment', [
+                    Log::error("[$uniqueId] Error processing deployment", [
                         'deployment_id' => $deployment->id,
                         'error' => $e->getMessage(),
                     ]);
                 }
             }
 
-            Log::info('FORM XIII: Processed rows', ['count' => count($rows)]);
+            Log::info("[$uniqueId] Successfully processed rows: " . count($rows));
 
         } catch (\Exception $e) {
-            Log::error('FORM XIII: Main query error', ['error' => $e->getMessage()]);
+            Log::error("[$uniqueId] Main query error", [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
         }
+
+        Log::info("[$uniqueId] [$timestamp] FORM XIII FETCH COMPLETED with " . count($rows) . " records");
 
         return [
             'records' => $rows,
