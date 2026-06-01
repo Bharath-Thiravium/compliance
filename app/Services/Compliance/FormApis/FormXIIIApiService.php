@@ -17,6 +17,7 @@ class FormXIIIApiService extends BaseFormApiService
             ->join('workforce_employee as we', 'we.id', '=', 'cl.employee_id')
             ->where('cl.tenant_id', $tenantId)
             ->whereNull('cl.deleted_at')
+            ->whereNull('we.deleted_at')
             ->select([
                 'we.name',
                 'we.date_of_birth',
