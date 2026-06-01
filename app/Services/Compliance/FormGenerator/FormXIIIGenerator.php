@@ -29,20 +29,25 @@ class FormXIIIGenerator extends BaseFormGenerator
             ];
         }
 
+        $tenant = $rawData['tenant'] ?? [];
+        $branch = $rawData['branch'] ?? [];
+        $month = $rawData['meta']['month'] ?? 1;
+        $year = $rawData['meta']['year'] ?? 2024;
+
         return [
             'header' => [
                 'form_title' => 'FORM XIII - Register of Workmen Employed by Contractor',
-                'period' => $this->formatPeriod($rawData['meta']['month'] ?? 1, $rawData['meta']['year'] ?? 2024),
-                'branch' => $rawData['branch'] ?? [],
-                'tenant' => $rawData['tenant'] ?? [],
+                'period' => $this->formatPeriod($month, $year),
+                'tenant' => [
+                    'name' => $tenant['name'] ?? 'NIL',
+                    'address' => $tenant['address'] ?? '',
+                ],
+                'branch' => [
+                    'name' => $branch['name'] ?? 'NIL',
+                    'address' => $branch['address'] ?? 'NIL',
+                ],
             ],
-            'contractor_name' => $rawData['tenant']['establishment_name'] ?? 'NIL',
-            'establishment_name' => $rawData['branch']['name'] ?? 'NIL',
-            'work_nature' => 'Contract Labour',
-            'work_location' => $rawData['branch']['address'] ?? 'NIL',
-            'principal_employer' => $rawData['tenant']['name'] ?? 'NIL',
             'rows' => $rows,
-            'totals' => [],
             'is_nil' => count($rows) === 0,
         ];
     }
