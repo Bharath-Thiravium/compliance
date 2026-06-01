@@ -17,7 +17,6 @@ class ShopsFinesApiService extends BaseFormApiService
             ->where('wf.tenant_id', $tenantId)
             ->where('wf.branch_id', $branchId)
             ->whereYear('wf.fine_date', $year)
-            ->whereMonth('wf.fine_date', $month)
             ->whereNull('wf.deleted_at')
             ->whereNull('e.deleted_at')
             ->where('wf.amount', '>', 0)
@@ -49,12 +48,11 @@ class ShopsFinesApiService extends BaseFormApiService
             return $this->buildResponse($tableFines, $tenantId, $branchId, $month, $year);
         }
 
-        // Source 2: payroll_entry.fines fallback — use only the latest cycle
+        // Source 2: payroll_entry.fines fallback
         $cycleId = DB::table('workforce_payroll_cycle')
             ->where('tenant_id', $tenantId)
             ->whereYear('period_from', $year)
             ->whereMonth('period_from', $month)
-            ->orderByDesc('id')
             ->value('id');
 
         if (!$cycleId) {

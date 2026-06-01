@@ -73,12 +73,11 @@ class FormXXApiService extends BaseFormApiService
             }
         }
 
-        // Source 2: payroll other_deductions fallback — use only the latest cycle to prevent multi-cycle duplication
+        // Source 2: payroll other_deductions fallback
         $cycleId = DB::table('workforce_payroll_cycle')
             ->where('tenant_id', $tenantId)
             ->whereYear('period_from', $year)
             ->whereMonth('period_from', $month)
-            ->orderByDesc('id')
             ->value('id');
 
         if (!$cycleId) {

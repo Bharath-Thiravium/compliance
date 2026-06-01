@@ -42,11 +42,12 @@ class ProductionValidationGuard
         $periodStart = \Carbon\Carbon::create($year, $month, 1)->startOfMonth();
         $periodEnd   = \Carbon\Carbon::create($year, $month, 1)->endOfMonth();
 
-        // Bug fix 3: attendance check uses ANY period for the tenant/branch, not strict month match
-        // (data may have been uploaded for a different month and fallback logic handles it)
+        // Attendance check: strict month/year match
         $attendanceExists = DB::table('workforce_attendance')
             ->where('tenant_id', $tenantId)
             ->where('branch_id', $branchId)
+            ->whereYear('attendance_date', $year)
+            ->whereMonth('attendance_date', $month)
             ->whereNull('deleted_at')
             ->exists();
 
@@ -56,9 +57,11 @@ class ProductionValidationGuard
             );
         }
 
-        // Bug fix 4: payroll cycle check uses ANY cycle for the tenant, not strict period_from = period_to match
+        // Payroll cycle check: strict month/year match
         $cycleExists = DB::table('workforce_payroll_cycle')
             ->where('tenant_id', $tenantId)
+            ->whereYear('period_from', $year)
+            ->whereMonth('period_from', $month)
             ->exists();
 
         if (!$cycleExists) {

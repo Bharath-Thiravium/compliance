@@ -11,13 +11,20 @@ class FormCApiService extends BaseFormApiService
         $this->initializePeriod($month, $year);
         $this->validateTenantAndBranch($tenantId, $branchId);
 
-        // Advances — one row per advance record (legitimate multiple per employee)
+        [$resolvedYear, $resolvedMonth] = [$year, $month];
+        $cycleId = DB::table('workforce_payroll_cycle')
+            ->where('tenant_id', $tenantId)
+            ->whereYear('period_from', $year)
+            ->whereMonth('period_from', $month)
+            ->value('id');
+
+        // Advances
         $advances = DB::table('workforce_advances as a')
             ->join('workforce_employee as e', 'e.id', '=', 'a.employee_id')
             ->where('a.tenant_id', $tenantId)
             ->where('a.branch_id', $branchId)
-            ->whereYear('a.advance_date', $year)
-            ->whereMonth('a.advance_date', $month)
+            ->whereYear('a.advance_date', $resolvedYear)
+            ->whereMonth('a.advance_date', $resolvedMonth)
             ->whereNull('a.deleted_at')
             ->select([
                 'e.name as employee_name',
@@ -38,13 +45,13 @@ class FormCApiService extends BaseFormApiService
             ->map(fn($r) => (array) $r)
             ->toArray();
 
-        // Fines — one row per fine record (legitimate multiple per employee)
+        // Fines
         $fines = DB::table('workforce_fines as f')
             ->join('workforce_employee as e', 'e.id', '=', 'f.employee_id')
             ->where('f.tenant_id', $tenantId)
             ->where('f.branch_id', $branchId)
-            ->whereYear('f.fine_date', $year)
-            ->whereMonth('f.fine_date', $month)
+            ->whereYear('f.fine_date', $resolvedYear)
+            ->whereMonth('f.fine_date', $resolvedMonth)
             ->whereNull('f.deleted_at')
             ->select([
                 'e.name as employee_name',
@@ -64,13 +71,6 @@ class FormCApiService extends BaseFormApiService
             ->get()
             ->map(fn($r) => (array) $r)
             ->toArray();
-
-        // Payroll deductions — one row per employee (deduplicated by employee_id)
-        $cycleId = DB::table('workforce_payroll_cycle')
-            ->where('tenant_id', $tenantId)
-            ->whereYear('period_from', $year)
-            ->whereMonth('period_from', $month)
-            ->value('id');
 
         $payrollDeductions = [];
         if ($cycleId) {

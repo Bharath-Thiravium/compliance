@@ -49,12 +49,11 @@ class ShopsForm12ApiService extends BaseFormApiService
             return $this->buildResponse($rows, $tenantId, $branchId, $month, $year);
         }
 
-        // Source 2: payroll_entry.advances fallback — use only the latest cycle
+        // Source 2: payroll_entry.advances fallback
         $cycleId = DB::table('workforce_payroll_cycle')
             ->where('tenant_id', $tenantId)
             ->whereYear('period_from', $year)
             ->whereMonth('period_from', $month)
-            ->orderByDesc('id')
             ->value('id');
 
         if (!$cycleId) {

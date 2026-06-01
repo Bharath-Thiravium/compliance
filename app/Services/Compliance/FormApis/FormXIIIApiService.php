@@ -11,11 +11,11 @@ class FormXIIIApiService extends BaseFormApiService
         $this->initializePeriod($month, $year);
         $this->validateTenantAndBranch($tenantId, $branchId);
 
+        // Show all deployments — not period-filtered (contract labour is cumulative)
         $rows = DB::table('contract_labour_deployment as cld')
             ->join('workforce_employee as we', 'we.id', '=', 'cld.employee_id')
             ->where('cld.tenant_id', $tenantId)
             ->where('cld.branch_id', $branchId)
-            ->whereBetween('cld.deployment_start', [$this->periodStart, $this->periodEnd])
             ->select([
                 'we.name',
                 'we.date_of_birth',

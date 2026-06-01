@@ -11,12 +11,12 @@ class Form26ApiService extends BaseFormApiService
         $this->initializePeriod($month, $year);
         $this->validateTenantAndBranch($tenantId, $branchId);
 
+        // Incidents are event-based: query the whole year, not just the requested month
         $rows = DB::table('incidents as i')
             ->leftJoin('workforce_employee as e', 'i.employee_id', '=', 'e.id')
             ->where('i.tenant_id', $tenantId)
             ->where('i.branch_id', $branchId)
             ->whereYear('i.incident_date', $year)
-            ->whereMonth('i.incident_date', $month)
             ->select([
                 'i.id',
                 'i.incident_date',

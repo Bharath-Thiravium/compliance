@@ -16,13 +16,16 @@ class Form2ApiService extends BaseFormApiService
             ->where('tenant_id', $tenantId)
             ->first();
 
+        $resolvedStart = $this->periodStart;
+        $resolvedEnd   = $this->periodEnd;
+
         $records = DB::table('workforce_attendance as a')
             ->join('workforce_employee as e', 'e.id', '=', 'a.employee_id')
             ->where('a.tenant_id', $tenantId)
             ->where('a.branch_id', $branchId)
             ->whereBetween('a.attendance_date', [
-                $this->periodStart->toDateString(),
-                $this->periodEnd->toDateString(),
+                $resolvedStart->toDateString(),
+                $resolvedEnd->toDateString(),
             ])
             ->select([
                 'e.employee_code',

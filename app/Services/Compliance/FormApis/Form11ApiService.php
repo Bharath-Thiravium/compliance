@@ -16,7 +16,6 @@ class Form11ApiService extends BaseFormApiService
             ->where('i.tenant_id', $tenantId)
             ->where('i.branch_id', $branchId)
             ->whereYear('i.incident_date', $year)
-            ->whereMonth('i.incident_date', $month)
             ->select([
                 'i.id',
                 'i.notice_date',

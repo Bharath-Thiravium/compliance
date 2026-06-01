@@ -11,14 +11,26 @@ class Form10ApiService extends BaseFormApiService
         $this->initializePeriod($month, $year);
         $this->validateTenantAndBranch($tenantId, $branchId);
 
+        $cycleId = DB::table('workforce_payroll_cycle')
+            ->where('tenant_id', $tenantId)
+            ->whereYear('period_from', $year)
+            ->whereMonth('period_from', $month)
+            ->value('id');
+        if (!$cycleId) {
+            return [
+                'records' => [], 'meta' => ['tenant_id' => $tenantId, 'branch_id' => $branchId, 'month' => $month, 'year' => $year, 'total_workers' => 0],
+                'tenant' => $this->getTenantDetails($tenantId), 'branch' => $this->getBranchDetails($branchId, $tenantId),
+                'period' => $this->formatPeriod(), 'contractor_name' => '',
+            ];
+        }
+
         $rows = DB::table('workforce_payroll_entry as pe')
             ->join('workforce_employee as e', 'e.id', '=', 'pe.employee_id')
             ->join('workforce_payroll_cycle as pc', 'pc.id', '=', 'pe.payroll_cycle_id')
             ->where('pe.tenant_id', $tenantId)
             ->where('pe.branch_id', $branchId)
             ->whereNull('pe.deleted_at')
-            ->whereYear('pc.period_from', $year)
-            ->whereMonth('pc.period_from', $month)
+            ->where('pe.payroll_cycle_id', $cycleId)
             ->selectRaw("
                 e.employee_code,
                 e.name,
