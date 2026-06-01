@@ -12,8 +12,13 @@ class FormXIIIGenerator extends BaseFormGenerator
     protected function prepareData(array $rawData): array
     {
         $rows = [];
+        $contractorName = null;
+        
         foreach ($rawData['records'] ?? [] as $record) {
             $record = $this->normalizeRecord($record);
+            if (!$contractorName && isset($record['contractor_name'])) {
+                $contractorName = $record['contractor_name'];
+            }
             $rows[] = [
                 'name' => $record['name'] ?? null,
                 'age' => $this->calculateAge($record['date_of_birth'] ?? null),
@@ -38,6 +43,7 @@ class FormXIIIGenerator extends BaseFormGenerator
             'header' => [
                 'form_title' => 'FORM XIII - Register of Workmen Employed by Contractor',
                 'period' => $this->formatPeriod($month, $year),
+                'contractor_name' => $contractorName ?? 'NIL',
                 'tenant' => [
                     'name' => $tenant['name'] ?? 'NIL',
                     'address' => $tenant['address'] ?? '',
