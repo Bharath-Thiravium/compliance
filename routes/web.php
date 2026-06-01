@@ -824,6 +824,57 @@ Route::get('/_ops/live-data-trace', function (Request $request) {
     return response($html)->header('Content-Type','text/html');
 });
 
+Route::get('/_ops/attendance-debug', function (Request $request) {
+    $token = (string) config('app.ops_token', '');
+    if ($token === '' || !hash_equals($token, (string) $request->query('token', ''))) abort(403);
+
+    $tenantId = (int) $request->query('tenant_id', 0);
+    $branchId = (int) $request->query('branch_id', 0);
+    if ($tenantId === 0) $tenantId = (int) (DB::table('tenants')->orderBy('id')->value('id') ?? 0);
+    if ($branchId === 0) $branchId = (int) (DB::table('branches')->where('tenant_id', $tenantId)->orderBy('id')->value('id') ?? 0);
+
+    // All attendance periods with counts
+    $periods = DB::table('workforce_attendance')
+        ->where('tenant_id', $tenantId)->where('branch_id', $branchId)
+        ->whereNull('deleted_at')
+        ->selectRaw('YEAR(attendance_date) as y, MONTH(attendance_date) as m, COUNT(*) as cnt, MIN(attendance_date) as first_date, MAX(attendance_date) as last_date')
+        ->groupBy('y', 'm')->orderBy('y')->orderBy('m')
+        ->get();
+
+    // Sample rows for each period
+    $samples = [];
+    foreach ($periods as $p) {
+        $rows = DB::table('workforce_attendance as a')
+            ->join('workforce_employee as e', 'e.id', '=', 'a.employee_id')
+            ->where('a.tenant_id', $tenantId)->where('a.branch_id', $branchId)
+            ->whereYear('a.attendance_date', $p->y)->whereMonth('a.attendance_date', $p->m)
+            ->whereNull('a.deleted_at')
+            ->select('e.employee_code', 'a.attendance_date', 'a.status')
+            ->orderBy('a.attendance_date')->limit(3)
+            ->get();
+        $samples["{$p->y}-{$p->m}"] = $rows;
+    }
+
+    // Batch periods for this tenant
+    $batches = DB::table('compliance_execution_batches')
+        ->where('tenant_id', $tenantId)
+        ->select('id', 'branch_id', 'period_month', 'period_year', 'period_from', 'period_to', 'status', 'created_at')
+        ->orderByDesc('id')->limit(5)->get();
+
+    return response()->json([
+        'tenant_id'          => $tenantId,
+        'branch_id'          => $branchId,
+        'attendance_periods' => $periods,
+        'sample_rows'        => $samples,
+        'recent_batches'     => $batches,
+        'diagnosis'          => collect($periods)->map(fn($p) => [
+            'period'     => "{$p->y}-" . str_pad($p->m, 2, '0', STR_PAD_LEFT),
+            'rows'       => $p->cnt,
+            'date_range' => "{$p->first_date} → {$p->last_date}",
+        ])->values(),
+    ], 200, [], JSON_PRETTY_PRINT);
+});
+
 require __DIR__.'/compliance.php';
 require __DIR__.'/batch-processing.php';
 require __DIR__.'/data-input.php';
