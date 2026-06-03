@@ -3,7 +3,6 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,18 +20,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         config(['telescope.enabled' => false]);
-
-        // Force root URL for subdirectory deployment
-        URL::forceRootUrl(config('app.url'));
-        
-        // Force HTTPS scheme
-        if ($this->app->runningInConsole() === false) {
-            $request = request();
-            if ($request->server('HTTP_X_FORWARDED_PROTO') === 'https' || 
-                $request->isSecure()) {
-                URL::forceScheme('https');
-            }
-        }
 
         // Ensure required storage directories exist (safe on every boot)
         foreach ([
