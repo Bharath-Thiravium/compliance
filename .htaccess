@@ -1,16 +1,6 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    
-    # Get the subdirectory path
-    RewriteBase /compliance/ce/
-    
-    # Strip the subdirectory prefix from REQUEST_URI
-    # So /compliance/ce/login becomes /login for Laravel
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_URI} ^/compliance/ce(.*)$
-    RewriteRule ^(.*)$ %1 [E=CLEANED_URI:%1]
-    
-    # Forward clean URIs to public/index.php
-    RewriteRule ^(.*)$ public/index.php [L,QSA]
+    RewriteRule ^(.*)$ public/index.php [L]
 </IfModule>
