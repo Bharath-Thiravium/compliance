@@ -1,32 +1,20 @@
 <?php
-/**
- * Root Router for Subdirectory Deployment
- * 
- * This file is at: /compliance/ce/index.php
- * It routes all requests to: /compliance/ce/public/index.php
- * 
- * This works around .htaccess limitations on Hostinger
- */
 
-// Only process if not already in public folder
-$requestUri = $_SERVER['REQUEST_URI'] ?? '/';
-$scriptFilename = $_SERVER['SCRIPT_FILENAME'] ?? '';
+use Illuminate\Foundation\Application;
+use Illuminate\Http\Request;
 
-// If we're already in public folder, don't redirect
-if (strpos($scriptFilename, '/public/') !== false) {
-    require_once __DIR__ . '/public/index.php';
-    exit;
+define('LARAVEL_START', microtime(true));
+
+// Determine if the application is in maintenance mode...
+if (file_exists($maintenance = __DIR__.'/storage/framework/maintenance.php')) {
+    require $maintenance;
 }
 
-// Check if this is a direct request to public folder files
-if (preg_match('~^/compliance/ce/(css|js|images|storage)/~', $requestUri)) {
-    // Serve static files directly
-    $file = __DIR__ . str_replace('/compliance/ce/', '/', $requestUri);
-    if (file_exists($file) && is_file($file)) {
-        // Let web server serve it
-        return false;
-    }
-}
+// Register the Composer autoloader...
+require __DIR__.'/vendor/autoload.php';
 
-// Route everything else through public/index.php
-require_once __DIR__ . '/public/index.php';
+// Bootstrap Laravel and handle the request...
+/** @var Application $app */
+$app = require_once __DIR__.'/bootstrap/app.php';
+
+$app->handleRequest(Request::capture());
