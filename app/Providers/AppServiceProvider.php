@@ -21,12 +21,6 @@ class AppServiceProvider extends ServiceProvider
     {
         config(['telescope.enabled' => false]);
 
-        // Handle subdirectory routing
-        $prefix = env('SUBDIRECTORY_PREFIX', '');
-        if ($prefix) {
-            \URL::forceRootUrl(config('app.url'));
-        }
-
         // Ensure required storage directories exist (safe on every boot)
         foreach ([
             storage_path('app/compliance_pdfs'),
