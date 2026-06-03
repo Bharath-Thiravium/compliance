@@ -15,7 +15,7 @@ class AuthController extends Controller
     public function showLogin()
     {
         if (Auth::check()) {
-            return redirect()->route('compliance.dashboard');
+            return redirect()->to($this->getDashboardUrl());
         }
 
         return response()
@@ -67,13 +67,13 @@ class AuthController extends Controller
                 ]);
             } catch (\Throwable) {}
 
-            if ($user->is_super_admin) {
-                return redirect()->intended(route('super-admin.dashboard'));
-            }
-
             $request->session()->forget('url.intended');
 
-            return redirect()->intended(route('compliance.dashboard'));
+            if ($user->is_super_admin) {
+                return redirect()->to($this->getSuperAdminUrl());
+            }
+
+            return redirect()->to($this->getDashboardUrl());
         }
 
         return back()->withErrors([
@@ -97,5 +97,23 @@ class AuthController extends Controller
     public function register()
     {
         return redirect()->route('login');
+    }
+
+    /**
+     * Get the full dashboard URL with subdirectory
+     */
+    private function getDashboardUrl()
+    {
+        $appUrl = config('app.url'); // https://athenas.co.in/compliance/ce
+        return $appUrl . '/compliance/dashboard';
+    }
+
+    /**
+     * Get the full super admin URL with subdirectory
+     */
+    private function getSuperAdminUrl()
+    {
+        $appUrl = config('app.url'); // https://athenas.co.in/compliance/ce
+        return $appUrl . '/super-admin/dashboard';
     }
 }
