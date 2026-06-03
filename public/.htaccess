@@ -1,11 +1,11 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /compliance/ce/
+    RewriteBase /compliance/ce/public/
     
     # Don't rewrite existing files or directories
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     
-    # Rewrite everything through public/index.php
-    RewriteRule ^(.*)$ public/index.php?/$1 [L,QSA]
+    # Rewrite everything through index.php
+    RewriteRule ^ index.php [L]
 </IfModule>
