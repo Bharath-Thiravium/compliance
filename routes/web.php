@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
@@ -925,5 +926,5 @@ require __DIR__.'/super-admin.php';
 require __DIR__.'/smart-templates.php';
 
 Route::get('/', function () {
-    return redirect()->route('compliance.dashboard');
+    return redirect()->route('login');
 });
