@@ -181,6 +181,13 @@ class ComplianceExecutionController extends Controller
 
     public function createBatch(Request $request)
     {
+        Log::info('Batch Auth Check', [
+            'authenticated' => Auth::check(),
+            'user_id' => Auth::id(),
+            'session_id' => session()->getId(),
+            'headers' => $request->headers->all(),
+        ]);
+
         if ($guard = $this->requireFullSubscription()) return $guard;
 
         try {

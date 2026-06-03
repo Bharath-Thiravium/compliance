@@ -150,4 +150,16 @@ return [
 
     'ops_token' => env('OPS_TOKEN', ''),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Trusted Proxies
+    |--------------------------------------------------------------------------
+    |
+    | Set trusted proxies for proper IP handling in local development.
+    |
+    */
+
+    'trusted_proxies' => env('TRUSTED_PROXIES', '127.0.0.1,::1'),
+    'trusted_host_patterns' => env('TRUSTED_HOST_PATTERNS', ''),
+
 ];

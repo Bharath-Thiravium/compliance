@@ -23,44 +23,59 @@ class ComplianceDataUploadController extends Controller
             'employees_file'  => 'required|file|max:5120',
             'payroll_file'    => 'required|file|max:5120',
             'attendance_file' => 'required|file|max:5120',
-            'period_from'     => 'required|date',
-            'period_to'       => 'required|date|after_or_equal:period_from',
+            'period_month'    => 'required|integer|between:1,12',
+            'period_year'     => 'required|integer|min:2000|max:2100',
         ]);
 
         $user     = Auth::user();
         $tenantId = $user->tenant_id;
         $branchId = $this->resolveUploadBranchId($tenantId, $user->branch_id, $user->id);
 
-        // Wrap everything — including CSV parsing — in one try/catch so that
-        // any InvalidArgumentException from parseCsv returns JSON, not a 500.
         try {
+            // Resolve compliance period from month/year
+            $month = (int) $request->input('period_month');
+            $year = (int) $request->input('period_year');
+            $compliancePeriod = sprintf('%04d-%02d', $year, $month);
+            
+            $periodData = [
+                'month' => $month,
+                'year' => $year,
+                'compliance_period' => $compliancePeriod,
+                'display_text' => \Carbon\Carbon::createFromFormat('Y-m', $compliancePeriod)->format('F Y'),
+                'period_from' => \Carbon\Carbon::create($year, $month, 1)->toDateString(),
+                'period_to' => \Carbon\Carbon::create($year, $month, 1)->endOfMonth()->toDateString(),
+            ];
+
             $employees   = $this->parseCsv($request->file('employees_file'),  'employees');
             $payrollRows = $this->parseCsv($request->file('payroll_file'),    'payroll');
             $attendRows  = $this->parseCsv($request->file('attendance_file'), 'attendance');
 
             Log::info('CSV parsed', [
-                'tenant_id'  => $tenantId,
-                'branch_id'  => $branchId,
-                'employees'  => count($employees),
-                'payroll'    => count($payrollRows),
-                'attendance' => count($attendRows),
+                'tenant_id'           => $tenantId,
+                'branch_id'           => $branchId,
+                'compliance_period'   => $compliancePeriod,
+                'employees'           => count($employees),
+                'payroll'             => count($payrollRows),
+                'attendance'          => count($attendRows),
             ]);
 
             $this->validateConsistency($employees, $payrollRows, $attendRows);
 
             $counts = DB::transaction(function () use (
-                $tenantId, $branchId, $employees, $payrollRows, $attendRows, $request
+                $tenantId, $branchId, $month, $year, $compliancePeriod,
+                $employees, $payrollRows, $attendRows, $periodData
             ) {
-                $empCodeToId  = $this->insertEmployees($employees, $tenantId, $branchId);
+                $empCodeToId  = $this->insertEmployees($employees, $tenantId, $branchId, $compliancePeriod);
                 $cycleId      = $this->resolvePayrollCycle(
                     $tenantId,
-                    $request->input('period_from'),
-                    $request->input('period_to')
+                    $periodData['period_from'],
+                    $periodData['period_to'],
+                    $compliancePeriod
                 );
-                $payrollCount = $this->insertPayroll($payrollRows, $empCodeToId, $tenantId, $branchId, $cycleId);
+                $payrollCount = $this->insertPayroll($payrollRows, $empCodeToId, $tenantId, $branchId, $cycleId, $compliancePeriod);
                 $attendCount  = $this->insertAttendance(
                     $attendRows, $empCodeToId, $tenantId, $branchId,
-                    $request->input('period_from')
+                    $periodData['period_from'], $compliancePeriod
                 );
 
                 return [
@@ -74,10 +89,17 @@ class ComplianceDataUploadController extends Controller
 
             return response()->json([
                 'status'  => 'success',
-                'message' => 'All datasets uploaded successfully',
+                'message' => "All datasets uploaded successfully for {$periodData['display_text']}",
                 'counts'  => $counts,
+                'compliance_period' => $compliancePeriod,
             ]);
 
+        } catch (\InvalidArgumentException $e) {
+            Log::warning('Multi-CSV upload validation failed', ['error' => $e->getMessage()]);
+            return response()->json([
+                'status'  => 'error',
+                'message' => $e->getMessage(),
+            ], 422);
         } catch (\Throwable $e) {
             Log::error('Multi-CSV upload failed', [
                 'tenant_id' => $tenantId,
@@ -324,7 +346,7 @@ class ComplianceDataUploadController extends Controller
     /**
      * Upsert employees and return [employee_code => id] map.
      */
-    private function insertEmployees(array $rows, int $tenantId, int $branchId): array
+    private function insertEmployees(array $rows, int $tenantId, int $branchId, string $compliancePeriod): array
     {
         $map = [];
         $uploadedCodes = collect($rows)
@@ -377,7 +399,7 @@ class ComplianceDataUploadController extends Controller
 
     // ── Payroll Cycle ─────────────────────────────────────────────────────────
 
-    private function resolvePayrollCycle(int $tenantId, string $from, string $to): int
+    private function resolvePayrollCycle(int $tenantId, string $from, string $to, string $compliancePeriod): int
     {
         $existing = DB::table('workforce_payroll_cycle')
             ->where('tenant_id', $tenantId)
@@ -403,7 +425,7 @@ class ComplianceDataUploadController extends Controller
 
     // ── Insert Payroll ────────────────────────────────────────────────────────
 
-    private function insertPayroll(array $rows, array $empMap, int $tenantId, int $branchId, int $cycleId): int
+    private function insertPayroll(array $rows, array $empMap, int $tenantId, int $branchId, int $cycleId, string $compliancePeriod): int
     {
         $count = 0;
 
@@ -500,7 +522,7 @@ class ComplianceDataUploadController extends Controller
     // ── Insert Attendance ─────────────────────────────────────────────────────
 
     private function insertAttendance(
-        array $rows, array $empMap, int $tenantId, int $branchId, ?string $periodFrom = null
+        array $rows, array $empMap, int $tenantId, int $branchId, ?string $periodFrom = null, string $compliancePeriod = ''
     ): int {
         // Use the upload's period_from so attendance is stored in the correct month,
         // not always the current calendar month.
@@ -617,6 +639,8 @@ class ComplianceDataUploadController extends Controller
             $request->validate([
                 'type' => 'required|string|in:' . implode(',', $valid),
                 'file' => 'required|file|max:10240',
+                'period_month' => 'required|integer|between:1,12',
+                'period_year' => 'required|integer|min:2000|max:2100',
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
@@ -629,28 +653,47 @@ class ComplianceDataUploadController extends Controller
         $tenantId = $user->tenant_id;
         $branchId = $this->resolveUploadBranchId($tenantId, $user->branch_id, $user->id);
         $type     = $request->input('type');
+        $file     = $request->file('file');
 
         try {
-            $result = app(\App\Services\Compliance\SupplementaryCsvUploadService::class)
-                ->upload($request->file('file'), $type, $tenantId, $branchId);
+            // Resolve compliance period from month/year
+            $month = (int) $request->input('period_month');
+            $year = (int) $request->input('period_year');
+            $compliancePeriod = sprintf('%04d-%02d', $year, $month);
+            $displayText = \Carbon\Carbon::createFromFormat('Y-m', $compliancePeriod)->format('F Y');
 
-            Log::info('Supplementary CSV uploaded (standalone)', [
+            // Detect file type and handle accordingly
+            $ext = strtolower($file->getClientOriginalExtension());
+
+            if ($ext === 'xlsx') {
+                $result = app(\App\Services\Compliance\SupplementaryXlsxUploadService::class)
+                    ->upload($file, $type, $tenantId, $branchId, $compliancePeriod);
+            } else {
+                // Handle CSV
+                $result = app(\App\Services\Compliance\SupplementaryCsvUploadService::class)
+                    ->upload($file, $type, $tenantId, $branchId, $compliancePeriod);
+            }
+
+            Log::info('Supplementary file uploaded', [
                 'tenant_id' => $tenantId,
                 'type'      => $type,
+                'format'    => $ext,
+                'compliance_period' => $compliancePeriod,
                 'inserted'  => $result['inserted'],
             ]);
 
             return response()->json([
                 'status'           => 'success',
-                'message'          => "Successfully imported {$result['inserted']} {$type} records"
+                'message'          => "Successfully imported {$result['inserted']} {$type} records for {$displayText}"
                     . ($result['skipped'] > 0 ? " ({$result['skipped']} skipped)" : ''),
                 'records_inserted' => $result['inserted'],
                 'records_skipped'  => $result['skipped'] ?? 0,
                 'row_errors'       => $result['errors']  ?? [],
                 'type'             => $type,
+                'compliance_period' => $compliancePeriod,
             ]);
         } catch (\Throwable $e) {
-            Log::error('Supplementary CSV upload failed (standalone)', [
+            Log::error('Supplementary file upload failed', [
                 'tenant_id' => $tenantId,
                 'type'      => $type,
                 'error'     => $e->getMessage(),

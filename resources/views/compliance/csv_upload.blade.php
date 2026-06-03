@@ -24,18 +24,41 @@
         <form id="coreUploadForm" enctype="multipart/form-data">
             @csrf
 
-            {{-- Period --}}
+            {{-- Period (Month & Year Only) --}}
             <div class="grid-row mb-3">
                 <div class="grid-col col-1-2">
                     <div class="form-group">
-                        <label class="form-label">Period From <span class="form-required">*</span></label>
-                        <input type="date" name="period_from" class="form-input" required>
+                        <label class="form-label">Period Month <span class="form-required">*</span></label>
+                        <select name="period_month" class="form-input" required>
+                            <option value="">-- Select Month --</option>
+                            <option value="1" {{ now()->month == 1 ? 'selected' : '' }}>January</option>
+                            <option value="2" {{ now()->month == 2 ? 'selected' : '' }}>February</option>
+                            <option value="3" {{ now()->month == 3 ? 'selected' : '' }}>March</option>
+                            <option value="4" {{ now()->month == 4 ? 'selected' : '' }}>April</option>
+                            <option value="5" {{ now()->month == 5 ? 'selected' : '' }}>May</option>
+                            <option value="6" {{ now()->month == 6 ? 'selected' : '' }}>June</option>
+                            <option value="7" {{ now()->month == 7 ? 'selected' : '' }}>July</option>
+                            <option value="8" {{ now()->month == 8 ? 'selected' : '' }}>August</option>
+                            <option value="9" {{ now()->month == 9 ? 'selected' : '' }}>September</option>
+                            <option value="10" {{ now()->month == 10 ? 'selected' : '' }}>October</option>
+                            <option value="11" {{ now()->month == 11 ? 'selected' : '' }}>November</option>
+                            <option value="12" {{ now()->month == 12 ? 'selected' : '' }}>December</option>
+                        </select>
                     </div>
                 </div>
                 <div class="grid-col col-1-2">
                     <div class="form-group">
-                        <label class="form-label">Period To <span class="form-required">*</span></label>
-                        <input type="date" name="period_to" class="form-input" required>
+                        <label class="form-label">Period Year <span class="form-required">*</span></label>
+                        <select name="period_year" class="form-input" required>
+                            <option value="">-- Select Year --</option>
+                            @php
+                                $currentYear = now()->year;
+                                foreach (range($currentYear - 5, $currentYear + 2) as $year) {
+                                    $selected = $year == $currentYear ? 'selected' : '';
+                                    echo "<option value=\"$year\" $selected>$year</option>";
+                                }
+                            @endphp
+                        </select>
                     </div>
                 </div>
             </div>
@@ -101,6 +124,42 @@
             Each supplementary dataset is uploaded independently. Employees must be uploaded first — these datasets reference employee codes already in the system.
         </p>
 
+        {{-- ── Period Selection for Supplementary ─────────────────────────── --}}
+        <div style="background:#f5f5f5;padding:16px;border-radius:6px;margin-bottom:16px;">
+            <div style="font-size:12px;color:#595959;font-weight:600;margin-bottom:8px;">📅 Select Period for All Supplementary Uploads:</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div>
+                    <select id="suppPeriodMonth" class="form-input" style="font-size:13px;">
+                        <option value="">-- Select Month --</option>
+                        <option value="1" {{ now()->month == 1 ? 'selected' : '' }}>January</option>
+                        <option value="2" {{ now()->month == 2 ? 'selected' : '' }}>February</option>
+                        <option value="3" {{ now()->month == 3 ? 'selected' : '' }}>March</option>
+                        <option value="4" {{ now()->month == 4 ? 'selected' : '' }}>April</option>
+                        <option value="5" {{ now()->month == 5 ? 'selected' : '' }}>May</option>
+                        <option value="6" {{ now()->month == 6 ? 'selected' : '' }}>June</option>
+                        <option value="7" {{ now()->month == 7 ? 'selected' : '' }}>July</option>
+                        <option value="8" {{ now()->month == 8 ? 'selected' : '' }}>August</option>
+                        <option value="9" {{ now()->month == 9 ? 'selected' : '' }}>September</option>
+                        <option value="10" {{ now()->month == 10 ? 'selected' : '' }}>October</option>
+                        <option value="11" {{ now()->month == 11 ? 'selected' : '' }}>November</option>
+                        <option value="12" {{ now()->month == 12 ? 'selected' : '' }}>December</option>
+                    </select>
+                </div>
+                <div>
+                    <select id="suppPeriodYear" class="form-input" style="font-size:13px;">
+                        <option value="">-- Select Year --</option>
+                        @php
+                            $currentYear = now()->year;
+                            foreach (range($currentYear - 5, $currentYear + 2) as $year) {
+                                $selected = $year == $currentYear ? 'selected' : '';
+                                echo "<option value=\"$year\" $selected>$year</option>";
+                            }
+                        @endphp
+                    </select>
+                </div>
+            </div>
+        </div>
+
         {{-- ── Upload All Button ─────────────────────────────────────────── --}}
         <div id="uploadAllResult" class="alert mb-3" style="display:none;"></div>
         <div class="flex-start gap-2 mb-3">
@@ -129,7 +188,7 @@
             @foreach($supplementary as $ds)
             <div class="grid-col col-1-3" style="margin-bottom:16px;">
                 <div class="upload-card" id="supp-card-{{ $ds['type'] }}">
-                    <div class="upload-card-head">{{ $ds['icon'] }} {{ $ds['label'] }} CSV</div>
+                    <div class="upload-card-head">{{ $ds['icon'] }} {{ $ds['label'] }}</div>
                     <div class="upload-card-body">
 
                         <div style="font-size:11px;color:#8c8c8c;line-height:1.6;margin-bottom:8px;">
@@ -152,9 +211,11 @@
                         <div class="file-status" id="supp-status-{{ $ds['type'] }}"></div>
 
                         <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
-                            <a href="{{ route('csv.template', $ds['type']) }}"
+                            <a href="{{ route('compliance.templates.smart.download', $ds['type']) }}?branch_id={{ auth()->user()->branch_id ?? 1 }}"
                                class="sample-btn" download
-                               style="font-size:11px;">⬇ Template</a>
+                               style="font-size:11px;background:#52c41a;border-color:#52c41a;color:white;padding:4px 10px;border-radius:3px;text-decoration:none;display:inline-block;" title="Smart Excel template with auto-fill">
+                               📊 Excel
+                            </a>
                             <button type="button"
                                     class="btn btn-primary btn-sm supp-upload-btn"
                                     data-type="{{ $ds['type'] }}"
@@ -178,8 +239,6 @@
 <script>
 const getCsrf = () => document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 
-// Fetch a guaranteed-fresh token from the server before each upload batch.
-// Falls back to the meta tag value if the request fails.
 const fetchCsrf = async () => {
     try {
         const r = await fetch('{{ url("/compliance/csrf-token") }}', {
@@ -197,13 +256,11 @@ const fetchCsrf = async () => {
     return getCsrf();
 };
 
-// Keep meta tag in sync from the XSRF-TOKEN cookie after each response.
 const refreshCsrf = () => {
     try {
         const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
         if (match) {
             const raw = decodeURIComponent(match[1]);
-            // Laravel encrypts the cookie value — only use it if it looks like a plain token
             if (raw.length < 100) {
                 document.querySelector('meta[name="csrf-token"]')?.setAttribute('content', raw);
             }
@@ -211,7 +268,6 @@ const refreshCsrf = () => {
     } catch (_) {}
 };
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
 function escHtml(s) {
     if (!s) return '';
     return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
@@ -226,7 +282,6 @@ function showBanner(elId, type, html) {
     el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-// ── Core file-picker feedback ─────────────────────────────────────────────────
 document.querySelectorAll('.csv-input').forEach(input => {
     input.addEventListener('change', function () {
         const cardId   = this.dataset.card;
@@ -245,7 +300,6 @@ document.querySelectorAll('.csv-input').forEach(input => {
     });
 });
 
-// ── Supplementary file-picker feedback ───────────────────────────────────────
 document.querySelectorAll('.supp-file-input').forEach(input => {
     input.addEventListener('change', function () {
         const type     = this.dataset.type;
@@ -262,7 +316,6 @@ document.querySelectorAll('.supp-file-input').forEach(input => {
     });
 });
 
-// ── Core upload (all 3 together) ──────────────────────────────────────────────
 document.getElementById('coreUploadForm').addEventListener('submit', async function (e) {
     e.preventDefault();
 
@@ -312,12 +365,18 @@ document.getElementById('coreUploadForm').addEventListener('submit', async funct
     }
 });
 
-// ── Upload All Supplementary ────────────────────────────────────────────────
 document.getElementById('uploadAllSuppBtn').addEventListener('click', async function () {
     const inputs  = [...document.querySelectorAll('.supp-file-input')].filter(i => i.files.length);
+    const month = document.getElementById('suppPeriodMonth').value;
+    const year = document.getElementById('suppPeriodYear').value;
 
     if (!inputs.length) {
         showBanner('uploadAllResult', 'error', '⚠️ Please select at least one supplementary file first.');
+        return;
+    }
+
+    if (!month || !year) {
+        showBanner('uploadAllResult', 'error', '⚠️ Please select both Month and Year.');
         return;
     }
 
@@ -339,6 +398,8 @@ document.getElementById('uploadAllSuppBtn').addEventListener('click', async func
         const fd = new FormData();
         fd.append('file', input.files[0]);
         fd.append('type', type);
+        fd.append('period_month', month);
+        fd.append('period_year', year);
 
         try {
             const token   = await fetchCsrf();
@@ -386,16 +447,22 @@ document.getElementById('uploadAllSuppBtn').addEventListener('click', async func
     );
 });
 
-// ── Supplementary upload (one at a time) ─────────────────────────────────────
 document.querySelectorAll('.supp-upload-btn').forEach(btn => {
     btn.addEventListener('click', async function () {
         const type     = this.dataset.type;
         const fileInput= document.getElementById('supp-file-' + type);
         const statusEl = document.getElementById('supp-status-' + type);
         const card     = document.getElementById('supp-card-' + type);
+        const month = document.getElementById('suppPeriodMonth').value;
+        const year = document.getElementById('suppPeriodYear').value;
 
         if (!fileInput.files.length) {
             statusEl.innerHTML = `<span class="badge badge-danger">⚠️ Please select a file first</span>`;
+            return;
+        }
+
+        if (!month || !year) {
+            statusEl.innerHTML = `<span class="badge badge-danger">⚠️ Please select Month and Year</span>`;
             return;
         }
 
@@ -407,6 +474,8 @@ document.querySelectorAll('.supp-upload-btn').forEach(btn => {
         const fd = new FormData();
         fd.append('file', fileInput.files[0]);
         fd.append('type', type);
+        fd.append('period_month', month);
+        fd.append('period_year', year);
 
         try {
             const token = await fetchCsrf();

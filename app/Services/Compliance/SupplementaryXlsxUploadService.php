@@ -5,108 +5,91 @@ namespace App\Services\Compliance;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
-/**
- * Handles CSV uploads for supplementary compliance datasets:
- * bonus | fines | advances | deductions | incidents | hazard_register | contractors
- */
-class SupplementaryCsvUploadService
+class SupplementaryXlsxUploadService
 {
     public function upload(UploadedFile $file, string $type, int $tenantId, int $branchId): array
     {
-        $rows = $this->parseCsv($file, $type);
+        $rows = $this->parseXlsx($file, $type);
 
         $result = DB::transaction(function () use ($rows, $type, $tenantId, $branchId) {
             return match ($type) {
-                'bonus'          => $this->insertBonus($rows, $tenantId, $branchId),
-                'fines'          => $this->insertFines($rows, $tenantId, $branchId),
-                'advances'       => $this->insertAdvances($rows, $tenantId, $branchId),
-                'deductions'     => $this->insertDeductions($rows, $tenantId, $branchId),
-                'incidents'      => $this->insertIncidents($rows, $tenantId, $branchId),
-                'hazard_register'=> $this->insertHazardRegister($rows, $tenantId, $branchId),
-                'contractors'    => $this->insertContractors($rows, $tenantId, $branchId),
-                default          => throw new \InvalidArgumentException("Unknown dataset type: {$type}"),
+                'bonus'           => $this->insertBonus($rows, $tenantId, $branchId),
+                'fines'           => $this->insertFines($rows, $tenantId, $branchId),
+                'advances'        => $this->insertAdvances($rows, $tenantId, $branchId),
+                'deductions'      => $this->insertDeductions($rows, $tenantId, $branchId),
+                'incidents'       => $this->insertIncidents($rows, $tenantId, $branchId),
+                'hazard_register' => $this->insertHazardRegister($rows, $tenantId, $branchId),
+                'contractors'     => $this->insertContractors($rows, $tenantId, $branchId),
+                default           => throw new \InvalidArgumentException("Unknown dataset type: {$type}"),
             };
         });
 
-        Log::info('Supplementary CSV upload complete', [
+        Log::info('Supplementary XLSX upload complete', [
             'type'     => $type,
             'tenant'   => $tenantId,
             'branch'   => $branchId,
             'inserted' => $result['inserted'],
             'skipped'  => $result['skipped'] ?? 0,
-            'errors'   => $result['errors']  ?? [],
         ]);
 
         return $result;
     }
 
-    // ── CSV Parsing ───────────────────────────────────────────────────────────
-
-    private function parseCsv(UploadedFile $file, string $type): array
+    private function parseXlsx(UploadedFile $file, string $type): array
     {
-        $handle = fopen($file->getRealPath(), 'r');
-        if ($handle === false) {
-            throw new \InvalidArgumentException("Cannot open uploaded file.");
+        try {
+            $spreadsheet = IOFactory::load($file->getRealPath());
+            $sheet = $spreadsheet->getSheetByName('Form') ?? $spreadsheet->getActiveSheet();
+        } catch (\Throwable $e) {
+            throw new \InvalidArgumentException("Cannot read XLSX file: " . $e->getMessage());
         }
 
-        $firstLine = fgets($handle);
-        if ($firstLine === false) {
-            fclose($handle);
-            throw new \InvalidArgumentException("CSV ({$type}): file is empty.");
+        // Get headers from row 1
+        $headers = [];
+        $colIndex = 1;
+        while ($value = $sheet->getCellByColumnAndRow($colIndex, 1)->getValue()) {
+            $headers[$colIndex] = strtolower(trim($value));
+            $colIndex++;
+            if ($colIndex > 50) break; // Safety limit
         }
 
-        $firstLine = preg_replace('/^\xEF\xBB\xBF/', '', $firstLine);
-        $delimiter = substr_count($firstLine, ';') > substr_count($firstLine, ',') ? ';' : ',';
-        rewind($handle);
-
-        $rawHeaders = fgetcsv($handle, 4096, $delimiter);
-        if (! $rawHeaders) {
-            fclose($handle);
-            throw new \InvalidArgumentException("CSV ({$type}): could not read header row.");
-        }
-        $rawHeaders[0] = preg_replace('/^\xEF\xBB\xBF/', '', $rawHeaders[0]);
-
-        $skipped       = [];
-        $headerMapping = CsvColumnMapper::mapHeaders($rawHeaders, $type, $skipped);
-        $required      = CsvColumnMapper::requiredFields($type);
-        $missing       = array_diff($required, array_keys($headerMapping));
-
-        if (! empty($missing)) {
-            fclose($handle);
-            throw new \InvalidArgumentException(
-                "CSV ({$type}): missing required columns: " . implode(', ', $missing)
-            );
+        if (empty($headers)) {
+            throw new \InvalidArgumentException("No headers found in XLSX file");
         }
 
-        if (! empty($skipped)) {
-            Log::debug("CSV ({$type}): unrecognised columns skipped", ['skipped' => $skipped]);
+        // Parse rows starting from row 2
+        $rows = [];
+        $rowIndex = 2;
+        while ($rowIndex <= $sheet->getHighestRow()) {
+            $row = [];
+            $hasData = false;
+
+            foreach ($headers as $colIndex => $header) {
+                $value = $sheet->getCellByColumnAndRow($colIndex, $rowIndex)->getValue();
+                if ($value !== null && $value !== '') {
+                    $hasData = true;
+                }
+                $row[$header] = $value;
+            }
+
+            // Skip empty rows
+            if ($hasData) {
+                $rows[] = $row;
+            }
+
+            $rowIndex++;
         }
-
-        $rows     = [];
-        $colCount = count($rawHeaders);
-
-        while (($data = fgetcsv($handle, 4096, $delimiter)) !== false) {
-            if ($data === [null] || implode('', $data) === '') continue;
-            if (count($data) < $colCount) $data = array_pad($data, $colCount, '');
-            elseif (count($data) > $colCount) $data = array_slice($data, 0, $colCount);
-
-            $row = CsvColumnMapper::extractRow($data, $headerMapping);
-            $rows[] = $row;
-        }
-
-        fclose($handle);
 
         if (empty($rows)) {
-            throw new \InvalidArgumentException("CSV ({$type}): no valid data rows found.");
+            throw new \InvalidArgumentException("No valid data rows found in XLSX file");
         }
 
-        Log::debug("CSV ({$type}) parsed", ['rows' => count($rows), 'delimiter' => $delimiter]);
+        Log::debug("XLSX ({$type}) parsed", ['rows' => count($rows), 'headers' => $headers]);
 
         return $rows;
     }
-
-    // ── Employee resolver ─────────────────────────────────────────────────────
 
     private function resolveEmployeeId(string $code, int $tenantId, int $branchId): int
     {
@@ -116,14 +99,12 @@ class SupplementaryCsvUploadService
             ->whereNull('deleted_at')
             ->value('id');
 
-        if (! $id) {
-            throw new \RuntimeException("Employee not found: {$code}. Upload employees.csv first.");
+        if (!$id) {
+            throw new \RuntimeException("Employee not found: {$code}");
         }
 
         return (int) $id;
     }
-
-    // ── Bonus ─────────────────────────────────────────────────────────────────
 
     private function insertBonus(array $rows, int $tenantId, int $branchId): array
     {
@@ -154,8 +135,6 @@ class SupplementaryCsvUploadService
         return ['inserted' => $count, 'skipped' => $skipped, 'errors' => $errors, 'type' => 'bonus'];
     }
 
-    // ── Fines ─────────────────────────────────────────────────────────────────
-
     private function insertFines(array $rows, int $tenantId, int $branchId): array
     {
         $count = 0; $skipped = 0; $errors = [];
@@ -165,8 +144,8 @@ class SupplementaryCsvUploadService
             try {
                 $empId    = $this->resolveEmployeeId($code, $tenantId, $branchId);
                 $fineDate = CsvNormalizer::normalizeDate($row['fine_date'] ?? null);
-                if (! $fineDate) {
-                    throw new \InvalidArgumentException("Invalid fine_date '{$row['fine_date']}'");
+                if (!$fineDate) {
+                    throw new \InvalidArgumentException("Invalid fine_date");
                 }
                 DB::table('workforce_fines')->insert([
                     'tenant_id'    => $tenantId,
@@ -191,8 +170,6 @@ class SupplementaryCsvUploadService
         return ['inserted' => $count, 'skipped' => $skipped, 'errors' => $errors, 'type' => 'fines'];
     }
 
-    // ── Advances ──────────────────────────────────────────────────────────────
-
     private function insertAdvances(array $rows, int $tenantId, int $branchId): array
     {
         $count = 0; $skipped = 0; $errors = [];
@@ -202,8 +179,8 @@ class SupplementaryCsvUploadService
             try {
                 $empId       = $this->resolveEmployeeId($code, $tenantId, $branchId);
                 $advanceDate = CsvNormalizer::normalizeDate($row['advance_date'] ?? null);
-                if (! $advanceDate) {
-                    throw new \InvalidArgumentException("Invalid advance_date '{$row['advance_date']}'");
+                if (!$advanceDate) {
+                    throw new \InvalidArgumentException("Invalid advance_date");
                 }
                 DB::table('workforce_advances')->insert([
                     'tenant_id'           => $tenantId,
@@ -227,8 +204,6 @@ class SupplementaryCsvUploadService
         return ['inserted' => $count, 'skipped' => $skipped, 'errors' => $errors, 'type' => 'advances'];
     }
 
-    // ── Deductions ────────────────────────────────────────────────────────────
-
     private function insertDeductions(array $rows, int $tenantId, int $branchId): array
     {
         $count = 0; $skipped = 0; $errors = [];
@@ -238,8 +213,8 @@ class SupplementaryCsvUploadService
             try {
                 $empId         = $this->resolveEmployeeId($code, $tenantId, $branchId);
                 $deductionDate = CsvNormalizer::normalizeDate($row['deduction_date'] ?? null);
-                if (! $deductionDate) {
-                    throw new \InvalidArgumentException("Invalid deduction_date '{$row['deduction_date']}'");
+                if (!$deductionDate) {
+                    throw new \InvalidArgumentException("Invalid deduction_date");
                 }
                 DB::table('workforce_deductions')->insert([
                     'tenant_id'      => $tenantId,
@@ -262,31 +237,27 @@ class SupplementaryCsvUploadService
         return ['inserted' => $count, 'skipped' => $skipped, 'errors' => $errors, 'type' => 'deductions'];
     }
 
-    // ── Incidents ─────────────────────────────────────────────────────────────
-
     private function insertIncidents(array $rows, int $tenantId, int $branchId): array
     {
         $count = 0; $skipped = 0; $errors = [];
         foreach ($rows as $i => $row) {
             $incidentDate = CsvNormalizer::normalizeDate($row['incident_date'] ?? null);
-            if (! $incidentDate) {
+            if (!$incidentDate) {
                 $skipped++;
-                $errors[] = "Row " . ($i + 2) . ": invalid incident_date '" . ($row['incident_date'] ?? '') . "'";
+                $errors[] = "Row " . ($i + 2) . ": invalid incident_date";
                 Log::warning("Incidents row skipped: invalid date", ['row' => $i + 2]);
                 continue;
             }
 
             $empId = null;
-            if (! empty($row['employee_code'])) {
+            if (!empty($row['employee_code'])) {
                 try {
                     $empId = $this->resolveEmployeeId(trim($row['employee_code']), $tenantId, $branchId);
                 } catch (\RuntimeException) {
-                    // Incidents can exist without a linked employee — do not skip
+                    // Incidents can exist without a linked employee
                 }
             }
 
-            // Use insert (not updateOrInsert) — updateOrInsert with nullable employee_id
-            // causes duplicate-key issues on MySQL when employee_id IS NULL.
             DB::table('incidents')->insert([
                 'tenant_id'          => $tenantId,
                 'branch_id'          => $branchId,
@@ -309,8 +280,6 @@ class SupplementaryCsvUploadService
         }
         return ['inserted' => $count, 'skipped' => $skipped, 'errors' => $errors, 'type' => 'incidents'];
     }
-
-    // ── Hazard Register ───────────────────────────────────────────────────────
 
     private function insertHazardRegister(array $rows, int $tenantId, int $branchId): array
     {
@@ -356,8 +325,6 @@ class SupplementaryCsvUploadService
             default                                            => 'medium',
         };
     }
-
-    // ── Contractors ───────────────────────────────────────────────────────────
 
     private function insertContractors(array $rows, int $tenantId, int $branchId): array
     {

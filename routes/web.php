@@ -16,7 +16,7 @@ Route::post('/register', [AuthController::class, 'register'])->name('register.po
 // ── CSRF token route (for legacy blade templates) ──────────────────────────────
 Route::get('/_csrf-token', function () {
     return response()->json(['token' => csrf_token()]);
-})->name('csrf.token');
+})->name('app.csrf.token');
 
 // ── Ops helpers (token-protected) ─────────────────────────────────────────────
 
@@ -922,6 +922,7 @@ require __DIR__.'/compliance.php';
 require __DIR__.'/batch-processing.php';
 require __DIR__.'/data-input.php';
 require __DIR__.'/super-admin.php';
+require __DIR__.'/smart-templates.php';
 
 Route::get('/', function () {
     return redirect()->route('compliance.dashboard');

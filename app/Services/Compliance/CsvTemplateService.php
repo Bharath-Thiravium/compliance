@@ -28,31 +28,31 @@ class CsvTemplateService
         ],
         'bonus' => [
             'filename' => 'sample_bonus.csv',
-            'version'  => '1.0',
+            'version'  => '2.0',
             'forms'    => ['FORM_C','FORM_D'],
             'required' => ['employee_code','financial_year','bonus_amount'],
         ],
         'fines' => [
             'filename' => 'sample_fines.csv',
-            'version'  => '1.0',
+            'version'  => '2.0',
             'forms'    => ['FORM_XX','SHOPS_FINES'],
             'required' => ['employee_code','fine_date','amount'],
         ],
         'advances' => [
             'filename' => 'sample_advances.csv',
-            'version'  => '1.0',
+            'version'  => '2.0',
             'forms'    => ['FORM_XXII','SHOPS_UNPAID'],
             'required' => ['employee_code','advance_date','advance_amount'],
         ],
         'deductions' => [
             'filename' => 'sample_deductions.csv',
-            'version'  => '1.0',
+            'version'  => '2.0',
             'forms'    => ['FORM_XX','FORM_XXI'],
             'required' => ['employee_code','deduction_date','amount'],
         ],
         'incidents' => [
             'filename' => 'sample_incidents.csv',
-            'version'  => '1.0',
+            'version'  => '2.0',
             'forms'    => ['FORM_11','FORM_18','FORM_26','ESI_FORM_12'],
             'required' => ['incident_date'],
         ],
@@ -101,55 +101,55 @@ class CsvTemplateService
             ],
         ],
         'bonus' => [
-            'headers' => 'employee_code,financial_year,bonus_percentage,bonus_amount,payment_date',
+            'headers' => 'employee_code,employee_name,father_name,department,designation,financial_year,bonus_percentage,bonus_amount,payment_date,remarks',
             'rows' => [
-                'EMP001,2024-25,8.33,1500,2025-03-31',
-                'EMP002,2024-25,8.33,1250,2025-03-31',
-                'EMP003,2024-25,8.33,1000,2025-03-31',
+                'EMP001,Arumugam S,Subramaniam A,Production,Supervisor,2024-25,8.33,1500,2025-03-31,Approved',
+                'EMP002,Balamurugan K,Krishnan B,Maintenance,Technician,2024-25,8.33,1250,2025-03-31,Approved',
+                'EMP003,Kavitha R,Rajan P,Administration,Clerk,2024-25,8.33,1000,2025-03-31,Approved',
             ],
         ],
         'fines' => [
-            'headers' => 'employee_code,fine_reason,fine_date,amount,showed_cause,heard_by,witness_name',
+            'headers' => 'employee_code,employee_name,father_name,department,designation,pf_number,esi_number,fine_date,fine_reason,amount,showed_cause,heard_by,witness_name,remarks',
             'rows' => [
-                'EMP002,Late attendance without prior intimation,2025-01-15,500,yes,Production Manager,Rajan K',
-                'EMP003,Negligence causing minor damage to equipment,2025-01-20,250,yes,HR Manager,Suresh P',
+                'EMP002,Balamurugan K,Krishnan B,Maintenance,Technician,100123456790,1234567891,2025-01-15,Late attendance,500,yes,Production Manager,Rajan K,',
+                'EMP003,Kavitha R,Rajan P,Administration,Clerk,100123456791,1234567892,2025-01-20,Equipment damage,250,yes,HR Manager,Suresh P,',
             ],
         ],
         'advances' => [
-            'headers' => 'employee_code,advance_date,advance_amount,purpose,installment_count,monthly_installment',
+            'headers' => 'employee_code,employee_name,father_name,department,designation,pf_number,esi_number,advance_date,advance_amount,purpose,installment_count,monthly_installment,remarks',
             'rows' => [
-                'EMP003,2025-01-10,5000,Medical emergency,5,1000',
-                'EMP001,2025-01-15,3000,House repair,3,1000',
+                'EMP003,Kavitha R,Rajan P,Administration,Clerk,100123456791,1234567892,2025-01-10,5000,Medical,5,1000,Approved',
+                'EMP001,Arumugam S,Subramaniam A,Production,Supervisor,100123456789,1234567890,2025-01-15,3000,Personal,3,1000,Approved',
             ],
         ],
         'deductions' => [
-            'headers' => 'employee_code,deduction_date,deduction_type,damage_particulars,amount',
+            'headers' => 'employee_code,employee_name,father_name,department,designation,pf_number,esi_number,deduction_date,deduction_type,damage_particulars,amount,remarks',
             'rows' => [
-                'EMP002,2025-01-20,Damage,Broken safety equipment worth Rs.800,800',
-                'EMP003,2025-01-25,Loss,Missing raw material valued at Rs.500,500',
+                'EMP002,Balamurugan K,Krishnan B,Maintenance,Technician,100123456790,1234567891,2025-01-20,Damage,Broken equipment,800,Approved',
+                'EMP003,Kavitha R,Rajan P,Administration,Clerk,100123456791,1234567892,2025-01-25,Loss,Missing items,500,Approved',
             ],
         ],
         'incidents' => [
-            'headers' => 'incident_date,employee_code,location,injury_type,severity,root_cause,corrective_action,preventive_action,medical_leave_days',
+            'headers' => 'incident_date,employee_code,employee_name,father_name,department,designation,location,injury_type,severity,root_cause,corrective_action,preventive_action,medical_leave_days,remarks',
             'rows' => [
-                '2025-01-12,EMP002,Production Floor,Minor cut on right hand,low,Improper use of cutting tool,First aid administered and tool replaced,Safety training conducted for all operators,2',
-                '2025-01-18,EMP001,Warehouse,Slip and fall,medium,Wet floor without warning sign,Medical treatment provided,Warning signs installed and floor grip tape applied,5',
+                '2025-01-12,EMP002,Balamurugan K,Krishnan B,Maintenance,Technician,Production,Minor cut,low,Tool misuse,First aid,Training,2,Closed',
+                '2025-01-18,EMP001,Arumugam S,Subramaniam A,Production,Supervisor,Warehouse,Slip,medium,Wet floor,Treatment,Warning signs,5,Closed',
             ],
         ],
         'hazard_register' => [
             'headers' => 'hazard_type,location,risk_rating,control_measure,corrective_action,reported_by',
             'rows' => [
-                'Chemical Exposure,Paint Shop,High,PPE mandatory - gloves and mask,Ventilation system upgraded and PPE stock replenished,Safety Officer Murugan',
-                'Electrical Hazard,Generator Room,Medium,Restricted access and insulation checks,Faulty wiring replaced and RCD installed,Maintenance Head Selvam',
-                'Fire Risk,Storage Area,High,Fire extinguishers installed and no-smoking signs,Sprinkler system installed and fire drill conducted,Safety Officer Murugan',
+                'Chemical Exposure,Paint Shop,High,PPE mandatory,Ventilation upgrade,Safety Officer',
+                'Electrical Hazard,Generator Room,Medium,Restricted access,Wiring repair,Maintenance',
+                'Fire Risk,Storage Area,High,Fire extinguishers,Sprinkler system,Safety Officer',
             ],
         ],
         'contractors' => [
             'headers' => 'contractor_name,contractor_code,license_number,valid_from,valid_to,nature_of_work,contact_person,mobile,email,address,max_workers,pf_code,esi_code',
             'rows' => [
-                'Murugan Contractors Pvt Ltd,CON001,LIC/TN/2024/001,2024-01-01,2026-12-31,Civil Construction,Murugan R,9876500001,murugan@contractors.com,15 Industrial Area Chennai TN 600058,50,TN/CHN/CON/001,31-00-123456-000',
-                'Selvam Labour Services,CON002,LIC/TN/2024/002,2024-01-01,2026-06-30,Housekeeping and Maintenance,Selvam K,9876500002,selvam@labourservices.com,22 GST Road Chennai TN 600032,30,TN/CHN/CON/002,31-00-234567-000',
-                'Rajan Engineering Works,CON003,LIC/TN/2024/003,2024-01-01,2025-12-31,Electrical and Mechanical,Rajan P,9876500003,rajan@engineering.com,8 SIDCO Industrial Estate Chennai TN 600098,20,TN/CHN/CON/003,31-00-345678-000',
+                'Murugan Contractors,CON001,LIC/TN/2024/001,2024-01-01,2026-12-31,Civil,Murugan R,9876500001,murugan@contractors.com,Industrial Area Chennai,50,TN/CHN/CON/001,31-00-123456-000',
+                'Selvam Labour,CON002,LIC/TN/2024/002,2024-01-01,2026-06-30,Maintenance,Selvam K,9876500002,selvam@labour.com,GST Road Chennai,30,TN/CHN/CON/002,31-00-234567-000',
+                'Rajan Engineering,CON003,LIC/TN/2024/003,2024-01-01,2025-12-31,Electrical,Rajan P,9876500003,rajan@engineering.com,SIDCO Chennai,20,TN/CHN/CON/003,31-00-345678-000',
             ],
         ],
     ];
@@ -179,26 +179,16 @@ class CsvTemplateService
         $tpl = self::TEMPLATES[$type] ?? null;
         if (! $tpl) return null;
 
-        // Replace placeholder dates with current month so sample data
-        // matches whatever period the user is generating forms for.
         $now   = now();
         $y     = $now->year;
         $m     = str_pad($now->month, 2, '0', STR_PAD_LEFT);
-        $d1    = "{$y}-{$m}-05";
-        $d2    = "{$y}-{$m}-12";
-        $d3    = "{$y}-{$m}-18";
-        $d4    = "{$y}-{$m}-20";
-        $d5    = "{$y}-{$m}-25";
-        $last  = "{$y}-{$m}-" . str_pad($now->daysInMonth, 2, '0', STR_PAD_LEFT);
         $fy    = ($now->month >= 4 ? $y : $y - 1) . '-' . substr(($now->month >= 4 ? $y + 1 : $y), -2);
 
-        $rows = array_map(function (string $row) use ($y, $m, $d1, $d2, $d3, $d4, $d5, $last, $fy) {
-            // Replace any YYYY-MM-DD pattern with current-month equivalent
+        $rows = array_map(function (string $row) use ($y, $m, $fy) {
             $row = preg_replace_callback('/\d{4}-\d{2}-\d{2}/', function ($match) use ($y, $m) {
                 $day = substr($match[0], 8, 2);
                 return "{$y}-{$m}-{$day}";
             }, $row);
-            // Replace financial year patterns like 2024-25
             $row = preg_replace('/\d{4}-\d{2}(?=,|$)/', $fy, $row);
             return $row;
         }, $tpl['rows']);
