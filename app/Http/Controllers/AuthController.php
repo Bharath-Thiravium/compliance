@@ -68,12 +68,12 @@ class AuthController extends Controller
             } catch (\Throwable) {}
 
             if ($user->is_super_admin) {
-                return redirect()->route('super-admin.dashboard');
+                return redirect()->intended(route('super-admin.dashboard'));
             }
 
             $request->session()->forget('url.intended');
 
-            return redirect()->route('compliance.dashboard');
+            return redirect()->intended(route('compliance.dashboard'));
         }
 
         return back()->withErrors([

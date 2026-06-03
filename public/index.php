@@ -35,8 +35,9 @@ if (strpos($requestUri, $subdirectory) === 0) {
     // Recreate the request with the corrected path
     $_SERVER['REQUEST_URI'] = $newUri;
     $_SERVER['PATH_INFO'] = $newUri;
-    $_SERVER['SCRIPT_NAME'] = '/public/index.php';
-    $_SERVER['PHP_SELF'] = '/public/index.php';
+    $_SERVER['SCRIPT_NAME'] = '/compliance/ce/public/index.php';
+    $_SERVER['PHP_SELF'] = '/compliance/ce/public/index.php';
+    $_SERVER['SCRIPT_FILENAME'] = __FILE__;
     
     // Recapture request with fixed values
     $request = Request::capture();
