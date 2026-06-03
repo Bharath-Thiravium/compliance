@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\URL;
 use App\Models\AuditLog;
 
 class AuthController extends Controller
@@ -13,7 +12,7 @@ class AuthController extends Controller
     public function showLogin()
     {
         if (Auth::check()) {
-            return redirect()->to(URL::to('/compliance/dashboard'));
+            return redirect()->route('compliance.dashboard');
         }
 
         return response()
@@ -68,10 +67,10 @@ class AuthController extends Controller
             $request->session()->forget('url.intended');
 
             if ($user->is_super_admin) {
-                return redirect()->to(URL::to('/super-admin/dashboard'));
+                return redirect()->route('super-admin.dashboard');
             }
 
-            return redirect()->to(URL::to('/compliance/dashboard'));
+            return redirect()->route('compliance.dashboard');
         }
 
         return back()->withErrors([
@@ -84,16 +83,16 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect()->to(URL::to('/login'));
+        return redirect()->route('login');
     }
 
     public function showRegister()
     {
-        return redirect()->to(URL::to('/login'));
+        return redirect()->route('login');
     }
 
     public function register()
     {
-        return redirect()->to(URL::to('/login'));
+        return redirect()->route('login');
     }
 }

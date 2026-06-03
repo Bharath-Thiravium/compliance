@@ -1,11 +1,17 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    
+    # Set the base path for the subdirectory
     RewriteBase /compliance/ce/public/
     
-    # Don't rewrite existing files or directories
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
+    # Don't rewrite existing files
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
     
-    # Rewrite everything through index.php
+    # Don't rewrite existing directories
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+    
+    # Rewrite everything else to index.php
     RewriteRule ^ index.php [L]
 </IfModule>
