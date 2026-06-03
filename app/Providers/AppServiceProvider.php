@@ -25,9 +25,13 @@ class AppServiceProvider extends ServiceProvider
         // Force root URL for subdirectory deployment
         URL::forceRootUrl(config('app.url'));
         
-        // Force HTTPS if behind proxy
-        if ($this->app->request->server('HTTP_X_FORWARDED_PROTO') === 'https') {
-            URL::forceScheme('https');
+        // Force HTTPS scheme
+        if ($this->app->runningInConsole() === false) {
+            $request = request();
+            if ($request->server('HTTP_X_FORWARDED_PROTO') === 'https' || 
+                $request->isSecure()) {
+                URL::forceScheme('https');
+            }
         }
 
         // Ensure required storage directories exist (safe on every boot)
