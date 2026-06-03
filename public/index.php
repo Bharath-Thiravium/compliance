@@ -17,4 +17,29 @@ require __DIR__.'/../vendor/autoload.php';
 /** @var Application $app */
 $app = require_once __DIR__.'/../bootstrap/app.php';
 
-$app->handleRequest(Request::capture());
+// CRITICAL FIX FOR SUBDIRECTORY DEPLOYMENT
+// Strip /compliance/ce from the request path so Laravel sees /login instead of /compliance/ce/login
+$request = Request::capture();
+
+// Get the current REQUEST_URI
+$requestUri = $request->getRequestUri();
+$subdirectory = '/compliance/ce';
+
+// If the request URI starts with the subdirectory, remove it
+if (strpos($requestUri, $subdirectory) === 0) {
+    $newUri = substr($requestUri, strlen($subdirectory));
+    if (empty($newUri)) {
+        $newUri = '/';
+    }
+    
+    // Recreate the request with the corrected path
+    $_SERVER['REQUEST_URI'] = $newUri;
+    $_SERVER['PATH_INFO'] = $newUri;
+    $_SERVER['SCRIPT_NAME'] = '/public/index.php';
+    $_SERVER['PHP_SELF'] = '/public/index.php';
+    
+    // Recapture request with fixed values
+    $request = Request::capture();
+}
+
+$app->handleRequest($request);
